@@ -1,0 +1,11 @@
+.env
+.env.local
+.env.production
+backend/target/
+*.class
+*.jar
+frontend/node_modules/
+frontend/dist/
+.idea/
+*.iml
+.vscode/
