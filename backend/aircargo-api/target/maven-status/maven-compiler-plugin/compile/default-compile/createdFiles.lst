@@ -1,3 +1,15 @@
-com/aircargo/AircargoApiApplication.class
+com/aircargo/entity/Mawb.class
+com/aircargo/entity/FlightStatus.class
+com/aircargo/entity/Airline$AirlineBuilder.class
+com/aircargo/entity/Flight.class
 com/aircargo/controller/AirlineController.class
+com/aircargo/entity/CommodityType.class
+com/aircargo/entity/MawbStatus.class
+com/aircargo/controller/FlightController.class
+com/aircargo/repository/FlightRepository.class
+com/aircargo/entity/AircraftType.class
+com/aircargo/AircargoApiApplication.class
+com/aircargo/repository/MawbRepository.class
+com/aircargo/entity/Airline.class
+com/aircargo/controller/MawbController.class
 com/aircargo/repository/AirlineRepository.class
