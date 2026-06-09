@@ -1,14 +1,17 @@
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/AircargoApiApplication.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/controller/AirlineController.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/controller/BookingController.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/controller/FlightController.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/controller/MawbController.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/AircraftType.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/Airline.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/Booking.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/CommodityType.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/Flight.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/FlightStatus.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/Mawb.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/MawbStatus.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/repository/AirlineRepository.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/repository/BookingRepository.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/repository/FlightRepository.java
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/repository/MawbRepository.java
