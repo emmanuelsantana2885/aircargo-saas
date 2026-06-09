@@ -123,6 +123,33 @@ ALTER TABLE public.airline OWNER TO aircargo_user;
 GRANT ALL ON TABLE public.airline TO aircargo_user;
 
 
+-- public.flyway_schema_history definition
+
+-- Drop table
+
+-- DROP TABLE public.flyway_schema_history;
+
+CREATE TABLE public.flyway_schema_history (
+	installed_rank int4 NOT NULL,
+	"version" varchar(50) NULL,
+	description varchar(200) NOT NULL,
+	"type" varchar(20) NOT NULL,
+	script varchar(1000) NOT NULL,
+	checksum int4 NULL,
+	installed_by varchar(100) NOT NULL,
+	installed_on timestamp DEFAULT now() NOT NULL,
+	execution_time int4 NOT NULL,
+	success bool NOT NULL,
+	CONSTRAINT flyway_schema_history_pk PRIMARY KEY (installed_rank)
+);
+CREATE INDEX flyway_schema_history_s_idx ON public.flyway_schema_history USING btree (success);
+
+-- Permissions
+
+ALTER TABLE public.flyway_schema_history OWNER TO aircargo_user;
+GRANT ALL ON TABLE public.flyway_schema_history TO aircargo_user;
+
+
 -- public.app_user definition
 
 -- Drop table
@@ -764,3 +791,5 @@ GRANT ALL ON FUNCTION public.uuid_ns_x500() TO aircargo_user;
 
 GRANT ALL ON SCHEMA public TO pg_database_owner;
 GRANT USAGE ON SCHEMA public TO public;
+
+
