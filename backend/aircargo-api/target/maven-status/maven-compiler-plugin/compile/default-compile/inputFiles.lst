@@ -1,1 +1,4 @@
 /home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/AircargoApiApplication.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/controller/AirlineController.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/entity/Airline.java
+/home/manolov/Projects/aircargo-saas/backend/aircargo-api/src/main/java/com/aircargo/repository/AirlineRepository.java
