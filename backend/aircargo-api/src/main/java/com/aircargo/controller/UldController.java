@@ -1,8 +1,10 @@
 package com.aircargo.controller;
 
-import com.aircargo.entity.Uld;
+import com.aircargo.dto.UldDTO;
 import com.aircargo.entity.UldStatus;
-import com.aircargo.repository.UldRepository;
+import com.aircargo.service.UldService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,34 +15,43 @@ import java.util.UUID;
 @RequestMapping("/api/ulds")
 public class UldController {
 
-    private final UldRepository uldRepository;
+    private final UldService uldService;
 
-    public UldController(UldRepository uldRepository) {
-        this.uldRepository = uldRepository;
+    public UldController(UldService uldService) {
+        this.uldService = uldService;
     }
 
     @GetMapping
-    public List<Uld> getAll(
-            @RequestParam(required = false) UUID flightId,
+    public List<UldDTO> getAll(
             @RequestParam(required = false) UUID airlineId,
-            @RequestParam(required = false) UldStatus status) {
-
-        if (flightId != null && status != null) {
-            return uldRepository.findByFlightIdAndStatus(flightId, status);
-        }
-        if (flightId != null) {
-            return uldRepository.findByFlightId(flightId);
-        }
-        if (airlineId != null) {
-            return uldRepository.findByAirlineId(airlineId);
-        }
-        return uldRepository.findAll();
+            @RequestParam(required = false) UUID flightId) {
+        return uldService.getAll(airlineId, flightId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Uld> getById(@PathVariable UUID id) {
-        return uldRepository.findById(id)
+    public ResponseEntity<UldDTO> getById(@PathVariable UUID id) {
+        return uldService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<UldDTO> create(@Valid @RequestBody UldDTO dto) {
+        UldDTO created = uldService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UldDTO> update(@PathVariable UUID id, @Valid @RequestBody UldDTO dto) {
+        return uldService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        boolean removed = uldService.delete(id);
+        if (!removed) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 }
