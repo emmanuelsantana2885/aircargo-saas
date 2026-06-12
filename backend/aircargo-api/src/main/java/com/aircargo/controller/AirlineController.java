@@ -1,10 +1,11 @@
 package com.aircargo.controller;
 
-import com.aircargo.entity.Airline;
-import com.aircargo.repository.AirlineRepository;
+import com.aircargo.dto.AirlineDTO;
+import com.aircargo.service.AirlineService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.RequestEntity;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,25 +14,41 @@ import java.util.UUID;
 @RequestMapping("/api/airlines")
 public class AirlineController {
 
-    private final AirlineRepository airlineRepository;
+    private final AirlineService airlineService;
 
-    public AirlineController(AirlineRepository airlineRepository) {
-        this.airlineRepository = airlineRepository;
+    public AirlineController(AirlineService airlineService) {
+        this.airlineService = airlineService;
     }
 
-    //Get /api/airlines - lista todas las aerolineas
     @GetMapping
-    public List<Airline> getAll() {
-        return airlineRepository.findAll();
+    public List<AirlineDTO> getAll() {
+        return airlineService.getAll();
     }
 
-    // Get /api/airlines/{id} -- buscar por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Airline> getById(@PathVariable UUID id) {
-        return airlineRepository.findById(id)
+    public ResponseEntity<AirlineDTO> getById(@PathVariable UUID id) {
+        return airlineService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping
+    public ResponseEntity<AirlineDTO> create(@Valid @RequestBody AirlineDTO dto) {
+        AirlineDTO created = airlineService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<AirlineDTO> update(@PathVariable UUID id, @Valid @RequestBody AirlineDTO dto) {
+        return airlineService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        boolean removed = airlineService.delete(id);
+        if (!removed) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
+    }
 }
