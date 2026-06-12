@@ -11,5 +11,6 @@ public interface BookingService {
     Optional<BookingDTO> getById(UUID id);
     BookingDTO create(BookingDTO dto);
     Optional<BookingDTO> update(UUID id, BookingDTO dto);
+    Optional<BookingDTO> updateAwb(UUID id, String awbNumber);
     boolean delete(UUID id);
 }
