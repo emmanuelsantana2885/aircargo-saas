@@ -57,4 +57,14 @@ public class BookingServiceImpl implements BookingService{
         bookingRepository.deleteById(id);
         return true;
     }
+
+    @Override
+    public Optional<BookingDTO> updateAwb(UUID id, String awbNumber) {
+        return bookingRepository.findById(id)
+                .map(existing -> {
+                    existing.setAwbNumber(awbNumber);
+                    return bookingRepository.save(existing);
+                })
+                .map(BookingDTO::fromEntity);
+    }
 }
