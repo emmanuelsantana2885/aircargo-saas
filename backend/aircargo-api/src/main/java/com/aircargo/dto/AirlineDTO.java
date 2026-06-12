@@ -1,5 +1,6 @@
 package com.aircargo.dto;
 
+import com.aircargo.entity.Airline;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +23,32 @@ public class AirlineDTO {
     private String country;
     private Boolean isActive;
     private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
 
+    public static AirlineDTO fromEntity(Airline airline) {
+        if (airline == null) return null;
+        return AirlineDTO.builder()
+                .id(airline.getId())
+                .code(airline.getCode())
+                .name(airline.getName())
+                .iataCode(airline.getIataCode())
+                .country(airline.getCountry())
+                .isActive(airline.getIsActive())
+                .createdAt(airline.getCreatedAt())
+                .updatedAt(airline.getUpdatedAt())
+                .build();
+    }
+
+    public static Airline toEntity(AirlineDTO dto) {
+        if(dto == null) return null;
+        Airline entity = new Airline();
+        entity.setId(dto.getId());
+        entity.setCode(dto.getCode());
+        entity.setName(dto.getName());
+        entity.setIataCode(dto.getIataCode());
+        entity.setCountry(dto.getCountry());
+        entity.setIsActive(dto.getIsActive());
+        return entity;
+    }
 }
+

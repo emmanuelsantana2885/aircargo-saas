@@ -13,6 +13,8 @@ public interface HawbRepository extends JpaRepository<Hawb, UUID>{
 
     List<Hawb> findByAirlineId(UUID airlineId);
 
+    List<Hawb> findByMawbId(UUID mawbId);
+
     List<Hawb> findByAirlineIdAndStatus(UUID airlineId, MawbStatus status);
 
     //Metodos avanzados --- se agregaran despues de corregir la entidad

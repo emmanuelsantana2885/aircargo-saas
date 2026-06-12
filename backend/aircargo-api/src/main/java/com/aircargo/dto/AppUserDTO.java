@@ -1,5 +1,7 @@
 package com.aircargo.dto;
 
+import com.aircargo.entity.Airline;
+import com.aircargo.entity.AppUser;
 import com.aircargo.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,4 +27,38 @@ public class AppUserDTO {
     private OffsetDateTime lastLogin;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+
+    public static AppUserDTO fromEntity(AppUser entity){
+        if(entity == null) return null;
+        return AppUserDTO.builder()
+                .id(entity.getId())
+                .airlineId(entity.getAirline() != null ? entity.getAirline().getId() : null)
+                .supabaseUid(entity.getSupabaseUid())
+                .email(entity.getEmail())
+                .fullName(entity.getFullName())
+                .role(entity.getRole())
+                .isActive(entity.getIsActive())
+                .lastLogin(entity.getLastLogin())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    public static AppUser toEntity(AppUserDTO dto){
+        if(dto == null) return null;
+        AppUser entity = new AppUser();
+        entity.setId(dto.getId());
+        if (dto.getAirlineId() != null) {
+            Airline airline = new Airline();
+            airline.setId(dto.getAirlineId());
+            entity.setAirline(airline);
+        }
+        entity.setSupabaseUid(dto.getSupabaseUid());
+        entity.setEmail(dto.getEmail());
+        entity.setFullName(dto.getFullName());
+        entity.setRole(dto.getRole());
+        entity.setIsActive(dto.getIsActive());
+        entity.setLastLogin(dto.getLastLogin());
+        return entity;
+    }
 }

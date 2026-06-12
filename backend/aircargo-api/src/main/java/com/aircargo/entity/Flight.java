@@ -25,9 +25,6 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
-
-
 public class Flight {
 
     @Id
@@ -72,7 +69,7 @@ public class Flight {
 
     //Capacidad maxima en kg
     @Column(name = "max_payload_kg", precision = 10, scale =2)
-    private BigDecimal maxPayloadkg;
+    private BigDecimal maxPayloadKg;
 
     //Total de posiciones ULD
     @Column(name = "total_positions")

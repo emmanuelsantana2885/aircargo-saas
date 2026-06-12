@@ -1,13 +1,12 @@
 package com.aircargo.controller;
 
-import com.aircargo.entity.Mawb;
+import com.aircargo.dto.MawbDTO;
 import com.aircargo.entity.MawbStatus;
-import com.aircargo.repository.MawbRepository;
+import com.aircargo.service.MawbService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 
 import java.util.List;
 import java.util.UUID;
@@ -17,59 +16,46 @@ import java.util.UUID;
 @RequestMapping("/api/mawbs")
 public class MawbController {
 
-    private final MawbRepository mawbRepository;
+    private final MawbService mawbService;
 
-    public MawbController(MawbRepository mawbRepository){
-        this.mawbRepository = mawbRepository;
+    public MawbController(MawbService mawbService){
+        this.mawbService = mawbService;
     }
 
     // GET /api/mawbs?airlineId=xxx
     @GetMapping
-    public List<Mawb> getAll(
+    public List<MawbDTO> getAll(
             @RequestParam(required = false) UUID airlineId,
             @RequestParam(required = false) UUID flightId,
             @RequestParam(required = false) MawbStatus status){
-
-        if(flightId !=null){
-            return mawbRepository.findByFlightId(flightId);
-        }
-        if(airlineId != null && status != null){
-            return mawbRepository.findByAirlineIdAndStatus(airlineId, status);
-        }
-        if(airlineId != null){
-            return mawbRepository.findByAirlineId(airlineId);
-        }
-        return mawbRepository.findAll();
+        return mawbService.getAll(airlineId, flightId, status);
     }
 
     // GET /api/mawbs/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Mawb> getById(@PathVariable UUID id){
-        return mawbRepository.findById(id)
+    public ResponseEntity<MawbDTO> getById(@PathVariable UUID id){
+        return mawbService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // GET /api/mawbs/awb/{awbNumber}?airlineId=xxx
     @GetMapping("/awb/{awbNumber}")
-    public ResponseEntity<Mawb> getByAwbNumber(
+    public ResponseEntity<MawbDTO> getByAwbNumber(
          @PathVariable String awbNumber,
          @RequestParam UUID airlineId) {
-        return mawbRepository.findByAirlineIdAndAwbNumber(airlineId, awbNumber)
+        return mawbService.getByAirlineIdAndAwbNumber(airlineId, awbNumber)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // PUT /api/mawbs/{id}/status
     @PutMapping("/{id}/status")
-    public ResponseEntity<Mawb> updateStatus(
+    public ResponseEntity<MawbDTO> updateStatus(
             @PathVariable UUID id,
             @RequestParam MawbStatus status){
-        return mawbRepository.findById(id)
-                .map(mawb -> {
-                    mawb.setStatus(status);
-                    return ResponseEntity.ok(mawbRepository.save(mawb));
-                })
+        return mawbService.updateStatus(id, status)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
