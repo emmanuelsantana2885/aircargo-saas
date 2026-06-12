@@ -1,1 +1,10 @@
+com/aircargo/service/AirlineServiceImplTest.class
+com/aircargo/service/FlightServiceImplTest.class
+com/aircargo/service/UldServiceImplTest.class
+com/aircargo/service/BookingServiceImplTest.class
 com/aircargo/AppTest.class
+com/aircargo/service/AppUserServiceImplTest.class
+com/aircargo/service/WarehouseReceiptServiceImplTest.class
+com/aircargo/controller/AppUserControllerTest.class
+com/aircargo/controller/HawbControllerTest.class
+com/aircargo/service/HawbServiceImplTest.class
