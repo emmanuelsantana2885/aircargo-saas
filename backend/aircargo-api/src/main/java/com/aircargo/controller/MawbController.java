@@ -3,14 +3,13 @@ package com.aircargo.controller;
 import com.aircargo.dto.MawbDTO;
 import com.aircargo.entity.MawbStatus;
 import com.aircargo.service.MawbService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-
 
 @RestController
 @RequestMapping("/api/mawbs")
@@ -22,7 +21,6 @@ public class MawbController {
         this.mawbService = mawbService;
     }
 
-    // GET /api/mawbs?airlineId=xxx
     @GetMapping
     public List<MawbDTO> getAll(
             @RequestParam(required = false) UUID airlineId,
@@ -31,7 +29,6 @@ public class MawbController {
         return mawbService.getAll(airlineId, flightId, status);
     }
 
-    // GET /api/mawbs/{id}
     @GetMapping("/{id}")
     public ResponseEntity<MawbDTO> getById(@PathVariable UUID id){
         return mawbService.getById(id)
@@ -39,7 +36,6 @@ public class MawbController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET /api/mawbs/awb/{awbNumber}?airlineId=xxx
     @GetMapping("/awb/{awbNumber}")
     public ResponseEntity<MawbDTO> getByAwbNumber(
          @PathVariable String awbNumber,
@@ -49,7 +45,19 @@ public class MawbController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // PUT /api/mawbs/{id}/status
+    @PostMapping
+    public ResponseEntity<MawbDTO> create(@Valid @RequestBody MawbDTO dto) {
+        MawbDTO created = mawbService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MawbDTO> update(@PathVariable UUID id, @Valid @RequestBody MawbDTO dto) {
+        return mawbService.update(id, dto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{id}/status")
     public ResponseEntity<MawbDTO> updateStatus(
             @PathVariable UUID id,
@@ -59,5 +67,10 @@ public class MawbController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        boolean removed = mawbService.delete(id);
+        if (!removed) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
+    }
 }
