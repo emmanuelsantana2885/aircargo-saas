@@ -4,6 +4,8 @@ package com.aircargo.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,8 +56,9 @@ public class Flight {
     private String aircraftReg;
 
     //Tipo de aeronave - ENUM de PostgreSQL
-    @Column(name = "aircraft_type", columnDefinition = "aircraft_type")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "aircraft_type", columnDefinition = "aircraft_type")
     private AircraftType aircraftType;
 
     //Fecha del vuelo
@@ -63,8 +66,9 @@ public class Flight {
     private LocalDate flightDate;
 
     //Estado del vuelo -- ENUM de PostgreSQL
-    @Column(name = "Status", nullable = false, columnDefinition = "flight_status")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "flight_status")
     private FlightStatus status = FlightStatus.SCHEDULED;
 
     //Capacidad maxima en kg
