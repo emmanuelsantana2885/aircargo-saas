@@ -3,6 +3,8 @@ package com.aircargo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +43,7 @@ public class UldAwb {
     private String mawblabel;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "description", nullable = false, columnDefinition = "commodity_type")
     private CommodityType description = CommodityType.DRY_CARGO;
 

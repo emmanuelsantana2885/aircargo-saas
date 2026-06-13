@@ -2,6 +2,8 @@ package com.aircargo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -82,6 +84,7 @@ public class Booking {
     private Integer priority = 0;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "commodity_type", nullable = false, columnDefinition = "commodity_type")
     private CommodityType commodityType = CommodityType.DRY_CARGO;
 

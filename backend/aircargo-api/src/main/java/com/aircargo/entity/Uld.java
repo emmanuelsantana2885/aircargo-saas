@@ -2,6 +2,8 @@ package com.aircargo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +42,7 @@ public class Uld {
     private String uldNumber;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "uld_type", nullable = false, columnDefinition = "uld_type")
     private UldType uldType;
 
@@ -74,6 +77,7 @@ public class Uld {
     private BigDecimal netWeightKg;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "uld_status")
     private UldStatus status = UldStatus.OPEN;
 
