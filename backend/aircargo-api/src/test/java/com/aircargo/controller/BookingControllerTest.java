@@ -1,19 +1,20 @@
 package com.aircargo.controller;
 
-import com.aircargo.dto.BookingDTO;
-import com.aircargo.service.BookingService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
-
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
+
+import com.aircargo.dto.BookingAwbUpdateRequest;
+import com.aircargo.dto.BookingDTO;
+import com.aircargo.service.BookingService;
 
 class BookingControllerTest {
 
@@ -36,7 +37,9 @@ class BookingControllerTest {
         dto.setAwbNumber("AWB123");
         when(bookingService.updateAwb(id, "AWB123")).thenReturn(Optional.of(dto));
 
-        ResponseEntity<BookingDTO> res = controller.updateAwb(id, Map.of("awbNumber", "AWB123"));
+        BookingAwbUpdateRequest request = new BookingAwbUpdateRequest();
+        request.setAwbNumber("AWB123");
+        ResponseEntity<BookingDTO> res = controller.updateAwb(id, request);
 
         assertEquals(200, res.getStatusCodeValue());
         assertNotNull(res.getBody());
@@ -48,7 +51,9 @@ class BookingControllerTest {
         UUID id = UUID.randomUUID();
         when(bookingService.updateAwb(id, "AWB123")).thenReturn(Optional.empty());
 
-        ResponseEntity<BookingDTO> res = controller.updateAwb(id, Map.of("awbNumber", "AWB123"));
+        BookingAwbUpdateRequest request = new BookingAwbUpdateRequest();
+        request.setAwbNumber("AWB123");
+        ResponseEntity<BookingDTO> res = controller.updateAwb(id, request);
 
         assertEquals(404, res.getStatusCodeValue());
     }
@@ -57,7 +62,9 @@ class BookingControllerTest {
     void updateAwb_returnsBadRequest_whenNoAwbProvided() {
         UUID id = UUID.randomUUID();
 
-        ResponseEntity<BookingDTO> res = controller.updateAwb(id, Map.of());
+        BookingAwbUpdateRequest request = new BookingAwbUpdateRequest();
+        request.setAwbNumber("");
+        ResponseEntity<BookingDTO> res = controller.updateAwb(id, request);
 
         assertEquals(400, res.getStatusCodeValue());
     }

@@ -1,5 +1,22 @@
 package com.aircargo.service;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+
 import com.aircargo.dto.BookingDTO;
 import com.aircargo.entity.Airline;
 import com.aircargo.entity.Booking;
@@ -7,19 +24,6 @@ import com.aircargo.entity.CommodityType;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.Mawb;
 import com.aircargo.repository.BookingRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class BookingServiceImplTest {
 
@@ -156,6 +160,20 @@ class BookingServiceImplTest {
         assertEquals("Client Updated", result.get().getClientName());
         assertEquals(id, result.get().getId());
         verify(bookingRepository).save(any(Booking.class));
+    }
+
+    @Test
+    void updateAwb_existingBooking() {
+        UUID id = UUID.randomUUID();
+        Booking existing = makeBooking(id, UUID.randomUUID(), UUID.randomUUID(), null);
+        when(bookingRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(bookingRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Optional<BookingDTO> result = service.updateAwb(id, "AWB-UPDATED");
+
+        assertTrue(result.isPresent());
+        assertEquals("AWB-UPDATED", result.get().getAwbNumber());
+        verify(bookingRepository).save(existing);
     }
 
     @Test

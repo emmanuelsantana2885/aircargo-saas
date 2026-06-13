@@ -1,11 +1,11 @@
 package com.aircargo.controller;
 
-
-import com.aircargo.entity.WarehouseReceipt;
-import com.aircargo.repository.WarehouseReceiptRepository;
+import com.aircargo.dto.WarehouseReceiptDTO;
+import com.aircargo.service.WarehouseReceiptService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,36 +14,41 @@ import java.util.UUID;
 @RequestMapping("/api/receipts")
 public class WarehouseReceiptController {
 
-    private final WarehouseReceiptRepository receiptRepository;
+    private final WarehouseReceiptService receiptService;
 
-    public WarehouseReceiptController(WarehouseReceiptRepository receiptRepository) {
-        this.receiptRepository = receiptRepository;
+    public WarehouseReceiptController(WarehouseReceiptService receiptService) {
+        this.receiptService = receiptService;
     }
 
-    //Get /api/receipts
     @GetMapping
-    public List<WarehouseReceipt> getAll(
-            @RequestParam(required = false) UUID airlineId) {
-        if (airlineId != null) {
-            return receiptRepository.findByAirlineId(airlineId);
-        }
-        return receiptRepository.findAll();
+    public List<WarehouseReceiptDTO> getAll(@RequestParam(required = false) UUID airlineId) {
+        return receiptService.getAll(airlineId);
     }
 
-    // GET /api/receipts/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<WarehouseReceipt> getById(@PathVariable UUID id) {
-        return receiptRepository.findById(id)
+    public ResponseEntity<WarehouseReceiptDTO> getById(@PathVariable UUID id) {
+        return receiptService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // GET /api/receipts/mawb/{mawbId}
-    @GetMapping("/mawb/{mawbId}")
-    public ResponseEntity<WarehouseReceipt> getByMawb(@PathVariable UUID mawbId) {
-        return receiptRepository.findByMawbId(mawbId)
+    @PostMapping
+    public ResponseEntity<WarehouseReceiptDTO> create(@Valid @RequestBody WarehouseReceiptDTO dto) {
+        WarehouseReceiptDTO created = receiptService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<WarehouseReceiptDTO> update(@PathVariable UUID id, @Valid @RequestBody WarehouseReceiptDTO dto) {
+        return receiptService.update(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        boolean removed = receiptService.delete(id);
+        if (!removed) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
+    }
 }

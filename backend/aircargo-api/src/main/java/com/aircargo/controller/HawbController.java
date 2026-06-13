@@ -1,7 +1,9 @@
 package com.aircargo.controller;
 
-import com.aircargo.entity.Hawb;
-import com.aircargo.repository.HawbRepository;
+import com.aircargo.dto.HawbDTO;
+import com.aircargo.service.HawbService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,48 +14,43 @@ import java.util.UUID;
 @RequestMapping("/api/hawbs")
 public class HawbController {
 
-    private final HawbRepository hawbRepository;
+    private final HawbService hawbService;
 
-    public HawbController(HawbRepository hawbRepository) {
-        this.hawbRepository = hawbRepository;
+    public HawbController(HawbService hawbService) {
+        this.hawbService = hawbService;
     }
 
     @GetMapping
-    public List<Hawb> getAll(@RequestParam(required = false) UUID airlineId,
-                             @RequestParam(required = false) UUID mawbId) {
-        if (mawbId != null) return hawbRepository.findByMawbId(mawbId);
-        if (airlineId != null) return hawbRepository.findByAirlineId(airlineId);
-        return hawbRepository.findAll();
+    public List<HawbDTO> getAll(
+            @RequestParam(required = false) UUID airlineId,
+            @RequestParam(required = false) UUID mawbId) {
+        return hawbService.getAll(airlineId, mawbId);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Hawb> getById(@PathVariable UUID id) {
-        return hawbRepository.findById(id)
+    public ResponseEntity<HawbDTO> getById(@PathVariable UUID id) {
+        return hawbService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Hawb> create(@RequestBody Hawb hawb) {
-        Hawb saved = hawbRepository.save(hawb);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<HawbDTO> create(@Valid @RequestBody HawbDTO dto) {
+        HawbDTO created = hawbService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Hawb> update(@PathVariable UUID id, @RequestBody Hawb hawb) {
-        return hawbRepository.findById(id)
-                .map(existing -> {
-                    hawb.setId(existing.getId());
-                    Hawb updated = hawbRepository.save(hawb);
-                    return ResponseEntity.ok(updated);
-                })
+    public ResponseEntity<HawbDTO> update(@PathVariable UUID id, @Valid @RequestBody HawbDTO dto) {
+        return hawbService.update(id, dto)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        if (!hawbRepository.existsById(id)) return ResponseEntity.notFound().build();
-        hawbRepository.deleteById(id);
+        boolean removed = hawbService.delete(id);
+        if (!removed) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
     }
 }
