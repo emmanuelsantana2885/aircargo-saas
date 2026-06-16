@@ -79,6 +79,7 @@ CREATE TYPE public."uld_type" AS ENUM (
 	'PAJ',
 	'AAY',
 	'AAZ',
+	'AAD',
 	'PIP',
 	'BULK',
 	'AMP',

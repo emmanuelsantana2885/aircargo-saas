@@ -1,0 +1,65 @@
+package com.aircargo.controller;
+
+import com.aircargo.entity.WarehouseReceipt;
+import com.aircargo.entity.ReceiptPiece;
+import com.aircargo.repository.WarehouseReceiptRepository;
+import com.aircargo.repository.ReceiptPieceRepository;
+import com.aircargo.service.WarehouseService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/warehouse/receipts")
+@CrossOrigin(origins = "*")
+public class WarehouseController {
+
+    private final WarehouseService warehouseService;
+    private final WarehouseReceiptRepository receiptRepository;
+    private final ReceiptPieceRepository pieceRepository;
+
+    public WarehouseController(WarehouseService warehouseService, 
+                               WarehouseReceiptRepository receiptRepository, 
+                               ReceiptPieceRepository pieceRepository) {
+        this.warehouseService = warehouseService;
+        this.receiptRepository = receiptRepository;
+        this.pieceRepository = pieceRepository;
+    }
+
+    /**
+     * DTO interno temporal para recibir de golpe el encabezado y sus piezas en el payload JSON.
+     */
+    public static class ReceiptPayload {
+        public WarehouseReceipt receipt;
+        public List<ReceiptPiece> pieces;
+    }
+
+    /**
+     * Endpoint para emitir un nuevo recibo de bodega con cálculo en tiempo real de dimensiones.
+     */
+    @PostMapping("/emit")
+    public ResponseEntity<?> emitWarehouseReceipt(@RequestBody ReceiptPayload payload) {
+        try {
+            if (payload.receipt == null || payload.pieces == null || payload.pieces.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "error", "DATOS INCOMPLETOS: El recibo debe contener al menos una pieza para cubicar."));
+            }
+
+            WarehouseReceipt processed = warehouseService.processWarehouseReceipt(payload.receipt, payload.pieces);
+            return ResponseEntity.ok(processed);
+
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Error procesando el recibo en bodega: " + ex.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para consultar el desglose de piezas cubicadas asociadas a un recibo.
+     */
+    @GetMapping("/{receiptId}/pieces")
+    public ResponseEntity<List<ReceiptPiece>> getPiecesByReceipt(@PathVariable UUID receiptId) {
+        return ResponseEntity.ok(pieceRepository.findByWarehouseReceiptId(receiptId));
+    }
+}

@@ -1,76 +1,57 @@
 package com.aircargo.controller;
 
-import com.aircargo.dto.MawbDTO;
-import com.aircargo.entity.MawbStatus;
-import com.aircargo.service.MawbService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import com.aircargo.entity.Mawb;
+import com.aircargo.repository.MawbRepository;
+import com.aircargo.service.MawbValidationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/mawbs")
+@RequestMapping("/api/cargo/mawbs")
+@CrossOrigin(origins = "*")
 public class MawbController {
 
-    private final MawbService mawbService;
+    private final MawbRepository mawbRepository;
+    private final MawbValidationService validationService;
 
-    public MawbController(MawbService mawbService){
-        this.mawbService = mawbService;
+    public MawbController(MawbRepository mawbRepository, MawbValidationService validationService) {
+        this.mawbRepository = mawbRepository;
+        this.validationService = validationService;
     }
 
-    @GetMapping
-    public List<MawbDTO> getAll(
-            @RequestParam(required = false) UUID airlineId,
-            @RequestParam(required = false) UUID flightId,
-            @RequestParam(required = false) MawbStatus status){
-        return mawbService.getAll(airlineId, flightId, status);
+    /**
+     * Endpoint para listar todas las guías maestras de un vuelo específico.
+     */
+    @GetMapping("/flight/{flightId}")
+    public ResponseEntity<List<Mawb>> getMawbsByFlight(@PathVariable UUID flightId) {
+        return ResponseEntity.ok(mawbRepository.findByFlightId(flightId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<MawbDTO> getById(@PathVariable UUID id){
-        return mawbService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/awb/{awbNumber}")
-    public ResponseEntity<MawbDTO> getByAwbNumber(
-         @PathVariable String awbNumber,
-         @RequestParam UUID airlineId) {
-        return mawbService.getByAirlineIdAndAwbNumber(airlineId, awbNumber)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
+    /**
+     * Endpoint para registrar una nueva guía aérea validando formato y capacidad de carga.
+     */
     @PostMapping
-    public ResponseEntity<MawbDTO> create(@Valid @RequestBody MawbDTO dto) {
-        MawbDTO created = mawbService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
+    public ResponseEntity<?> createMawb(@RequestBody Mawb mawb) {
+        try {
+            // 1. Validar sintaxis del número de guía (Formato 406-XXXXXXXX)
+            validationService.validateAwbFormat(mawb.getAwbNumber());
 
-    @PutMapping("/{id}")
-    public ResponseEntity<MawbDTO> update(@PathVariable UUID id, @Valid @RequestBody MawbDTO dto) {
-        return mawbService.update(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+            // 2. Validar que no se rompa el Payload estructural del avión asignado
+            if (mawb.getFlight() != null && mawb.getChargeableWeightKg() != null) {
+                validationService.validateFlightPayloadLimit(mawb.getFlight().getId(), mawb.getChargeableWeightKg());
+            }
 
-    @PutMapping("/{id}/status")
-    public ResponseEntity<MawbDTO> updateStatus(
-            @PathVariable UUID id,
-            @RequestParam MawbStatus status){
-        return mawbService.updateStatus(id, status)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+            Mawb savedMawb = mawbRepository.save(mawb);
+            return ResponseEntity.ok(savedMawb);
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        boolean removed = mawbService.delete(id);
-        if (!removed) return ResponseEntity.notFound().build();
-        return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.status(422).body(Map.of("success", false, "error", ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Error procesando el registro: " + ex.getMessage()));
+        }
     }
 }
