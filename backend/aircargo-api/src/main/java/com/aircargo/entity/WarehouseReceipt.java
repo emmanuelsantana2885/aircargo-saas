@@ -41,6 +41,7 @@ public class WarehouseReceipt {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private AppUser createdByUser;
 
+    @Builder.Default
     @Column(name = "gateway_cfs", length = 10)
     private String gatewayCfs = "SDQ";
 
@@ -102,21 +103,27 @@ public class WarehouseReceipt {
     @Column(name = "piece_count")
     private Integer pieceCount = 0;
 
+    @Builder.Default
     @Column(name = "dim_factor_dom", precision = 6, scale = 0)
     private BigDecimal dimFactorDom = new BigDecimal("194");
 
+    @Builder.Default
     @Column(name = "dim_factor_intl", precision = 6, scale = 0)
     private BigDecimal dimFactorIntl = new BigDecimal("366");
 
+    @Builder.Default
     @Column(name = "actual_weight_lbs", precision = 10, scale = 3)
     private BigDecimal actualWeightLbs = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(name = "actual_weight_kg", precision = 10, scale = 3)
     private BigDecimal actualWeightKg = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(name = "chargeable_weight_lbs", precision = 10, scale = 3)
     private BigDecimal chargeableWeightLbs = BigDecimal.ZERO;
 
+    @Builder.Default
     @Column(name = "chargeable_weight_kg", precision = 10, scale = 3)
     private BigDecimal chargeableWeightKg = BigDecimal.ZERO;
 
@@ -141,7 +148,7 @@ public class WarehouseReceipt {
     @Column(name = "delivered_by_id_doc_url")
     private String deliveredByIdDocUrl;
 
-    @Column(name = "delivered_by_sig_url")
+    @Column(name = "delivered_by_sig_url", columnDefinition = "text")
     private String deliveredBySigUrl;
 
     @Column(name = "received_by_name", length = 150)
@@ -153,7 +160,7 @@ public class WarehouseReceipt {
     @Column(name = "received_by_id_doc_url")
     private String receivedByIdDocUrl;
 
-    @Column(name = "received_by_sig_url")
+    @Column(name = "received_by_sig_url", columnDefinition = "text")
     private String receivedBySigUrl;
 
     @Column(name = "broker_name", length = 150)
@@ -165,13 +172,13 @@ public class WarehouseReceipt {
     @Column(name = "broker_id_doc_url")
     private String brokerIdDocUrl;
 
-    @Column(name = "broker_sig_url")
+    @Column(name = "broker_sig_url", columnDefinition = "text")
     private String brokerSigUrl;
 
     @Column(name = "receipt_doc_url")
     private String receiptDocUrl;
 
-    @Column(name = "dock_signature", length = 150)
+    @Column(name = "dock_signature", columnDefinition = "text")
     private String dockSignature;
 
     @Column(name = "print_name", length = 150)

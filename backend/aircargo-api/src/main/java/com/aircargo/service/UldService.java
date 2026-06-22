@@ -11,5 +11,6 @@ public interface UldService {
     Optional<UldDTO> getById(UUID id);
     UldDTO create(UldDTO dto);
     Optional<UldDTO> update(UUID id, UldDTO dto);
+    UldDTO assignFlight(UUID id, UUID flightId);
     boolean delete(UUID id);
 }

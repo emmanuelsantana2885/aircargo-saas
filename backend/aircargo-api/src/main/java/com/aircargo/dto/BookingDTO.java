@@ -116,7 +116,7 @@ public class BookingDTO {
         entity.setAwbNumber(dto.getAwbNumber());
         entity.setSkids(dto.getSkids());
         entity.setUnits(dto.getUnits());
-        entity.setReservedKg(dto.getReservedKg());
+        entity.setReservedKg(dto.getReservedKg() != null ? dto.getReservedKg() : BigDecimal.ZERO);
         entity.setConfirmedKg(dto.getConfirmedKg());
         entity.setReceivedKg(dto.getReceivedKg());
         entity.setFulfillmentPct(dto.getFulfillmentPct());

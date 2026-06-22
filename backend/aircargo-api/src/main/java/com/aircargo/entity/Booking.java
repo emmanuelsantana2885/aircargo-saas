@@ -66,7 +66,7 @@ public class Booking {
     private Integer units = 0;
 
     @Column(name = "reserved_kg", nullable = false, precision = 10, scale = 3)
-    private BigDecimal reservedKg;
+    private BigDecimal reservedKg = BigDecimal.ZERO;
 
     @Column(name = "confirmed_kg", precision = 10, scale = 3)
     private BigDecimal confirmedKg = BigDecimal.ZERO;

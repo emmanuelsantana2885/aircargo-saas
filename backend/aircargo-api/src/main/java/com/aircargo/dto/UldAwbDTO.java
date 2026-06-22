@@ -51,11 +51,15 @@ public class UldAwbDTO {
 
     public static UldAwbDTO fromEntity(UldAwb entity){
         if(entity == null) return null;
+        String mawbLabel = entity.getMawblabel();
+        if (mawbLabel == null && entity.getMawb() != null) {
+            mawbLabel = entity.getMawb().getAwbNumber();
+        }
         return UldAwbDTO.builder()
                 .id(entity.getId())
                 .uldId(entity.getUld() != null ? entity.getUld().getId() : null)
                 .mawbId(entity.getMawb() != null ? entity.getMawb().getId() : null)
-                .mawbLabel(entity.getMawblabel())
+                .mawbLabel(mawbLabel)
                 .description(entity.getDescription())
                 .destination(entity.getDestination())
                 .pieces(entity.getPieces())

@@ -4,15 +4,14 @@ import com.aircargo.entity.AircraftType;
 import com.aircargo.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.FlightStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -36,27 +35,29 @@ public class FlightDTO {
     private OffsetDateTime updatedAt;
 
     public static FlightDTO fromEntity(Flight entity) {
-        if(entity == null) return null;
+        if (entity == null) return null;
         return FlightDTO.builder()
-                .id(entity.getId())
-                .airlineId(entity.getAirline() != null ? entity.getAirline().getId() : null)
-                .flightNumber(entity.getFlightNumber())
-                .origin(entity.getOrigin())
-                .destination(entity.getDestination())
-                .aircraftReg(entity.getAircraftReg())
-                .aircraftType(entity.getAircraftType())
-                .flightDate(entity.getFlightDate())
-                .status(entity.getStatus())
-                .maxPayloadKg(entity.getMaxPayloadKg())
-                .totalPositions(entity.getTotalPositions())
-                .notes(entity.getNotes())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+            .id(entity.getId())
+            .airlineId(
+                entity.getAirline() != null ? entity.getAirline().getId() : null
+            )
+            .flightNumber(entity.getFlightNumber())
+            .origin(entity.getOrigin())
+            .destination(entity.getDestination())
+            .aircraftReg(entity.getAircraftReg())
+            .aircraftType(entity.getAircraftType())
+            .flightDate(entity.getFlightDate())
+            .status(entity.getStatus())
+            .maxPayloadKg(entity.getMaxPayloadKg())
+            .totalPositions(entity.getTotalPositions())
+            .notes(entity.getNotes())
+            .createdAt(entity.getCreatedAt())
+            .updatedAt(entity.getUpdatedAt())
+            .build();
     }
 
-    public static Flight toEntity(FlightDTO dto){
-        if(dto ==null) return null;
+    public static Flight toEntity(FlightDTO dto) {
+        if (dto == null) return null;
         Flight entity = new Flight();
         entity.setId(dto.getId());
         if (dto.getAirlineId() != null) {
@@ -76,5 +77,4 @@ public class FlightDTO {
         entity.setNotes(dto.getNotes());
         return entity;
     }
-
 }

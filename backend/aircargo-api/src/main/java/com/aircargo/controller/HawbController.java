@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/cargo/hawbs")
-@CrossOrigin(origins = "*")
 public class HawbController {
 
     private final HawbRepository hawbRepository;
@@ -29,6 +28,22 @@ public class HawbController {
     @GetMapping("/mawb/{mawbId}")
     public ResponseEntity<List<Hawb>> getHawbsByMawb(@PathVariable UUID mawbId) {
         return ResponseEntity.ok(hawbRepository.findByMawbId(mawbId));
+    }
+
+    /**
+     * Endpoint para actualizar campos de una HAWB existente (consignee, destination, pieces, weight).
+     */
+    @PutMapping("/{hawbId}")
+    public ResponseEntity<?> updateHawb(@PathVariable UUID hawbId, @RequestBody Hawb updates) {
+        return hawbRepository.findById(hawbId).map(hawb -> {
+            if (updates.getConsigneeName() != null) hawb.setConsigneeName(updates.getConsigneeName());
+            if (updates.getDestination() != null) hawb.setDestination(updates.getDestination());
+            if (updates.getPieces() != null) hawb.setPieces(updates.getPieces());
+            if (updates.getWeightKg() != null) hawb.setWeightKg(updates.getWeightKg());
+            if (updates.getCommodityType() != null) hawb.setCommodityType(updates.getCommodityType());
+            if (updates.getNotes() != null) hawb.setNotes(updates.getNotes());
+            return ResponseEntity.ok(hawbRepository.save(hawb));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     /**

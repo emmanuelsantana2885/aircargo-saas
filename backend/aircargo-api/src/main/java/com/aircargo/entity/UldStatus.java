@@ -5,5 +5,6 @@ public enum UldStatus {
     BUILT,
     SEALED,
     LOADED,
-    OFFLOADED
+    OFFLOADED,
+    LEFT_BEHIND
 }

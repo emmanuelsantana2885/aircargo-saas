@@ -13,5 +13,5 @@ public interface ReceiptPieceRepository extends JpaRepository<ReceiptPiece, UUID
     /**
      * Recupera el desglose de todas las piezas asociadas a un recibo de bodega específico.
      */
-    List<ReceiptPiece> findByWarehouseReceiptId(UUID warehouseReceiptId);
+    List<ReceiptPiece> findByReceiptId(UUID id);
 }

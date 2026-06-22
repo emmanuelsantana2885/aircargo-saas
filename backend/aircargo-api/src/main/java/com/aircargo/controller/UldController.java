@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -46,6 +47,26 @@ public class UldController {
         return uldService.update(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/flight")
+    public ResponseEntity<?> assignFlight(@PathVariable UUID id, @RequestBody Map<String, String> body) {
+        String flightIdStr = body.get("flightId");
+        if (flightIdStr == null || flightIdStr.isBlank() || "null".equalsIgnoreCase(flightIdStr)) {
+            try {
+                UldDTO updated = uldService.assignFlight(id, null);
+                return ResponseEntity.ok(updated);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getClass().getSimpleName() + ": " + e.getMessage()));
+            }
+        }
+        try {
+            UUID flightId = UUID.fromString(flightIdStr);
+            UldDTO updated = uldService.assignFlight(id, flightId);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getClass().getSimpleName() + ": " + e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

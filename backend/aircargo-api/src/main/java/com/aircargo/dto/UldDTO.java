@@ -5,14 +5,14 @@ import com.aircargo.entity.Flight;
 import com.aircargo.entity.Uld;
 import com.aircargo.entity.UldStatus;
 import com.aircargo.entity.UldType;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -46,35 +46,40 @@ public class UldDTO {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
+    private List<UldAwbDTO> awbs;
 
-    public static UldDTO fromEntity(Uld entity){
-        if(entity == null) return null;
+    public static UldDTO fromEntity(Uld entity) {
+        if (entity == null) return null;
         return UldDTO.builder()
-                .id(entity.getId())
-                .airlineId(entity.getAirline() != null ? entity.getAirline().getId() : null)
-                .flightId(entity.getFlight() != null ? entity.getFlight().getId() : null)
-                .uldNumber(entity.getUldNumber())
-                .uldType(entity.getUldType())
-                .position(entity.getPosition())
-                .config(entity.getConfig())
-                .sealNumber(entity.getSealNumber())
-                .tareLbs(entity.getTareLbs())
-                .grossWeightLbs(entity.getGrossWeightLbs())
-                .netWeightLbs(entity.getNetWeightLbs())
-                .tareKg(entity.getTareKg())
-                .grossWeightKg(entity.getGrossWeightKg())
-                .netWeightKg(entity.getNetWeightKg())
-                .status(entity.getStatus())
-                .builtAt(entity.getBuiltAt())
-                .loadedAt(entity.getLoadedAt())
-                .notes(entity.getNotes())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+            .id(entity.getId())
+            .airlineId(
+                entity.getAirline() != null ? entity.getAirline().getId() : null
+            )
+            .flightId(
+                entity.getFlight() != null ? entity.getFlight().getId() : null
+            )
+            .uldNumber(entity.getUldNumber())
+            .uldType(entity.getUldType())
+            .position(entity.getPosition())
+            .config(entity.getConfig())
+            .sealNumber(entity.getSealNumber())
+            .tareLbs(entity.getTareLbs())
+            .grossWeightLbs(entity.getGrossWeightLbs())
+            .netWeightLbs(entity.getNetWeightLbs())
+            .tareKg(entity.getTareKg())
+            .grossWeightKg(entity.getGrossWeightKg())
+            .netWeightKg(entity.getNetWeightKg())
+            .status(entity.getStatus())
+            .builtAt(entity.getBuiltAt())
+            .loadedAt(entity.getLoadedAt())
+            .notes(entity.getNotes())
+            .createdAt(entity.getCreatedAt())
+            .updatedAt(entity.getUpdatedAt())
+            .build();
     }
 
-    public static Uld toEntity(UldDTO dto){
-        if(dto == null) return null;
+    public static Uld toEntity(UldDTO dto) {
+        if (dto == null) return null;
         Uld entity = new Uld();
         entity.setId(dto.getId());
         if (dto.getAirlineId() != null) {
@@ -103,6 +108,5 @@ public class UldDTO {
         entity.setLoadedAt(dto.getLoadedAt());
         entity.setNotes(dto.getNotes());
         return entity;
-        
     }
 }

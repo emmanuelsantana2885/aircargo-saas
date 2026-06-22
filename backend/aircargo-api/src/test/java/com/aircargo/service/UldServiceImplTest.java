@@ -5,6 +5,8 @@ import com.aircargo.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.Uld;
 import com.aircargo.entity.UldStatus;
+import com.aircargo.repository.FlightRepository;
+import com.aircargo.repository.UldAwbRepository;
 import com.aircargo.repository.UldRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,12 +28,19 @@ class UldServiceImplTest {
     @Mock
     private UldRepository repository;
 
+    @Mock
+    private FlightRepository flightRepo;
+
+    @Mock
+    private UldAwbRepository uldAwbRepo;
+
     private UldServiceImpl service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new UldServiceImpl(repository);
+        service = new UldServiceImpl(repository, flightRepo, uldAwbRepo);
+        when(uldAwbRepo.findByUldId(any())).thenReturn(Collections.emptyList());
     }
 
     private Uld makeUld(UUID id, UUID airlineId, UUID flightId) {

@@ -86,11 +86,11 @@ const isActive = (path) => path === '/' ? route.path === '/' : route.path.starts
 const mainMenu = [
   { path: '/',            label: 'Dashboard',     icon: IconLayoutDashboard },
   { path: '/bookings',    label: 'Bookings',       icon: IconClipboardList,   badge: '7' },
-  { path: '/receipts',    label: 'Recibos',        icon: IconBuildingWarehouse },
-  { path: '/flights',     label: 'Vuelos',         icon: IconPlane },
+  { path: '/receipts',    label: 'WarehouseReceipts',        icon: IconBuildingWarehouse },
+  { path: '/flights',     label: 'Flights',         icon: IconPlane },
   { path: '/mawbs',       label: 'MAWBs',          icon: IconFileText },
-  { path: '/load-planning', label: 'Load Planning', icon: IconContainer },
-  { path: '/ulds',        label: 'ULDs',           icon: IconPackage },
+  { path: '/load-planning', label: 'LoadPlanning', icon: IconContainer },
+  { path: '/ulds',        label: 'ULDs -- Pallet Sheets',           icon: IconPackage },
 ]
 
 const settingsMenu = [

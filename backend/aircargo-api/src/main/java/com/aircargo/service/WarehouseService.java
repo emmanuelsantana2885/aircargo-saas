@@ -1,7 +1,10 @@
 package com.aircargo.service;
 
+import com.aircargo.entity.Mawb;
+import com.aircargo.entity.MawbStatus;
 import com.aircargo.entity.WarehouseReceipt;
 import com.aircargo.entity.ReceiptPiece;
+import com.aircargo.repository.MawbRepository;
 import com.aircargo.repository.WarehouseReceiptRepository;
 import com.aircargo.repository.ReceiptPieceRepository;
 import org.springframework.stereotype.Service;
@@ -16,10 +19,12 @@ public class WarehouseService {
 
     private final WarehouseReceiptRepository receiptRepository;
     private final ReceiptPieceRepository pieceRepository;
+    private final MawbRepository mawbRepository;
 
-    public WarehouseService(WarehouseReceiptRepository receiptRepository, ReceiptPieceRepository pieceRepository) {
+    public WarehouseService(WarehouseReceiptRepository receiptRepository, ReceiptPieceRepository pieceRepository, MawbRepository mawbRepository) {
         this.receiptRepository = receiptRepository;
         this.pieceRepository = pieceRepository;
+        this.mawbRepository = mawbRepository;
     }
 
     /**
@@ -30,6 +35,14 @@ public class WarehouseService {
     public WarehouseReceipt processWarehouseReceipt(WarehouseReceipt receipt, List<ReceiptPiece> pieces) {
         // 1. Guardar el encabezado
         WarehouseReceipt savedReceipt = receiptRepository.save(receipt);
+
+        // 1b. Actualizar estado de la MAWB a RECEIVED
+        if (savedReceipt.getMawb() != null && savedReceipt.getMawb().getId() != null) {
+            mawbRepository.findById(savedReceipt.getMawb().getId()).ifPresent(mawb -> {
+                mawb.setStatus(MawbStatus.RECEIVED);
+                mawbRepository.save(mawb);
+            });
+        }
 
         // Factor IATA estándar (Intl: 366.0)
         double dimFactor = (receipt.getDimFactorIntl() != null) ? receipt.getDimFactorIntl().doubleValue() : 366.0;

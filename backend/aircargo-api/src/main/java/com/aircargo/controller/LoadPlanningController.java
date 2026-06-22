@@ -1,7 +1,9 @@
 package com.aircargo.controller;
 
+import com.aircargo.dto.LoadPlanningDTO;
 import com.aircargo.entity.Uld;
 import com.aircargo.repository.UldRepository;
+import com.aircargo.service.LoadPlanningService;
 import com.aircargo.service.RampManifestParserService;
 import com.aircargo.service.LoadPlanningExportService;
 import org.springframework.core.io.InputStreamResource;
@@ -20,19 +22,28 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/load-planning")
-@CrossOrigin(origins = "*")
 public class LoadPlanningController {
 
     private final UldRepository uldRepository;
+    private final LoadPlanningService loadPlanningService;
     private final RampManifestParserService manifestParserService;
     private final LoadPlanningExportService exportService;
 
-    public LoadPlanningController(UldRepository uldRepository, 
+    public LoadPlanningController(UldRepository uldRepository,
+                                  LoadPlanningService loadPlanningService,
                                   RampManifestParserService manifestParserService,
                                   LoadPlanningExportService exportService) {
         this.uldRepository = uldRepository;
+        this.loadPlanningService = loadPlanningService;
         this.manifestParserService = manifestParserService;
         this.exportService = exportService;
+    }
+
+    @GetMapping("/flight/{flightId}")
+    public ResponseEntity<?> getLoadPlanningByFlight(@PathVariable UUID flightId) {
+        return loadPlanningService.getByFlightId(flightId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/flight/{flightId}/upload-manifest")

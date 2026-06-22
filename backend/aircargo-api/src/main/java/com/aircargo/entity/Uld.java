@@ -34,7 +34,7 @@ public class Uld {
     private Airline airline;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "flight_id", nullable = false)
+    @JoinColumn(name = "flight_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Flight flight;
 

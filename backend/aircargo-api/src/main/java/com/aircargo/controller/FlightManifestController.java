@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/cargo/flights")
-@CrossOrigin(origins = "*")
 public class FlightManifestController {
 
     private final FlightManifestService manifestService;
