@@ -2,21 +2,21 @@
   <div class="p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
 
     <!-- Header -->
-    <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
+    <header class="flex justify-between items-center border-b border-slate-400 pb-3 shrink-0">
       <div>
         <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">Flight Control</h1>
-        <p class="text-[10px] font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">SDQ Ramp Ops // Active Manifest Board</p>
+        <p class="text-[15px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Ramp Ops // Active Manifest Board</p>
       </div>
       <div class="flex items-center gap-3">
-        <div v-if="store.error" class="text-[10px] font-mono text-rose-600 bg-rose-50 border border-rose-200 px-2 py-1 rounded">
+        <div v-if="store.error" class="text-[15px] font-mono text-rose-600 bg-rose-50 border border-rose-200 px-2 py-1 rounded">
           {{ store.error }}
         </div>
-        <div class="flex items-center gap-1.5 text-[10px] font-mono font-bold text-slate-500">
+        <div class="flex items-center gap-1.5 text-[15px] font-mono font-bold text-slate-950">
           <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
           {{ store.flights.length }} VUELOS
         </div>
         <button @click="openCreate"
-          class="flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold transition active:scale-95 shadow-pencil-marine bg-slate-950 text-white hover:bg-slate-800">
+          class="flex items-center gap-1.5 text-[15px] px-4 py-2 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold transition active:scale-95 shadow-pencil-marine bg-slate-950 text-white hover:bg-slate-800">
           <IconPlus :size="12" :stroke-width="2.5" /> Nuevo Vuelo
         </button>
       </div>
@@ -25,19 +25,19 @@
     <!-- KPIs -->
     <section class="grid grid-cols-5 gap-3 my-4 shrink-0">
       <div v-for="stat in kpis" :key="stat.label"
-        class="pencil-sketch py-2 px-3 rounded bg-white border border-slate-200 shadow-pencil-marine flex flex-col justify-between min-h-[72px]">
+        class="pencil-sketch py-2 px-3 rounded bg-white border border-slate-400 shadow-pencil-marine flex flex-col justify-between min-h-[72px]">
         <div class="relative z-10">
-          <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-wider font-mono">{{ stat.label }}</h3>
+          <h3 class="text-[15px] font-black text-slate-950 uppercase tracking-wider font-mono">{{ stat.label }}</h3>
           <div class="text-2xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
         </div>
-        <div class="pt-1 border-t border-slate-100 text-[9px] font-mono text-slate-400 relative z-10">{{ stat.sub }}</div>
+        <div class="pt-1 border-t border-slate-300 text-[15px] font-mono text-slate-950 relative z-10">{{ stat.sub }}</div>
       </div>
     </section>
 
     <!-- Table -->
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
 
-      <div class="bg-slate-50 border-b border-slate-300 text-[9px] font-bold text-slate-400 uppercase tracking-wider grid grid-cols-12 py-2.5 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-950 border-b border-slate-700 text-[14px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2">Vuelo</div>
         <div class="col-span-2">Ruta</div>
         <div class="col-span-1">Aeronave</div>
@@ -51,34 +51,35 @@
 
       <!-- Loading -->
       <div v-if="store.loading" class="flex-1 flex items-center justify-center">
-        <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest animate-pulse">Cargando vuelos...</span>
+        <span class="text-[15px] font-mono text-slate-950 uppercase tracking-widest animate-pulse">Cargando vuelos...</span>
       </div>
 
       <!-- Empty -->
       <div v-else-if="store.flights.length === 0" class="flex-1 flex flex-col items-center justify-center gap-3">
         <IconPlaneDeparture :size="32" class="text-slate-200" :stroke-width="1.2" />
-        <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">No hay vuelos registrados</p>
+        <p class="text-[15px] font-mono text-slate-950 uppercase tracking-widest">No hay vuelos registrados</p>
         <button @click="openCreate"
-          class="text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
+          class="text-[15px] px-4 py-2 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-slate-50 transition">
           + Crear primer vuelo
         </button>
       </div>
 
       <!-- Rows -->
-      <div v-else class="divide-y divide-slate-200 text-xs text-slate-700 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div v-else class="divide-y divide-slate-400 text-sm text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
         <div v-for="f in store.flights" :key="f.id"
-          class="row-pencil grid grid-cols-12 items-center py-2.5 px-5 transition-all duration-150 cursor-pointer"
+          class="row-pencil grid grid-cols-12 items-center py-3 px-5 transition-all duration-150 cursor-pointer"
           @click="selectFlight(f)">
 
-          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10">
-            UPS-{{ f.flightNumber }}
+          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 flex items-center gap-2">
+            <span class="text-[13px] font-bold text-white bg-slate-800 rounded px-1.5 py-0.5 uppercase tracking-wider">{{ airlineCode(f) }}</span>
+            <span>{{ f.flightNumber }}</span>
           </div>
-          <div class="col-span-2 font-semibold text-slate-700 relative z-10">
-            {{ f.origin }} <span class="text-slate-300 mx-1">→</span> {{ f.destination }}
+          <div class="col-span-2 font-semibold text-slate-950 relative z-10">
+            {{ f.origin }} <span class="text-slate-500 mx-1">→</span> {{ f.destination }}
           </div>
-          <div class="col-span-1 font-mono text-[10px] text-slate-600 relative z-10">{{ f.aircraftType }}</div>
-          <div class="col-span-1 font-mono text-[10px] text-slate-500 relative z-10">{{ f.aircraftReg || 'TMP-' + f.flightNumber }}</div>
-          <div class="col-span-1 text-center font-mono text-[10px] text-slate-600 relative z-10">{{ f.flightDate }}</div>
+          <div class="col-span-1 font-mono text-[15px] text-slate-950 relative z-10">{{ f.aircraftType }}</div>
+          <div class="col-span-1 font-mono text-[15px] text-slate-950 relative z-10">{{ f.aircraftReg || 'TMP-' + f.flightNumber }}</div>
+          <div class="col-span-1 text-center font-mono text-[15px] text-slate-950 relative z-10">{{ f.flightDate }}</div>
           <div class="col-span-1 text-center font-mono font-black text-slate-950 relative z-10">{{ f.totalPositions || '—' }}</div>
           <div class="col-span-1 text-center font-mono font-black text-slate-950 relative z-10">
             {{ f.maxPayloadKg ? Number(f.maxPayloadKg).toLocaleString() : '—' }}
@@ -90,10 +91,10 @@
               <div v-for="step in statusSteps" :key="step.key"
                 class="flex flex-col items-center">
                 <span class="h-2 w-2 rounded-full border-2 transition-all"
-                  :class="f.status === step.key ? step.active : (statusOrder.indexOf(f.status) > statusOrder.indexOf(step.key) ? 'bg-slate-400 border-slate-500' : 'bg-slate-100 border-slate-200')">
+                  :class="f.status === step.key ? step.active : (statusOrder.indexOf(f.status) > statusOrder.indexOf(step.key) ? 'bg-slate-400 border-slate-500' : 'bg-slate-100 border-slate-400')">
                 </span>
-                <span class="text-[7px] font-mono mt-0.5 font-black uppercase"
-                  :class="f.status === step.key ? step.labelClass : 'text-slate-300'">
+                <span class="text-[13px] font-mono mt-0.5 font-black uppercase"
+                  :class="f.status === step.key ? step.labelClass : 'text-slate-500'">
                   {{ step.label }}
                 </span>
               </div>
@@ -102,7 +103,7 @@
 
           <div class="col-span-1 flex justify-center gap-1 relative z-10">
             <button @click.stop="openEdit(f)"
-              class="w-6 h-6 flex items-center justify-center rounded border border-slate-200 text-slate-500 hover:border-slate-950 hover:text-slate-950 transition">
+              class="w-6 h-6 flex items-center justify-center rounded border border-slate-400 text-slate-950 hover:border-slate-950 hover:text-slate-950 transition">
               <IconPencil :size="11" :stroke-width="2" />
             </button>
             <button @click.stop="confirmDelete(f)"
@@ -116,85 +117,85 @@
 
     <!-- Modal crear/editar vuelo -->
     <div v-if="showModal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeModal">
-      <div class="bg-white rounded-xl border border-slate-200 shadow-2xl w-full max-w-xl p-6">
+      <div class="bg-white rounded-xl border border-slate-400 shadow-2xl w-full max-w-xl p-6">
 
-        <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200">
-          <h2 class="text-sm font-black font-mono uppercase tracking-wider text-slate-950">
+        <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-400">
+          <h2 class="text-base font-black font-mono uppercase tracking-wider text-slate-950">
             {{ editingFlight ? 'Editar Vuelo' : 'Nuevo Vuelo' }}
           </h2>
-          <button @click="closeModal" class="text-slate-400 hover:text-slate-700">
+          <button @click="closeModal" class="text-slate-950 hover:text-slate-950">
             <IconX :size="16" :stroke-width="2" />
           </button>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Número de Vuelo *</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Número de Vuelo *</label>
             <input v-model="form.flightNumber" type="text" placeholder="335"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Fecha *</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Fecha *</label>
             <input v-model="form.flightDate" type="date"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Origen</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Origen</label>
             <input v-model="form.origin" type="text" placeholder="SDQ" maxlength="3"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 uppercase transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Destino</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Destino</label>
             <input v-model="form.destination" type="text" placeholder="MIA" maxlength="3"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 uppercase transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Tipo de Aeronave</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Tipo de Aeronave</label>
             <select v-model="form.aircraftType"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition">
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition">
               <option v-for="t in aircraftTypes" :key="t" :value="t">{{ t }}</option>
             </select>
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Matrícula (temporal)</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Matrícula (temporal)</label>
             <input v-model="form.aircraftReg" type="text" placeholder="N-372-UP"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 uppercase transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Aerolínea *</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Aerolínea *</label>
             <select v-model="form.airlineId"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition">
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition">
               <option value="" disabled>Seleccionar aerolínea</option>
               <option v-for="a in airlines" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
             </select>
-            <p v-if="airlinesError" class="text-[9px] font-mono text-rose-500 mt-1">Error cargando aerolíneas. ¿El backend está corriendo?</p>
+            <p v-if="airlinesError" class="text-[15px] font-mono text-rose-500 mt-1">Error cargando aerolíneas. ¿El backend está corriendo?</p>
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Posiciones ULD</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Posiciones ULD</label>
             <input v-model.number="form.totalPositions" type="number" placeholder="31"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
           </div>
           <div>
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Max Payload (kg)</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Max Payload (kg)</label>
             <input v-model.number="form.maxPayloadKg" type="number" placeholder="45000"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition" />
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
           </div>
           <div class="col-span-2">
-            <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">Estado</label>
+            <label class="text-[15px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Estado</label>
             <select v-model="form.status"
-              class="w-full text-xs font-mono px-3 py-2 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition">
+              class="w-full text-sm font-mono px-4 py-2.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition">
               <option v-for="s in flightStatuses" :key="s" :value="s">{{ s }}</option>
             </select>
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-200">
+        <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-400">
           <button @click="closeModal"
-            class="text-[10px] px-3.5 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
+            class="text-[15px] px-4 py-2 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-slate-50 transition">
             Cancelar
           </button>
           <button @click="saveForm" :disabled="saving"
-            class="flex items-center gap-1.5 text-[10px] px-4 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-pencil-marine transition active:scale-95 disabled:opacity-50">
+            class="flex items-center gap-1.5 text-[15px] px-5 py-2 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-pencil-marine transition active:scale-95 disabled:opacity-50">
             <IconCheck v-if="!saving" :size="12" :stroke-width="2.5" />
             <span>{{ saving ? 'Guardando...' : (editingFlight ? 'Actualizar' : 'Crear Vuelo') }}</span>
           </button>
@@ -229,7 +230,7 @@ onMounted(async () => {
 const aircraftTypes  = ['B767','B757','B737','B747','B777','A300','A310','A330','MD11','DC8','OTHER']
 const flightStatuses = ['SCHEDULED','BOARDING','DEPARTED','ARRIVED','CANCELLED','DELAYED']
 const statusSteps    = [
-  { key: 'SCHEDULED', label: 'SCHED', active: 'bg-slate-500 border-slate-600 scale-125', labelClass: 'text-slate-600' },
+  { key: 'SCHEDULED', label: 'SCHED', active: 'bg-slate-500 border-slate-600 scale-125', labelClass: 'text-slate-950' },
   { key: 'BOARDING',  label: 'BOARD', active: 'bg-amber-500 border-amber-600 scale-125',  labelClass: 'text-amber-600' },
   { key: 'DEPARTED',  label: 'DEP',   active: 'bg-emerald-500 border-emerald-600 scale-125', labelClass: 'text-emerald-600' },
   { key: 'ARRIVED',   label: 'ARR',   active: 'bg-blue-500 border-blue-600 scale-125',    labelClass: 'text-blue-600' },
@@ -277,6 +278,7 @@ function openEdit(f) {
   editingFlight.value = f
   form.value = {
     airlineId:      f.airlineId || '',
+    flightNumber:   f.flightNumber || '',
     origin:         f.origin,
     destination:    f.destination,
     aircraftType:   f.aircraftType,
@@ -287,6 +289,11 @@ function openEdit(f) {
     maxPayloadKg:   f.maxPayloadKg,
   }
   showModal.value = true
+}
+
+function airlineCode(f) {
+  const a = airlines.value.find(x => x.id === f.airlineId)
+  return a?.code || (f.flightNumber ? 'UPS' : '—')
 }
 
 function closeModal() {
@@ -326,7 +333,7 @@ async function confirmDelete(f) {
 
 function selectFlight(f) {
   store.selectedFlightId = f.id
-  router.push('/bookings')
+  router.push({ name: 'load-planning', query: { flightId: f.id } })
 }
 </script>
 

@@ -2,11 +2,14 @@ package com.aircargo.service;
 
 import com.aircargo.dto.UldAwbDTO;
 import com.aircargo.entity.Mawb;
+import com.aircargo.entity.MawbStatus;
 import com.aircargo.entity.Uld;
 import com.aircargo.entity.UldAwb;
+import com.aircargo.entity.WarehouseReceipt;
 import com.aircargo.repository.MawbRepository;
 import com.aircargo.repository.UldAwbRepository;
 import com.aircargo.repository.UldRepository;
+import com.aircargo.repository.WarehouseReceiptRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,13 +23,16 @@ public class UldAwbServiceImpl implements UldAwbService {
     private final UldAwbRepository uldAwbRepository;
     private final UldRepository uldRepository;
     private final MawbRepository mawbRepository;
+    private final WarehouseReceiptRepository receiptRepository;
 
     public UldAwbServiceImpl(UldAwbRepository uldAwbRepository,
                               UldRepository uldRepository,
-                              MawbRepository mawbRepository) {
+                              MawbRepository mawbRepository,
+                              WarehouseReceiptRepository receiptRepository) {
         this.uldAwbRepository = uldAwbRepository;
         this.uldRepository = uldRepository;
         this.mawbRepository = mawbRepository;
+        this.receiptRepository = receiptRepository;
     }
 
     @Override
@@ -52,6 +58,44 @@ public class UldAwbServiceImpl implements UldAwbService {
 
     @Override
     public UldAwbDTO create(UldAwbDTO dto) {
+        // Validar límite de piezas montadas vs reservadas/recibidas
+        if (dto.getMawbId() != null && dto.getPieces() != null) {
+            mawbRepository.findById(dto.getMawbId()).ifPresent(mawb -> {
+                int existingPieces = uldAwbRepository.findByMawbId(mawb.getId()).stream()
+                        .mapToInt(link -> link.getPieces() != null ? link.getPieces() : 0)
+                        .sum();
+                int newPieces = dto.getPieces();
+                int totalPieces = existingPieces + newPieces;
+                int reservedPieces = mawb.getPieces() != null ? mawb.getPieces() : 0;
+
+                int receivedPieces = receiptRepository.findByMawbId(mawb.getId()).stream()
+                        .mapToInt(r -> r.getPieceCount() != null ? r.getPieceCount() : 0)
+                        .sum();
+
+                int maxAllowed;
+                if (mawb.getStatus() == MawbStatus.RECEIVED || mawb.getStatus() == MawbStatus.MANIFESTED || mawb.getStatus() == MawbStatus.DEPARTED) {
+                    maxAllowed = Math.max(reservedPieces, receivedPieces);
+                } else {
+                    maxAllowed = reservedPieces;
+                }
+
+                if (totalPieces > maxAllowed && maxAllowed > 0) {
+                    throw new IllegalArgumentException(
+                        "Límite de piezas excedido para MAWB " + mawb.getAwbNumber() +
+                        ": tiene " + existingPieces + " montadas, intenta agregar " + newPieces +
+                        ", máximo permitido: " + maxAllowed +
+                        " (reservadas: " + reservedPieces + ", recibidas: " + receivedPieces + ")"
+                    );
+                }
+
+                // Auto-actualizar estado a MANIFESTED si está BOOKED o RECEIVED
+                if (mawb.getStatus() == MawbStatus.BOOKED || mawb.getStatus() == MawbStatus.RECEIVED) {
+                    mawb.setStatus(MawbStatus.MANIFESTED);
+                    mawbRepository.save(mawb);
+                }
+            });
+        }
+
         UldAwb entity = buildEntity(dto, new UldAwb());
         entity.setId(null);
         UldAwb saved = uldAwbRepository.save(entity);

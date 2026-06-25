@@ -14,4 +14,9 @@ public interface WarehouseReceiptRepository extends JpaRepository<WarehouseRecei
      * Recupera los recibos de bodega asociados a una aerolínea (Aislamiento Multi-tenant).
      */
     List<WarehouseReceipt> findByAirlineId(UUID airlineId);
+
+    /**
+     * Recupera todos los recibos de bodega asociados a una MAWB.
+     */
+    List<WarehouseReceipt> findByMawbId(UUID mawbId);
 }

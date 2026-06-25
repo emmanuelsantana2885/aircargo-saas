@@ -134,8 +134,10 @@ export const useAppStore = defineStore('app', () => {
 
   async function createMawb(dto) {
     const res = await mawbsApi.create(dto)
-    mawbs.value.push(res.data)
-    return res.data
+    const data = res.data
+    const mawb = data.mawb || data
+    mawbs.value.push(mawb)
+    return data
   }
 
   async function loadReceipts() {

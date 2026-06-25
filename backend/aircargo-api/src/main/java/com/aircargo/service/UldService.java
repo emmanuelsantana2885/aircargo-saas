@@ -12,5 +12,6 @@ public interface UldService {
     UldDTO create(UldDTO dto);
     Optional<UldDTO> update(UUID id, UldDTO dto);
     UldDTO assignFlight(UUID id, UUID flightId);
+    UldDTO transferUld(UUID uldId, UUID destinationFlightId, String reason);
     boolean delete(UUID id);
 }

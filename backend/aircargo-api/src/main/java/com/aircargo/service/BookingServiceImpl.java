@@ -46,6 +46,7 @@ public class BookingServiceImpl implements BookingService{
                 .map(existing -> {
                     Booking updated = BookingDTO.toEntity(dto);
                     updated.setId(existing.getId());
+                    updated.setCreatedAt(existing.getCreatedAt());
                     return bookingRepository.save(updated);
                 })
                 .map(BookingDTO::fromEntity);

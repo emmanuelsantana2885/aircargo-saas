@@ -8,4 +8,7 @@ export const receiptsApi = {
   update:   (id, dto) => api.put(`/receipts/${id}`, dto),
   delete:   (id) => api.delete(`/receipts/${id}`),
   export:   (id) => api.get(`/warehouse/receipts/${id}/export`, { responseType: 'blob' }),
+  getSupportingDocsJson: (id) => api.get(`/warehouse/receipts/${id}/supporting-docs`),
+  getSupportingDocsHtml: (id) => api.get(`/warehouse/receipts/${id}/supporting-docs/html`, { responseType: 'text' }),
+  getSupportingDocsPdf: (id) => api.get(`/warehouse/receipts/${id}/supporting-docs/pdf`, { responseType: 'blob' }),
 }

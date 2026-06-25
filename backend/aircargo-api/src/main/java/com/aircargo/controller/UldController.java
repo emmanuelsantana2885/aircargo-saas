@@ -1,5 +1,6 @@
 package com.aircargo.controller;
 
+import com.aircargo.dto.TransferRequest;
 import com.aircargo.dto.UldDTO;
 import com.aircargo.entity.UldStatus;
 import com.aircargo.service.UldService;
@@ -64,6 +65,22 @@ public class UldController {
             UUID flightId = UUID.fromString(flightIdStr);
             UldDTO updated = uldService.assignFlight(id, flightId);
             return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getClass().getSimpleName() + ": " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{uldId}/transfer")
+    public ResponseEntity<?> transferUld(@PathVariable UUID uldId, @Valid @RequestBody TransferRequest request) {
+        if (request.getDestinationFlightId() == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "destinationFlightId is required"));
+        }
+        if (request.getReason() == null || request.getReason().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "reason is required for transfer"));
+        }
+        try {
+            UldDTO result = uldService.transferUld(uldId, request.getDestinationFlightId(), request.getReason());
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", e.getClass().getSimpleName() + ": " + e.getMessage()));
         }

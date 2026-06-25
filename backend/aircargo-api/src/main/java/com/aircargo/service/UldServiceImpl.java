@@ -9,6 +9,7 @@ import com.aircargo.repository.FlightRepository;
 import com.aircargo.repository.UldAwbRepository;
 import com.aircargo.repository.UldRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -95,6 +96,25 @@ public class UldServiceImpl implements UldService{
                 })
                 .map(UldDTO::fromEntity)
                 .map(this::enrichWithAwbs);
+    }
+
+    @Override
+    @Transactional
+    public UldDTO transferUld(UUID uldId, UUID destinationFlightId, String reason) {
+        Uld uld = uldRepository.findById(uldId)
+                .orElseThrow(() -> new IllegalArgumentException("ULD not found: " + uldId));
+        Flight destFlight = flightRepository.findById(destinationFlightId)
+                .orElseThrow(() -> new IllegalArgumentException("Flight not found: " + destinationFlightId));
+        uld.setFlight(destFlight);
+        String timestamp = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        String note = "[" + timestamp + "] Transferido a " + destFlight.getFlightNumber() + ": " + (reason != null ? reason : "");
+        if (uld.getNotes() != null) {
+            note = note + "\n" + uld.getNotes();
+        }
+        uld.setNotes(note);
+        Uld saved = uldRepository.save(uld);
+        return enrichWithAwbs(UldDTO.fromEntity(saved));
     }
 
     @Override

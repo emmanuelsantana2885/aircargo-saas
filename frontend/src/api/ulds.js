@@ -8,4 +8,5 @@ export const uldsApi = {
   create: (dto) => api.post('/ulds', { airlineId: UPS, ...dto }),
   update: (id, dto) => api.put(`/ulds/${id}`, dto),
   delete: (id) => api.delete(`/ulds/${id}`),
+  assignFlight: (id, flightId) => api.patch(`/ulds/${id}/flight`, { flightId }),
 }

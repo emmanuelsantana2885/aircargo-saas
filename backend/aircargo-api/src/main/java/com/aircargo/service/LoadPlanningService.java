@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface LoadPlanningService {
     Optional<LoadPlanningDTO> getByFlightId(UUID flightId);
+    LoadPlanningDTO closeLoadPlan(UUID flightId);
 }

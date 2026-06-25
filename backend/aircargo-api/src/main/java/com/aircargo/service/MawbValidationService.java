@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -36,25 +37,26 @@ public class MawbValidationService {
 
     /**
      * Verifica que el peso acumulado de las guías no sature el Payload Máximo del avión.
+     * No bloquea — retorna un Optional con mensaje de advertencia si hay sobrecarga.
      */
-    public void validateFlightPayloadLimit(UUID flightId, BigDecimal incomingWeightKg) {
+    public Optional<String> validateFlightPayloadLimit(UUID flightId, BigDecimal incomingWeightKg) {
         Flight flight = flightRepository.findById(flightId)
                 .orElseThrow(() -> new IllegalArgumentException("EL VUELO ESPECIFICADO NO EXISTE EN EL SISTEMA."));
 
         List<Mawb> currentMawbs = mawbRepository.findByFlightId(flightId);
 
-        // Sumar los pesos de las guías ya asignadas al vuelo
         double currentTotalWeight = currentMawbs.stream()
                 .mapToDouble(m -> m.getChargeableWeightKg() != null ? m.getChargeableWeightKg().doubleValue() : 0.0)
                 .sum();
 
         double limit = flight.getMaxPayloadKg() != null ? flight.getMaxPayloadKg().doubleValue() : 0.0;
+        double proposed = currentTotalWeight + incomingWeightKg.doubleValue();
 
-        if ((currentTotalWeight + incomingWeightKg.doubleValue()) > limit) {
-            throw new IllegalStateException(
-                String.format("ALERTA DE SOBREPESO: El peso total propuesto (%.2f kg) excede la capacidad máxima del avión (%s: %.2f kg).", 
-                    (currentTotalWeight + incomingWeightKg.doubleValue()), flight.getAircraftReg(), limit)
-            );
+        if (proposed > limit) {
+            return Optional.of(String.format(
+                "ALERTA DE SOBREVENTA: El peso total (%.2f kg) excede la capacidad del avión %s (%.2f kg).",
+                proposed, flight.getAircraftReg(), limit));
         }
+        return Optional.empty();
     }
 }

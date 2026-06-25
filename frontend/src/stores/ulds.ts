@@ -3,11 +3,38 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../api/client'
 
-// UPS airline ID fijo en el sistema
 const UPS_AIRLINE_ID = '00000000-0000-0000-0000-000000000001'
 
-// Mapea el tipo de ULD del frontend al enum del backend
-function inferUldType(uldId, config) {
+interface FlightItem {
+  id: string
+  flightNumber: string
+  origin: string
+  destination: string
+  flightDate: string
+  aircraftType?: string
+  aircraftReg?: string
+  status?: string
+}
+
+interface UldItem {
+  id?: string
+  uldNumber?: string
+  uldType?: string
+  config?: string | null
+  pos?: string
+  position?: string
+  sealNumber?: string | null
+  grossWeightLbs?: number
+  grossWeight?: number
+  tareLbs?: number
+  tareWeight?: number
+  status?: string
+  filledBy?: string | null
+  backendId?: string
+  flightId?: string | null
+}
+
+function inferUldType(uldId: string | undefined | null, config?: string | null): string {
   const id = (uldId || '').toUpperCase()
   if (id.startsWith('PMC')) return 'PMC'
   if (id.startsWith('PMH')) return 'PMH'
@@ -17,58 +44,93 @@ function inferUldType(uldId, config) {
   if (id.startsWith('AMP')) return 'AMP'
   if (id.startsWith('AMJ')) return 'AMJ'
   if (id.startsWith('PIP')) return 'PIP'
-  return 'PMC' // fallback
+  return 'PMC'
 }
 
 export const useUldsStore = defineStore('ulds', () => {
-  const flights = ref([])
-  const selectedFlightId = ref(null)
-  const uldsByFlight = ref({})
+  const flights = ref<FlightItem[]>([])
+  const selectedFlightId = ref<string | null>(null)
+  const uldsByFlight = ref<Record<string, UldItem[]>>({})
+  const floatingUlDs = ref<UldItem[]>([])
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
-  const selectedFlight = computed(() =>
-    flights.value.find(f => f.id === selectedFlightId.value) || null
+  const isShowingFloating = computed(() => selectedFlightId.value === '__floating__')
+
+  const selectedFlight = computed<FlightItem | null>(() =>
+    isShowingFloating.value ? null : (flights.value.find(f => f.id === selectedFlightId.value) || null)
   )
 
-  const activeUlds = computed(() =>
-    selectedFlightId.value ? (uldsByFlight.value[selectedFlightId.value] || []) : []
-  )
+  const activeUlds = computed<UldItem[]>(() => {
+    if (isShowingFloating.value) return floatingUlDs.value
+    if (!selectedFlightId.value) return []
+    return uldsByFlight.value[selectedFlightId.value] || []
+  })
 
-  async function loadFlights() {
+  function apiError(e: unknown): string {
+  if (e instanceof Error) {
+    const axios = (e as unknown as Record<string, unknown>).response as Record<string, unknown> | undefined
+    if (axios) {
+      const d = axios.data as Record<string, unknown> | undefined
+      if (d?.message && typeof d.message === 'string') return d.message
+    }
+    return e.message
+  }
+  return String(e)
+}
+
+async function loadFlights(): Promise<void> {
     try {
       loading.value = true
       error.value = null
       const res = await api.get('/flights', { params: { airlineId: UPS_AIRLINE_ID } })
       flights.value = res.data
       if (flights.value.length && !selectedFlightId.value) {
-        await selectFlight(flights.value[0].id)
+        const first = flights.value[0]
+        if (first) await selectFlight(first.id)
       }
-    } catch (e) {
-      error.value = 'Error cargando vuelos: ' + (e.response?.data?.message || e.message)
+    } catch (e: unknown) {
+      error.value = 'Error cargando vuelos: ' + apiError(e)
     } finally {
       loading.value = false
     }
   }
 
-  async function loadUldsForFlight(flightId) {
+  async function loadUldsForFlight(flightId: string): Promise<void> {
     try {
       loading.value = true
       const res = await api.get('/ulds', { params: { airlineId: UPS_AIRLINE_ID, flightId } })
       uldsByFlight.value[flightId] = res.data
-    } catch (e) {
-      error.value = 'Error cargando ULDs: ' + (e.response?.data?.message || e.message)
+    } catch (e: unknown) {
+      error.value = 'Error cargando ULDs: ' + apiError(e)
     } finally {
       loading.value = false
     }
   }
 
-  async function selectFlight(flightId) {
+  async function loadFloatingUlDs(): Promise<void> {
+    try {
+      loading.value = true
+      const res = await api.get('/ulds', { params: { airlineId: UPS_AIRLINE_ID } })
+      floatingUlDs.value = (res.data || []).filter((u: UldItem) => !u.flightId)
+      selectedFlightId.value = '__floating__'
+    } catch (e: unknown) {
+      error.value = 'Error cargando ULDs flotantes: ' + apiError(e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function selectFlight(flightId: string): Promise<void> {
+    if (flightId === '__floating__') {
+      await loadFloatingUlDs()
+      return
+    }
     selectedFlightId.value = flightId
     await loadUldsForFlight(flightId)
   }
 
-  async function dispatchUld(uld, flightId) {
+  async function dispatchUld(uld: UldItem, flightId: string): Promise<unknown> {
     if (!flightId) throw new Error('flightId UUID requerido')
 
     const dto = {
@@ -98,8 +160,8 @@ export const useUldsStore = defineStore('ulds', () => {
 
   return {
     flights, selectedFlightId, selectedFlight,
-    uldsByFlight, activeUlds, loading, error,
-    loadFlights, loadUldsForFlight, selectFlight, dispatchUld
+    uldsByFlight, floatingUlDs, activeUlds, loading, error,
+    isShowingFloating,
+    loadFlights, loadUldsForFlight, loadFloatingUlDs, selectFlight, dispatchUld
   }
 })
-

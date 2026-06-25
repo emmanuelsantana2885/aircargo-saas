@@ -39,6 +39,17 @@ public class LoadPlanningController {
         this.exportService = exportService;
     }
 
+    @PostMapping("/flight/{flightId}/close")
+    @Transactional
+    public ResponseEntity<?> closeLoadPlan(@PathVariable UUID flightId) {
+        try {
+            LoadPlanningDTO result = loadPlanningService.closeLoadPlan(flightId);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", ex.getMessage()));
+        }
+    }
+
     @GetMapping("/flight/{flightId}")
     public ResponseEntity<?> getLoadPlanningByFlight(@PathVariable UUID flightId) {
         return loadPlanningService.getByFlightId(flightId)

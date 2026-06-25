@@ -181,6 +181,10 @@ public class WarehouseReceipt {
     @Column(name = "dock_signature", columnDefinition = "text")
     private String dockSignature;
 
+    @Builder.Default
+    @Column(name = "supporting_docs", columnDefinition = "text")
+    private String supportingDocs = "[]";
+
     @Column(name = "print_name", length = 150)
     private String printName;
 

@@ -78,6 +78,13 @@
             <version>5.2.5</version>
         </dependency>
 
+        <!-- openhtmltopdf - HTML a PDF (evidencias para auditoria) -->
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

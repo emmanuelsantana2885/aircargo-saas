@@ -90,6 +90,9 @@ public class Mawb {
     @Column(name = "loose_tender")
     private Boolean looseTender = false;
 
+    @Column(name = "supporting_docs", columnDefinition = "text")
+    private String supportingDocs = "[]";
+
     @Column(name = "notes")
     private String notes;
 
