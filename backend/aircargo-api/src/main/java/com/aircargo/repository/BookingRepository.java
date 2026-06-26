@@ -10,8 +10,9 @@ import java.util.UUID;
 public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     List<Booking> findByFlightId(UUID flightId);
-    List<Booking>findByAirlineId(UUID airlineId);
-    List<Booking>findByFlightIdAndCommodityType(
+    List<Booking> findByAirlineId(UUID airlineId);
+    List<Booking> findByMawbId(UUID mawbId);
+    List<Booking> findByFlightIdAndCommodityType(
             UUID flightId,
             com.aircargo.entity.CommodityType commodityType);
 

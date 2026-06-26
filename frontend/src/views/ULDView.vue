@@ -3,7 +3,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
   <div class="p-5 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
       <div>
-        <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
+        <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
         <p class="text-[10px] font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
       </div>
      
@@ -41,7 +41,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
      
-      <div class="bg-slate-50 border-b border-slate-300 text-[9px] font-bold text-slate-400 uppercase tracking-wider grid grid-cols-12 py-2.5 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-50 border-b border-slate-300 text-[11px] font-bold text-slate-400 uppercase tracking-wider grid grid-cols-12 py-2.5 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2 text-left">Código ULD</div>
         <div class="col-span-1 text-left">Vuelo</div>
         <div class="col-span-2 text-left">Ruta / Destino</div>
@@ -52,7 +52,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
         <div class="col-span-2 text-center bg-slate-100 py-0.5 rounded border border-slate-200 text-slate-600 font-black tracking-wide">Flujo Rampa</div>
       </div>
      
-      <div class="divide-y divide-slate-200 text-xs text-slate-700 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div class="divide-y divide-slate-200 text-[10px] text-slate-700 overflow-y-auto flex-1 min-h-0 scrollbar-none">
         <div v-for="uld in uldsList" :key="uld.id" class="flex flex-col">
          
           <div @click="toggleUldExpansion(uld.id)"
@@ -115,7 +115,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
               <div class="flex justify-between items-center border-b border-slate-300 pb-3 mb-5">
                 <div class="flex items-center gap-2">
-                  <span class="text-sm font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
+                  <span class="text-[12px] font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
                   <span class="text-[10px] text-slate-400 font-bold">// CONTROL ADICIÓN AUTOMÁTICA</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -173,7 +173,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
               <!-- TABLA MAWB - TAMAÑO UNIFORME -->
               <div class="border border-slate-200 rounded overflow-hidden mb-6">
-                <div class="bg-slate-950 text-white text-sm font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center">
+                <div class="bg-slate-950 text-white text-[11px] font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center">
                   <div class="col-span-4">NÚMERO DE GUÍA COMERCIAL (MAWB)</div>
                   <div class="col-span-3">DESCRIPCIÓN</div>
                   <div class="col-span-2 text-right">PIEZAS (PCS)</div>

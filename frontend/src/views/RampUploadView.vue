@@ -4,7 +4,7 @@
       
       <div class="border-b pb-3 mb-4 flex justify-between items-center">
         <div>
-          <h3 class="text-sm font-black text-slate-900 uppercase tracking-wider">
+          <h3 class="text-[12px] font-black text-slate-900 uppercase tracking-wider">
             Ingesta Masiva // Manifiesto de Rampa
           </h3>
           <p class="text-[10px] text-slate-500 mt-0.5">MÓDULO: LOAD PLANNING & WEIGHT CONTROL</p>

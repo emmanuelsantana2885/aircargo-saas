@@ -3,12 +3,12 @@
     <header class="flex flex-wrap items-end justify-between gap-2 border-b border-slate-400 pb-3 shrink-0">
       <div class="flex items-end gap-3 flex-1 min-w-0">
         <div>
-          <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
-          <p class="text-[16px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
+          <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
+          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
         </div>
         <div class="h-8 w-[1px] bg-slate-200"></div>
         <div class="flex flex-col gap-0.5 opacity-50">
-          <span class="text-[17px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
           <select disabled
             class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-800 uppercase tracking-widest text-sm min-w-[140px] cursor-not-allowed">
             <option value="">Todos los vuelos</option>
@@ -18,17 +18,17 @@
           </select>
         </div>
         <div class="flex flex-col gap-0.5 flex-1 min-w-[180px] max-w-[280px]">
-          <span class="text-[17px] font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
           <input v-model="filterText" type="text" placeholder="Ej: *MELYSOL, >50, 406-*, =SDQ"
-            class="w-full text-[17px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+            class="w-full text-[10px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
         <div class="flex flex-col gap-0.5">
-          <span class="text-[17px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
           <input v-model="filterDate" type="date"
             class="text-[17px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
       </div>
-      <div class="flex items-center gap-2 text-[18px] font-mono font-bold text-slate-950 shrink-0">
+        <div class="flex items-center gap-2 text-[11px] font-mono font-bold text-slate-950 shrink-0">
         <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ filteredMawbs.length }}/{{ store.mawbs.length }} MAWBs
       </div>
     </header>
@@ -38,15 +38,15 @@
         class="chalk-sketch py-1.5 px-3 rounded bg-white border border-slate-400 border-l-4 shadow-pencil-marine flex flex-col justify-between min-h-[68px]"
         :class="stat.border">
         <div class="relative z-10">
-          <h3 class="text-[14.5px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
+          <h3 class="text-[12px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
           <div class="text-xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
         </div>
-        <div class="text-[17px] font-mono text-slate-950 relative z-10 truncate"><span>{{ stat.sub }}</span></div>
+        <div class="text-[10px] font-mono text-slate-950 relative z-10 truncate"><span>{{ stat.sub }}</span></div>
       </div>
     </section>
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
-      <div class="bg-slate-950 border-b border-slate-700 text-[17px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-950 border-b border-slate-700 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-3 text-left">MAWB</div>
         <div class="col-span-2 text-left">Shipper</div>
         <div class="col-span-1 text-center">Piezas</div>
@@ -57,17 +57,17 @@
       </div>
 
       <div v-if="store.mawbs.length === 0" class="flex-1 flex items-center justify-center">
-        <p class="text-[16px] font-mono text-slate-950 uppercase tracking-widest">No hay MAWBs</p>
+        <p class="text-[10px] font-mono text-slate-950 uppercase tracking-widest">No hay MAWBs</p>
       </div>
       <div v-else-if="filteredMawbs.length === 0" class="flex-1 flex items-center justify-center">
-        <p class="text-[16px] font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
+        <p class="text-[10px] font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
       </div>
-      <div v-else class="divide-y divide-slate-200 text-sm text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div v-else class="divide-y divide-slate-200 text-[10px] text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
           <div v-for="m in filteredMawbs" :key="m.id" class="flex flex-col">
           <div class="row-pencil grid grid-cols-12 items-center py-2.5 px-5 transition-all duration-150 cursor-pointer"
             @click="toggleExpand(m)">
             <div class="col-span-3 font-mono font-bold text-slate-950 relative z-10 flex items-center gap-1.5">
-              <span class="text-[17px] text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
+              <span class="text-[10px] text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
               {{ m.awbNumber || m.id?.slice(0, 8) || '—' }}
               <span v-if="receiptHawbs[m.id] && receiptHawbs[m.id].length > 1"
                 class="text-[16px] font-black text-amber-600 bg-amber-100 px-2 py-1 rounded leading-none"
@@ -105,7 +105,7 @@
                   :class="getStatusDot(m, s)"
                   :title="s.key + ((m.status || 'BOOKED') === s.key ? ' (actual)' : ' → clic')"></span>
               </div>
-              <span class="text-[16px] font-mono font-bold uppercase tracking-wider whitespace-nowrap"
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap"
                 :class="statusLabelClass(m)">{{ statusLabel(m) }}</span>
               <button @click.stop="toggleMawbEvidenceManager(m)"
                 class="ml-auto text-[17px] px-2 py-1 rounded border border-slate-300 text-slate-950 hover:text-slate-950 hover:border-slate-950 transition font-mono"
@@ -196,7 +196,7 @@
                   <div class="space-y-3">
                     <div class="border-2 border-emerald-800 rounded-lg bg-white overflow-hidden shadow-sm">
                       <div class="flex items-center justify-between bg-emerald-800 px-4 py-2.5 border-b border-emerald-900">
-                        <span class="text-sm font-mono font-bold text-white uppercase tracking-wider">
+                        <span class="text-[12px] font-mono font-bold text-white uppercase tracking-wider">
                           HAWBs
                         </span>
                         <div class="flex items-center gap-2 text-sm font-mono">
@@ -257,7 +257,7 @@
 
                     <!-- Checkboxes group -->
                     <div class="border-2 border-emerald-800 rounded-lg bg-white p-4 shadow-sm">
-                      <div class="text-sm font-mono font-bold text-emerald-800 uppercase tracking-wider mb-3">Flags / Marcas</div>
+                      <div class="text-[12px] font-mono font-bold text-emerald-800 uppercase tracking-wider mb-3">Flags / Marcas</div>
                       <div class="grid grid-cols-2 gap-x-5 gap-y-3">
                         <label class="text-sm font-mono font-bold text-slate-950 flex items-center gap-2 cursor-pointer select-none">
                           <input type="checkbox" v-model="receiptForms[m.id].cashOnly" class="accent-emerald-800 rounded" />
@@ -287,7 +287,7 @@
 
               <!-- ═══ STEP 2: PIECES ═══ -->
               <div v-if="localStep === 2" class="space-y-4">
-                <div class="text-[16px] font-mono font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                <div class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
                   <span>Loose Tender — Dimensiones y Pesos</span>
                   <span class="text-[17px] font-mono font-normal text-slate-950 normal-case tracking-normal">
                     ((L x W x H) x #pcs) / 366 = Kg dimensional
@@ -296,9 +296,9 @@
 
                 <template v-if="(receiptHawbs[m.id] || []).length <= 1">
                   <div class="overflow-x-auto border border-slate-400 rounded">
-                    <table class="w-full text-[18px] font-mono border-collapse">
+                    <table class="w-full text-[10px] font-mono border-collapse">
                       <thead>
-                        <tr class="bg-slate-700 text-white text-[17px] uppercase tracking-wider">
+                        <tr class="bg-slate-700 text-white text-[11px] uppercase tracking-wider">
                           <th class="px-3 py-2 border-r border-slate-600 w-6 text-center">#</th>
                           <th class="px-3 py-2 border-r border-slate-600 w-12 text-center">Pieces</th>
                           <th class="px-3 py-2 border-r border-slate-600 w-16 text-center">Length (in)</th>
@@ -354,7 +354,7 @@
                         </tr>
                       </tbody>
                       <tfoot>
-                        <tr class="bg-slate-100 font-bold text-slate-950 text-[18px]">
+                        <tr class="bg-slate-100 font-bold text-slate-950 text-[10px]">
                           <td class="px-3 py-2 border-t border-slate-300 text-slate-950 text-center"></td>
                           <td class="px-3 py-2 border-t border-slate-300 text-center">{{ totalPieces(m.id, null) }}</td>
                           <td class="px-3 py-2 border-t border-slate-300 text-slate-950 text-[17px]" colspan="3">TOTAL</td>
@@ -383,16 +383,16 @@
                 <template v-else>
                   <div v-for="h in receiptHawbs[m.id]" :key="h.id" class="border border-slate-400 rounded overflow-hidden bg-white">
                     <div class="flex items-center justify-between bg-slate-100 px-4 py-2.5 border-b border-slate-400">
-                      <span class="text-[18px] font-mono font-bold text-slate-950">
+                      <span class="text-[12px] font-mono font-bold text-slate-950">
                         HAWB: {{ h.hawbNumber }} &mdash; {{ h.consigneeName || '—' }}
                         <span class="text-slate-950 font-normal ml-2">({{ piecesByHawb(m.id, h.id).length }} pieza(s))</span>
                       </span>
                       <span class="text-[17px] font-mono text-slate-950 font-bold">{{ piecesByHawb(m.id, h.id).reduce((s, p) => s + (p.pieces || 1), 0) }} pcs</span>
                     </div>
                     <div class="overflow-x-auto">
-                      <table class="w-full text-[17px] font-mono border-collapse">
+                      <table class="w-full text-[10px] font-mono border-collapse">
                         <thead>
-                          <tr class="bg-slate-600 text-white text-[16px] uppercase tracking-wider">
+                          <tr class="bg-slate-600 text-white text-[11px] uppercase tracking-wider">
                             <th class="px-1.5 py-1 border-r border-slate-500 w-5 text-center">#</th>
                             <th class="px-1.5 py-1 border-r border-slate-500 w-10 text-center">Pcs</th>
                             <th class="px-1.5 py-1 border-r border-slate-500 w-14 text-center">L</th>
@@ -448,7 +448,7 @@
                           </tr>
                         </tbody>
                         <tfoot>
-                          <tr class="bg-slate-100 font-bold text-slate-950 text-[16px]">
+                          <tr class="bg-slate-100 font-bold text-slate-950 text-[10px]">
                             <td class="px-1.5 py-1 border-t border-slate-400"></td>
                             <td class="px-1.5 py-1 border-t border-slate-400 text-center">{{ hawbTotalPieces(m.id, h.id) }}</td>
                             <td class="px-1.5 py-1 border-t border-slate-400" colspan="3">TOTAL</td>
@@ -492,7 +492,7 @@
 
                 <!-- Evidencias del MAWB (desde base de datos) -->
                 <div v-if="(receiptForms[m.id].mawbEvidence || []).length > 0">
-                  <span class="text-[18px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Evidencias del MAWB</span>
+                  <span class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Evidencias del MAWB</span>
                   <div class="grid grid-cols-4 gap-3 mb-4">
                     <div v-for="(ev, ei) in receiptForms[m.id].mawbEvidence" :key="'mawb-' + ei"
                       class="relative border border-amber-200 rounded bg-amber-50/30 overflow-hidden group">
@@ -504,7 +504,7 @@
                 </div>
 
                 <!-- Nuevas evidencias (subidas en este formulario) -->
-                <span class="text-[18px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Nuevas evidencias (este recibo)</span>
+                <span class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Nuevas evidencias (este recibo)</span>
                 <div class="grid grid-cols-4 gap-3">
                   <div v-for="(ev, ei) in receiptForms[m.id].evidence" :key="'rec-' + ei" class="relative border border-slate-400 rounded bg-white overflow-hidden group">
                     <img v-if="ev.type === 'image'" :src="ev.url" class="w-full h-24 object-cover" />
@@ -609,7 +609,7 @@
       <div v-if="mawbEvidenceMgr.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeMawbEvidenceMgr">
         <div class="bg-white rounded-lg shadow-2xl overflow-hidden mx-4" style="max-width: 640px; width: 100%; max-height: 80vh;">
           <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-400">
-            <span class="text-[16px] font-mono font-black uppercase tracking-widest text-slate-950">
+            <span class="text-[12px] font-mono font-black uppercase tracking-widest text-slate-950">
               Evidencias — {{ mawbEvidenceMgr.mawb?.awbNumber || 'MAWB' }}
             </span>
             <button @click="closeMawbEvidenceMgr" class="text-slate-950 hover:text-slate-950 transition text-base">✕</button>
@@ -1035,10 +1035,37 @@ async function toggleExpand(m) {
           f.brokerSig = lastReceipt.brokerSigUrl || f.brokerSig
           f.pieceCount = lastReceipt.pieceCount || 0
           f.totalWeightKg = lastReceipt.actualWeightKg || lastReceipt.chargeableWeightKg || 0
-          // Cargar piezas del recibo existente
+          // Cargar piezas del recibo existente para edicion
           try {
-            const piecesRes = await receiptsApi.getById(lastReceipt.id)
-            // not using pieces from backend for editing - user re-enters
+            const piecesRes = await receiptsApi.getPieces(lastReceipt.id)
+            if (piecesRes.data && piecesRes.data.length > 0) {
+              f.pieces = piecesRes.data.map(p => ({
+                pieces: p.pieces || 1,
+                hawbId: p.hawbId || null,
+                lengthIn: p.lengthIn || null,
+                widthIn: p.widthIn || null,
+                heightIn: p.heightIn || null,
+                scaleWeightLbs: p.scaleWeightLbs || null,
+                dimWeight: p.dimWeightLbs || 0,
+                dimWeightLbs: p.dimWeightLbs || 0,
+                scaleWeightKg: p.scaleWeightKg || 0,
+                dimWeightKg: p.dimWeightKg || 0,
+                chargeableKg: p.chargeableKg || 0,
+                chargeableLbs: p.chargeableLbs || 0,
+              }))
+            }
+            // Cargar firmas del recibo como evidencias visuales
+            const sigEntries = [
+              { name: 'Firma Dock', url: lastReceipt.dockSignature },
+              { name: 'Firma Delivered By', url: lastReceipt.deliveredBySigUrl },
+              { name: 'Firma Broker', url: lastReceipt.brokerSigUrl },
+            ]
+            for (const sig of sigEntries) {
+              if (sig.url && sig.url.startsWith('data:image')) {
+                const exists = f.mawbEvidence.some(e => e.name === sig.name)
+                if (!exists) f.mawbEvidence.push({ name: sig.name, type: 'image', url: sig.url })
+              }
+            }
           } catch {}
         }
 
@@ -1239,31 +1266,54 @@ async function editReceipt(m) {
   submitting.value = true
   try {
     const payload = {
-      gatewayCfs: f.gatewayCfs || 'SDQ',
-      shipperName: f.shipperName || m.shipperName,
-      consigneeName: f.consigneeName || m.consigneeName || '',
-      origin: f.origin || 'SDQ',
-      destination: f.destination || 'MIA',
-      awbReportedPieces: f.awbReportedPieces || 0,
-      mawbWeightGreatest: f.mawbWeightGreatest || 0,
-      pieceCount: f.pieces.reduce((s, p) => s + (p.pieces || 1), 0),
-      cashOnly: f.cashOnly || false,
-      bookedInAcoms: f.bookedInAcoms || false,
-      docsProvided: f.docsProvided || false,
-      customsCompleted: f.customsCompleted || false,
-      preBuilt: f.preBuilt || false,
-      remarks: f.remarks || '',
-      dockSignature: f.dockSignature || '',
-      printName: f.printName || '',
-      deliveredByName: f.deliveredByName || '',
-      deliveredByIdNum: f.deliveredByIdNum || '',
-      deliveredBySigUrl: f.deliveredBySig || '',
-      receivedByName: f.printName || '',
-      brokerName: f.brokerName || '',
-      brokerIdNum: f.brokerIdNum || '',
-      brokerSigUrl: f.brokerSig || '',
+      receipt: {
+        airline: { id: '00000000-0000-0000-0000-000000000001' },
+        mawb: { id: m.id },
+        gatewayCfs: f.gatewayCfs || 'SDQ',
+        shipperName: f.shipperName || m.shipperName,
+        consigneeName: f.consigneeName || m.consigneeName || '',
+        origin: f.origin || 'SDQ',
+        destination: f.destination || 'MIA',
+        awbReportedPieces: f.awbReportedPieces || 0,
+        mawbWeightGreatest: f.mawbWeightGreatest || 0,
+        pieceCount: f.pieces.reduce((s, p) => s + (p.pieces || 1), 0),
+        cashOnly: f.cashOnly || false,
+        bookedInAcoms: f.bookedInAcoms || false,
+        docsProvided: f.docsProvided || false,
+        customsCompleted: f.customsCompleted || false,
+        preBuilt: f.preBuilt || false,
+        remarks: f.remarks || '',
+        dockSignature: f.dockSignature || '',
+        printName: f.printName || '',
+        deliveredByName: f.deliveredByName || '',
+        deliveredByIdNum: f.deliveredByIdNum || '',
+        deliveredBySigUrl: f.deliveredBySig || '',
+        receivedByName: f.printName || '',
+        brokerName: f.brokerName || '',
+        brokerIdNum: f.brokerIdNum || '',
+        brokerSigUrl: f.brokerSig || '',
+        startDatetime: new Date().toISOString(),
+        receiptDate: new Date().toISOString(),
+      },
+      pieces: f.pieces.map((p, i) => ({
+        pieceNumber: i + 1,
+        lengthIn: p.lengthIn || 0,
+        widthIn: p.widthIn || 0,
+        heightIn: p.heightIn || 0,
+        scaleWeightLbs: p.scaleWeightLbs || 0,
+        scaleWeightKg: p.scaleWeightKg || 0,
+        dimWeightLbs: p.dimWeightLbs || 0,
+        dimWeightKg: p.dimWeightKg || 0,
+        chargeableLbs: p.chargeableLbs || 0,
+        chargeableKg: p.chargeableKg || 0,
+      })),
+      supportingDocs: f.evidence.map(ev => ({
+        name: ev.name,
+        type: ev.type,
+        url: ev.url,
+      })),
     }
-    await receiptsApi.update(f._existingReceiptId, payload)
+    await store.emitReceipt(payload)
     receiptForms[m.id] = null
     expandedId.value = null
     localStep.value = 1

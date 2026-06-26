@@ -3,22 +3,22 @@
     <header class="flex flex-wrap justify-between items-center gap-2 border-b border-slate-400 pb-3 shrink-0">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
-          <p class="text-[16px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
+          <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
+          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
         </div>
         <div class="flex flex-col gap-0.5">
-          <span class="text-[13px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
           <input v-model="filterDate" type="date"
             class="text-xs font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition shadow-sm" />
         </div>
       </div>
       <div class="flex items-center gap-2">
         <span v-if="pendingReceiptCount > 0"
-          class="text-[14px] font-mono font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
+          class="text-[11px] font-mono font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
           &#9888; {{ pendingReceiptCount }} MAWB(s) sin recibo
         </span>
         <button @click="createNewBlankUld"
-          class="bg-slate-950 text-white font-mono text-[16px] font-black uppercase tracking-wider px-5 py-2 rounded border border-slate-900 hover:bg-slate-800 transition-all flex items-center gap-2 shadow-pencil-marine active:scale-95">
+          class="bg-slate-950 text-white font-mono text-[11px] font-black uppercase tracking-wider px-5 py-2 rounded border border-slate-900 hover:bg-slate-800 transition-all flex items-center gap-2 shadow-pencil-marine active:scale-95">
           <span class="text-sm font-sans">&#65291;</span> Crear ULD
         </button>
       </div>
@@ -28,10 +28,10 @@
       <div v-for="stat in uldStats" :key="stat.label"
         class="pencil-sketch py-2 px-3 rounded bg-white border border-slate-400 shadow-pencil-marine flex flex-col justify-between min-h-[72px]">
         <div class="relative z-10">
-          <h3 class="text-[15px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
+          <h3 class="text-[11px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
           <div class="text-2xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
         </div>
-        <div class="pt-1 border-t border-slate-300 text-[15px] font-mono text-slate-950 relative z-10 truncate flex justify-between items-center">
+        <div class="pt-1 border-t border-slate-300 text-[10px] font-mono text-slate-950 relative z-10 truncate flex justify-between items-center">
           <span>{{ stat.sub }}</span>
           <span :class="stat.trendClass" class="font-bold">{{ stat.trend }}</span>
         </div>
@@ -40,11 +40,11 @@
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
       <div v-if="appStore.loading && !localUlds.length" class="flex-1 flex items-center justify-center">
-        <span class="text-[13px] font-mono text-slate-400 animate-pulse">Cargando ULDs...</span>
+        <span class="text-[10px] font-mono text-slate-400 animate-pulse">Cargando ULDs...</span>
       </div>
 
       <div v-else-if="filteredUlDs.length === 0" class="flex-1 flex items-center justify-center">
-        <p class="text-[13px] font-mono text-slate-400 uppercase tracking-widest">{{ filterDate ? 'No hay ULDs para esta fecha' : 'No hay ULDs — crea uno nuevo' }}</p>
+        <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">{{ filterDate ? 'No hay ULDs para esta fecha' : 'No hay ULDs — crea uno nuevo' }}</p>
       </div>
 
       <template v-else>
@@ -58,16 +58,16 @@
               : 'border-slate-200 hover:border-slate-400 bg-white hover:shadow-sm'">
 
             <div class="flex justify-between items-center mb-px">
-              <span class="text-[13px] font-black text-slate-950 font-mono truncate mr-1 leading-tight">{{ uld.uldNumber || 'NUEVO-ULD' }}</span>
-              <span class="text-[9px] font-black px-0.5 py-px rounded uppercase whitespace-nowrap leading-none"
+              <span class="text-[10px] font-black text-slate-950 font-mono truncate mr-1 leading-tight">{{ uld.uldNumber || 'NUEVO-ULD' }}</span>
+              <span class="text-[10px] font-black px-0.5 py-px rounded uppercase whitespace-nowrap leading-none"
                 :class="statusBadgeClass(uld.status)">{{ uld.status }}</span>
             </div>
 
-            <div class="text-[11px] font-mono text-slate-400 mb-px font-semibold truncate leading-tight">
+            <div class="text-[10px] font-mono text-slate-400 mb-px font-semibold truncate leading-tight">
               {{ flightLabel(uld) }} · {{ uld.route ? uld.route.replace(' -> ', '→') : '---' }}
             </div>
 
-            <div class="flex justify-between items-center text-[11px] font-mono font-bold text-slate-950 leading-tight mb-px">
+            <div class="flex justify-between items-center text-[10px] font-mono font-bold text-slate-950 leading-tight mb-px">
               <span>{{ Number(uld.grossWeightLbs || 0).toLocaleString() }} lb</span>
               <span>{{ (uld.mawbs || []).length }} MAWB{{ (uld.mawbs || []).length !== 1 ? 's' : '' }}</span>
             </div>
@@ -78,7 +78,7 @@
                   :class="uld.volumePct >= 90 ? 'bg-emerald-500' : 'bg-slate-950'"
                   :style="{ width: uld.volumePct + '%' }"></div>
               </div>
-              <span class="text-[9px] font-mono font-bold text-slate-400 leading-none">{{ uld.volumePct }}%</span>
+              <span class="text-[10px] font-mono font-bold text-slate-400 leading-none">{{ uld.volumePct }}%</span>
             </div>
           </div>
         </div>
@@ -88,12 +88,12 @@
           <div v-for="uld in filteredUlDs" :key="'f-'+uld.uid">
             <div v-show="expandedUldId === uld.uid" class="p-4">
               <div class="bg-white border border-slate-300 rounded shadow-sm max-w-5xl mx-auto p-6 font-mono text-sm relative">
-                <div class="flex justify-between items-center border-b border-slate-300 pb-3 mb-5">
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
+                  <div class="flex justify-between items-center border-b border-slate-300 pb-3 mb-5">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[12px] font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-slate-400 uppercase">Volumen:</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase">Volumen:</span>
                     <input v-model.number="uld.volumePct" type="number" min="0" max="100" class="w-14 text-center bg-slate-100 border border-slate-300 rounded font-bold text-slate-950 focus:outline-none text-sm" />
                     <span class="text-sm font-bold text-slate-950">%</span>
                   </div>
@@ -122,7 +122,7 @@
 
                 <!-- MAWB TABLE -->
                 <div class="border border-slate-200 rounded overflow-hidden mb-6">
-                  <div class="bg-slate-950 text-white text-sm font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center gap-2">
+                  <div class="bg-slate-950 text-white text-[11px] font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center gap-2">
                     <div class="col-span-3">MAWB</div>
                     <div class="col-span-2">DESCRIPCIÓN</div>
                     <div class="col-span-1 text-right">PCS ASIG</div>
@@ -133,15 +133,22 @@
                     <div class="col-span-1"></div>
                   </div>
                   <div class="divide-y divide-slate-100 max-h-[240px] overflow-y-auto scrollbar-none">
-                    <div v-for="(mawb, mIdx) in uld.mawbs" :key="mIdx" class="grid grid-cols-12 items-center py-2 px-5 bg-white gap-2 text-sm">
-                      <div class="col-span-3">
-                        <select v-model="mawb.awbNumber" @change="onMawbSelect(uld, mIdx)"
-                          class="w-full border-b border-slate-200 focus:outline-none focus:border-slate-950 py-1 bg-transparent font-bold tracking-tight text-slate-950 text-xs">
-                          <option value="" disabled>Seleccionar MAWB</option>
-                          <option v-for="m in availableMawbs" :key="m.id" :value="m.awbNumber">
-                            {{ m.awbNumber }} — {{ m.shipperName || m.consigneeName }} [{{ m.commodityType }}]
-                          </option>
-                        </select>
+                    <div v-for="(mawb, mIdx) in uld.mawbs" :key="mIdx" class="grid grid-cols-12 items-center py-2 px-5 bg-white gap-2 text-[10px]">
+                      <div class="col-span-3 relative">
+                        <input v-model="mawb.mawbSearch" @input="onMawbSearchInput(uld, mIdx)" @focus="openMawbSuggestions(uld, mIdx)" @blur="closeMawbSuggestionsDelayed(uld, mIdx)" @keydown.down.prevent="mawbSuggestionNavigate(uld, mIdx, 1)" @keydown.up.prevent="mawbSuggestionNavigate(uld, mIdx, -1)" @keydown.enter.prevent="mawbSuggestionSelect(uld, mIdx)" @keydown.escape="closeMawbSuggestions(uld, mIdx)"
+                          type="text" placeholder="Buscar MAWB..."
+                          class="w-full border-b border-slate-200 focus:outline-none focus:border-slate-950 py-1 bg-transparent font-bold tracking-tight text-slate-950 text-xs" />
+                        <div v-if="mawb.showSuggestions && filteredMawbSuggestions(uld, mIdx).length" class="absolute z-50 top-full left-0 right-0 bg-white border border-slate-300 rounded shadow-lg max-h-[200px] overflow-y-auto mt-0.5">
+                          <div v-for="(s, si) in filteredMawbSuggestions(uld, mIdx)" :key="s.id"
+                            @mousedown.prevent="selectMawbSuggestion(uld, mIdx, s)"
+                            class="px-2 py-1.5 cursor-pointer text-xs border-b border-slate-100 last:border-b-0"
+                            :class="si === mawb.suggestionIndex ? 'bg-slate-100 text-slate-950' : 'hover:bg-slate-50 text-slate-600'">
+                            <span class="font-bold">{{ s.awbNumber }}</span>
+                            <span class="text-slate-400 ml-1">— {{ s.shipperName || s.consigneeName || '' }}</span>
+                            <span class="text-slate-400 ml-1">[{{ s.commodityType || '' }}]</span>
+                            <span class="text-amber-500 ml-1">{{ getMawbAvailableInfo(s.awbNumber) }}</span>
+                          </div>
+                        </div>
                       </div>
                       <div class="col-span-2">
                         <input v-model="mawb.commodityType" type="text" :placeholder="mawb.commodityHint || 'Dry Cargo'"
@@ -151,7 +158,7 @@
                         <input v-model.number="mawb.pieces" type="number" min="0"
                           class="w-full border-b border-slate-200 focus:border-slate-950 py-1 text-right bg-transparent font-bold text-xs" />
                       </div>
-                      <div class="col-span-1 text-right font-mono text-xs flex items-center justify-end gap-1"
+                      <div class="col-span-1 text-right font-mono text-[10px] flex items-center justify-end gap-1"
                         :class="mawb.receivedPieces != null ? 'text-emerald-600' : 'text-slate-400'">
                         <template v-if="mawb.receivedPieces != null">{{ mawb.receivedPieces }}</template>
                         <span v-else>&mdash;</span>
@@ -165,7 +172,7 @@
                         <input v-model="mawb.destination" type="text" maxlength="3"
                           class="w-full border-b border-slate-200 focus:outline-none focus:border-slate-950 py-1 text-right bg-transparent uppercase font-bold text-slate-950 text-xs" />
                       </div>
-                      <div class="col-span-2 flex justify-center items-center gap-1 text-[12px] font-mono">
+                      <div class="col-span-2 flex justify-center items-center gap-1 text-[10px] font-mono">
                         <span v-if="mawb.hasReceipt"
                           class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
                           ✓ Recibido
@@ -181,7 +188,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="p-2 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[13px] text-slate-500">
+                  <div class="p-2 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-500">
                     <button @click="addMawbRow(uld)"
                       class="py-1.5 px-3 border border-dashed border-slate-300 rounded text-center hover:text-slate-950 transition-colors font-bold text-xs uppercase">
                       + MAWB
@@ -324,7 +331,19 @@ const floatingCount = computed(() => (appStore.ulds || []).filter(u => !u.flight
 // Local ULD list derived from backend + new unsaved
 const localUlds = ref([])
 
-const availableMawbs = computed(() => [...specialItems, ...appStore.mawbs])
+const availableMawbs = computed(() => {
+  // Filter MAWBs that have pending pieces to be loaded
+  const withPending = appStore.mawbs.filter(mawb => {
+    const info = mawbReceiptInfo(mawb.awbNumber)
+    // Has pending pieces if: reserved pieces > assigned pieces OR received pieces > assigned pieces
+    const assignedInUlDs = localUlds.value.flatMap(u =>
+      (u.mawbs || []).filter(mw => mw.awbNumber === mawb.awbNumber)
+    ).reduce((s, mw) => s + (mw.pieces || 0), 0)
+    const available = Math.max(0, (info.reservedPieces > 0 ? info.reservedPieces : info.receivedPieces) - assignedInUlDs)
+    return available > 0
+  })
+  return [...specialItems, ...withPending]
+})
 
 const pendingReceiptCount = computed(() => {
   const allMawbs = localUlds.value.flatMap(u => u.mawbs || [])
@@ -348,6 +367,19 @@ function mawbReceiptInfo(awbNumber) {
     availablePieces: availablePieces,
     mawbId: m?.id || null,
   }
+}
+
+function getMawbAvailableInfo(awbNumber) {
+  const info = mawbReceiptInfo(awbNumber)
+  const assignedInUlDs = localUlds.value.flatMap(u =>
+    (u.mawbs || []).filter(mw => mw.awbNumber === awbNumber)
+  ).reduce((s, mw) => s + (mw.pieces || 0), 0)
+  const base = info.reservedPieces > 0 ? info.reservedPieces : info.receivedPieces
+  const available = Math.max(0, base - assignedInUlDs)
+  if (info.hasReceipt) {
+    return `(Recibido: ${info.receivedPieces}, Asignado: ${assignedInUlDs}, Disponible: ${available})`
+  }
+  return `(Reservado: ${info.reservedPieces}, Asignado: ${assignedInUlDs}, Disponible: ${available})`
 }
 
 function mawbHasReceipt(awbNumber) {
@@ -412,6 +444,9 @@ function rebuildLocalList() {
       const info = mawbReceiptInfo(m.mawbLabel || '')
       return {
         awbNumber: m.mawbLabel || '',
+        mawbSearch: m.mawbLabel || '',
+        showSuggestions: false,
+        suggestionIndex: -1,
         commodityType: m.description || 'DRY_CARGO',
         commodityHint: m.description || '',
         pieces: m.pieces || 0,
@@ -632,7 +667,7 @@ function toggleUldExpansion(uid) {
 }
 
 function addMawbRow(uld) {
-  uld.mawbs.push({ awbNumber: '', commodityType: 'DRY_CARGO', commodityHint: '', pieces: 0, piecesPct: 0, destination: 'MIA', mawbId: null, hasReceipt: false, receivedPieces: 0 })
+  uld.mawbs.push({ awbNumber: '', commodityType: 'DRY_CARGO', commodityHint: '', pieces: 0, piecesPct: 0, destination: 'MIA', mawbId: null, hasReceipt: false, receivedPieces: 0, mawbSearch: '', showSuggestions: false, suggestionIndex: -1 })
 }
 
 function removeMawbRow(uld, index) {
@@ -651,18 +686,89 @@ function onMawbSelect(uld, mIdx) {
       uld.mawbs[mIdx].hasReceipt = info.hasReceipt
       uld.mawbs[mIdx].receivedPieces = info.receivedPieces
       uld.mawbs[mIdx].reservedPieces = info.reservedPieces
-      // Auto-fill pieces from reserved
-      if (info.reservedPieces > 0) {
+      // Auto-fill pieces from reserved/received
+      if (info.receivedPieces > 0) {
+        uld.mawbs[mIdx].pieces = info.receivedPieces
+      } else if (info.reservedPieces > 0) {
         uld.mawbs[mIdx].pieces = info.reservedPieces
       }
-      // Mostrar alerta informativa
-      alert(
-        `MAWB: ${selected.awbNumber}\n` +
-        `Piezas Reservadas: ${info.reservedPieces}\n` +
-        `Piezas Recibidas: ${info.receivedPieces}\n` +
-        `Piezas Disponibles para otro ULD: ${info.availablePieces}`
-      )
     }
+  }
+}
+
+// ── Autocomplete helpers ───────────────────────────────────
+function onMawbSearchInput(uld, mIdx) {
+  const m = uld.mawbs[mIdx]
+  m.showSuggestions = true
+  m.suggestionIndex = -1
+  // If the input matches an exact awbNumber, auto-select it
+  const exact = availableMawbs.value.find(x => x.awbNumber === m.mawbSearch)
+  if (exact) {
+    m.awbNumber = exact.awbNumber
+    selectMawbSuggestion(uld, mIdx, exact)
+  }
+}
+
+function openMawbSuggestions(uld, mIdx) {
+  uld.mawbs[mIdx].showSuggestions = true
+}
+
+function closeMawbSuggestions(uld, mIdx) {
+  uld.mawbs[mIdx].showSuggestions = false
+  uld.mawbs[mIdx].suggestionIndex = -1
+}
+
+function closeMawbSuggestionsDelayed(uld, mIdx) {
+  setTimeout(() => closeMawbSuggestions(uld, mIdx), 200)
+}
+
+function filteredMawbSuggestions(uld, mIdx) {
+  const m = uld.mawbs[mIdx]
+  const q = (m.mawbSearch || '').toLowerCase().trim()
+  // Always include special items at bottom
+  const specials = specialItems.filter(s => !q || s.awbNumber.toLowerCase().includes(q) || (s.shipperName && s.shipperName.toLowerCase().includes(q)))
+  // Filter regular MAWBs with pending pieces
+  const regulars = availableMawbs.value.filter(s => {
+    if (s.isSpecial) return false
+    if (!q) return true
+    return s.awbNumber.toLowerCase().includes(q) || (s.shipperName && s.shipperName.toLowerCase().includes(q))
+  })
+  return [...regulars, ...specials]
+}
+
+function selectMawbSuggestion(uld, mIdx, suggestion) {
+  const m = uld.mawbs[mIdx]
+  m.awbNumber = suggestion.awbNumber
+  m.mawbSearch = suggestion.awbNumber
+  m.showSuggestions = false
+  m.suggestionIndex = -1
+  if (suggestion.isSpecial) {
+    m.commodityType = suggestion.commodityType || 'EQUIPMENT'
+    m.commodityHint = suggestion.commodityType || ''
+    m.destination = suggestion.destination || ''
+    m.mawbId = null
+    m.hasReceipt = false
+    m.receivedPieces = 0
+    m.reservedPieces = 0
+    m.pieces = 0
+    return
+  }
+  // Populate fields from suggestion
+  onMawbSelect(uld, mIdx)
+}
+
+function mawbSuggestionNavigate(uld, mIdx, dir) {
+  const m = uld.mawbs[mIdx]
+  const list = filteredMawbSuggestions(uld, mIdx)
+  if (!list.length) return
+  m.suggestionIndex = Math.max(-1, Math.min(list.length - 1, m.suggestionIndex + dir))
+}
+
+function mawbSuggestionSelect(uld, mIdx) {
+  const m = uld.mawbs[mIdx]
+  const list = filteredMawbSuggestions(uld, mIdx)
+  if (m.suggestionIndex >= 0 && m.suggestionIndex < list.length) {
+    selectMawbSuggestion(uld, mIdx, list[m.suggestionIndex])
   }
 }
 

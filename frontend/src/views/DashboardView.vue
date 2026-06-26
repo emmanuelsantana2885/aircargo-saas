@@ -2,10 +2,10 @@
   <div class="p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
       <div>
-        <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">Payload Dashboard</h1>
-        <p class="text-[16px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest font-bold">SDQ Hub // Payload Despachado por Vuelo</p>
+        <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">Payload Dashboard</h1>
+        <p class="text-[11px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest font-bold">SDQ Hub // Payload Despachado por Vuelo</p>
       </div>
-      <div class="flex items-center gap-3 text-[16px] font-mono font-bold">
+      <div class="flex items-center gap-3 text-[11px] font-mono font-bold">
         <span class="flex items-center gap-1 text-slate-500">
           <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> LIVE
         </span>
@@ -16,26 +16,27 @@
 
     <section class="flex items-center gap-3 my-3 shrink-0 flex-wrap">
       <div class="flex items-center gap-2">
-        <label class="text-[16px] font-mono font-black uppercase tracking-widest text-slate-950">Desde</label>
+        <label class="text-[11px] font-mono font-black uppercase tracking-widest text-slate-950">Desde</label>
         <input v-model="dateFrom" type="date"
           class="text-sm font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950" />
       </div>
       <div class="flex items-center gap-2">
-        <label class="text-[16px] font-mono font-black uppercase tracking-widest text-slate-950">Hasta</label>
+        <label class="text-[11px] font-mono font-black uppercase tracking-widest text-slate-950">Hasta</label>
         <input v-model="dateTo" type="date"
           class="text-sm font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950" />
       </div>
-      <div class="text-[16px] font-mono text-slate-500 ml-auto flex items-center gap-4">
+      <div class="text-[11px] font-mono text-slate-500 ml-auto flex items-center gap-4">
         <span>Total Neto: <strong class="text-slate-950">{{ totalNetPayload }} lbs</strong></span>
         <span>Total ULDs: <strong class="text-slate-950">{{ totalUldsCount }}</strong></span>
+        <span>Total Real Tare: <strong class="text-slate-950 text-rose-600">{{ totalRealTare }}</strong></span>
       </div>
     </section>
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
       <div ref="tableWrapper" class="overflow-auto flex-1 min-h-0 scrollbar-none">
-        <table class="w-full border-collapse text-sm font-mono">
+        <table class="w-full border-collapse text-[10px] font-mono">
           <thead class="sticky top-0 z-20">
-            <tr class="bg-slate-950 text-white text-[16px] font-black uppercase tracking-wider border-b border-slate-700">
+            <tr class="bg-slate-950 text-white text-[11px] font-black uppercase tracking-wider border-b border-slate-700">
               <th class="text-center px-2 py-2.5 whitespace-nowrap">#</th>
               <th class="text-center px-2 py-2.5 whitespace-nowrap">Vuelo</th>
               <th class="text-center px-2 py-2.5 whitespace-nowrap">Ruta</th>
@@ -44,7 +45,8 @@
               <th class="text-center px-2 py-2.5 whitespace-nowrap">ULDs</th>
               <th class="text-center px-2 py-2.5 whitespace-nowrap">Posiciones</th>
               <th class="text-right px-2 py-2.5 whitespace-nowrap">Gross Lbs</th>
-              <th class="text-right px-2 py-2.5 whitespace-nowrap">Tare Lbs</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Belly Tare</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Real Tare</th>
               <th class="text-right px-2 py-2.5 whitespace-nowrap">Neto Lbs</th>
               <th class="text-center px-2 py-2.5 whitespace-nowrap">Docs</th>
               <th class="text-right px-2 py-2.5 whitespace-nowrap">Payload Lbs</th>
@@ -52,10 +54,10 @@
           </thead>
           <tbody>
             <tr v-if="loading" class="h-32">
-              <td colspan="12" class="text-center text-[16px] font-mono text-slate-400 animate-pulse">Cargando datos...</td>
+              <td colspan="12" class="text-center text-[10px] font-mono text-slate-400 animate-pulse">Cargando datos...</td>
             </tr>
             <tr v-else-if="filteredFlights.length === 0" class="h-32">
-              <td colspan="12" class="text-center text-[16px] font-mono text-slate-400 uppercase tracking-widest">No hay vuelos en este rango</td>
+              <td colspan="12" class="text-center text-[10px] font-mono text-slate-400 uppercase tracking-widest">No hay vuelos en este rango</td>
             </tr>
             <tr v-for="(f, fi) in filteredFlights" :key="f.id"
               class="border-b border-slate-100 transition-colors hover:bg-slate-50">
@@ -66,13 +68,14 @@
               <td class="text-center px-2 py-2">
                 <span class="inline-flex items-center gap-1">
                   <span :class="getStatusDot(f.status)" class="inline-block w-2 h-2 rounded-full"></span>
-                  <span class="text-[14px] uppercase" :class="statusTextClass(f.status)">{{ statusLabel(f.status) }}</span>
+                  <span class="text-[10px] uppercase" :class="statusTextClass(f.status)">{{ statusLabel(f.status) }}</span>
                 </span>
               </td>
               <td class="text-center px-2 py-2 font-bold">{{ flightUlds(f.id).length }}</td>
               <td class="text-center px-2 py-2 font-bold">{{ flightPositions(f.id) }}</td>
               <td class="text-right px-2 py-2 font-bold">{{ grossLbs(f.id) }}</td>
               <td class="text-right px-2 py-2 font-bold text-amber-600">{{ bellyTareLbs(f.id) }}</td>
+              <td class="text-right px-2 py-2 font-bold text-rose-600">{{ realTareLbs(f.id) }}</td>
               <td class="text-right px-2 py-2 font-bold">{{ netLbs(f.id) }}</td>
               <td class="text-center px-2 py-2 text-slate-400">5</td>
               <td class="text-right px-2 py-2 font-bold text-emerald-600">{{ payloadLbs(f.id) }}</td>
@@ -123,19 +126,27 @@ function grossLbs(flightId) {
 
 function bellyTareLbs(flightId) {
   const ulds = flightUlds(flightId)
+  // Belly positions based on aircraft type - sum tare of ULDs in belly positions
+  const bellyPositions = ['31', '34', 'AB', 'LOOSE']
   const bellies = ulds.filter(u => {
     const pos = (u.position || '').trim().toUpperCase()
-    return pos === '34' || pos === '31' || pos === 'LOOSE' || pos === 'AB'
+    return bellyPositions.includes(pos)
   })
   return bellies.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
 }
 
+function realTareLbs(flightId) {
+  // Real tare = sum of tareLbs for ALL ULDs in the flight (both main deck and belly)
+  const ulds = flightUlds(flightId)
+  return ulds.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
+}
+
 function netLbs(flightId) {
-  return grossLbs(flightId) - bellyTareLbs(flightId)
+  return grossLbs(flightId) - realTareLbs(flightId)
 }
 
 function payloadLbs(flightId) {
-  return netLbs(flightId) + 5
+  return netLbs(flightId)
 }
 
 const totalNetPayload = computed(() => {
@@ -144,6 +155,10 @@ const totalNetPayload = computed(() => {
 
 const totalUldsCount = computed(() => {
   return filteredFlights.value.reduce((s, f) => s + flightUlds(f.id).length, 0)
+})
+
+const totalRealTare = computed(() => {
+  return filteredFlights.value.reduce((s, f) => s + realTareLbs(f.id), 0)
 })
 
 function getStatusDot(status) {

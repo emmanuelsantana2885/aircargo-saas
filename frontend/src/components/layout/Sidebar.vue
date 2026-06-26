@@ -35,7 +35,7 @@
         class="nav-link flex items-center rounded-xl text-sm transition-all duration-200 whitespace-nowrap"
         :class="[collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2', isActive(item.path) ? 'nav-active' : 'nav-default']"
         :title="collapsed ? item.label : ''">
-        <component :is="item.icon" :size="16" :stroke-width="isActive(item.path) ? 2.2 : 1.8" />
+        <component :is="item.icon" :size="18" :stroke-width="isActive(item.path) ? 2.2 : 1.8" />
         <template v-if="!collapsed">
           <span>{{ item.label }}</span>
           <span v-if="item.badge"
@@ -54,7 +54,7 @@
         class="nav-link flex items-center rounded-xl text-sm transition-all duration-200 whitespace-nowrap cursor-not-allowed opacity-50"
         :class="[collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2']"
         :title="collapsed ? item.label : ''">
-        <component :is="item.icon" :size="16" :stroke-width="1.8" />
+        <component :is="item.icon" :size="18" :stroke-width="1.8" />
         <span v-if="!collapsed">{{ item.label }}</span>
       </div>
     </nav>
@@ -85,7 +85,7 @@ import { useRoute } from 'vue-router'
 import {
   IconLayoutDashboard,
   IconClipboardList,
-  IconPackage,
+  IconPackageExport,
   IconPlane,
   IconFileText,
   IconContainer,
@@ -112,7 +112,7 @@ const mainMenu = [
   { path: '/flights',     label: 'Flights',         icon: IconPlane },
   { path: '/mawbs',       label: 'MAWBs',          icon: IconFileText },
   { path: '/load-planning', label: 'LoadPlanning', icon: IconContainer },
-  { path: '/ulds',        label: 'ULDs -- Pallet Sheets',           icon: IconPackage },
+  { path: '/ulds',        label: 'ULDs -- Pallet Sheets',           icon: IconPackageExport },
 ]
 
 const settingsMenu = [

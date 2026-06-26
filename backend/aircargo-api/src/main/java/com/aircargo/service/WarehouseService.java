@@ -1,9 +1,11 @@
 package com.aircargo.service;
 
+import com.aircargo.entity.Booking;
 import com.aircargo.entity.Mawb;
 import com.aircargo.entity.MawbStatus;
 import com.aircargo.entity.WarehouseReceipt;
 import com.aircargo.entity.ReceiptPiece;
+import com.aircargo.repository.BookingRepository;
 import com.aircargo.repository.MawbRepository;
 import com.aircargo.repository.WarehouseReceiptRepository;
 import com.aircargo.repository.ReceiptPieceRepository;
@@ -24,17 +26,20 @@ public class WarehouseService {
     private final WarehouseReceiptRepository receiptRepository;
     private final ReceiptPieceRepository pieceRepository;
     private final MawbRepository mawbRepository;
+    private final BookingRepository bookingRepository;
     private final ObjectMapper objectMapper;
     private final PdfGenerationService pdfService;
 
     public WarehouseService(WarehouseReceiptRepository receiptRepository,
                             ReceiptPieceRepository pieceRepository,
                             MawbRepository mawbRepository,
+                            BookingRepository bookingRepository,
                             ObjectMapper objectMapper,
                             PdfGenerationService pdfService) {
         this.receiptRepository = receiptRepository;
         this.pieceRepository = pieceRepository;
         this.mawbRepository = mawbRepository;
+        this.bookingRepository = bookingRepository;
         this.objectMapper = objectMapper;
         this.pdfService = pdfService;
     }
@@ -58,12 +63,31 @@ public class WarehouseService {
             }
         }
 
+        UUID mawbId = receipt.getMawb() != null ? receipt.getMawb().getId() : null;
+
+        if (mawbId != null) {
+            List<WarehouseReceipt> existing = receiptRepository.findByMawbId(mawbId);
+            for (WarehouseReceipt existingReceipt : existing) {
+                List<ReceiptPiece> existingPieces = pieceRepository.findByReceiptId(existingReceipt.getId());
+                pieceRepository.deleteAll(existingPieces);
+                receiptRepository.delete(existingReceipt);
+            }
+        }
+
+        receiptRepository.flush();
+
         WarehouseReceipt savedReceipt = receiptRepository.save(receipt);
 
-        if (savedReceipt.getMawb() != null && savedReceipt.getMawb().getId() != null) {
-            mawbRepository.findById(savedReceipt.getMawb().getId()).ifPresent(mawb -> {
+        if (mawbId != null) {
+            mawbRepository.findById(mawbId).ifPresent(mawb -> {
                 mawb.setStatus(MawbStatus.RECEIVED);
                 mawbRepository.save(mawb);
+
+                List<Booking> bookings = bookingRepository.findByMawbId(mawbId);
+                for (Booking bk : bookings) {
+                    bk.setAwbNumber(mawb.getAwbNumber());
+                    bookingRepository.save(bk);
+                }
             });
         }
 

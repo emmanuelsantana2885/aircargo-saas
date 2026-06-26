@@ -4,8 +4,8 @@
     <header class="flex flex-wrap justify-between items-end gap-2 border-b border-slate-200 pb-3 shrink-0">
       <div class="flex items-end gap-3">
         <div>
-          <h1 class="text-xl font-black tracking-tight text-slate-950 uppercase font-mono">CrossReport — MAWBs</h1>
-          <p class="text-[13px] font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">Matriz MAWB x Vuelo / Distribucion de Piezas</p>
+          <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">CrossReport — MAWBs</h1>
+          <p class="text-[12px] font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">Matriz MAWB x Vuelo / Distribucion de Piezas</p>
         </div>
         <div class="flex items-end gap-2">
           <button @click="showFilter = !showFilter"
@@ -123,9 +123,9 @@
       </div>
       <template v-else>
         <div ref="scrollContainer" class="overflow-auto scrollbar-none flex-1" @scroll="onScroll">
-          <table class="w-full border-collapse text-[16px] font-mono">
+          <table class="w-full border-collapse text-[10px] font-mono">
             <thead class="sticky top-0 z-20">
-              <tr class="bg-slate-900 text-white text-[16px]">
+              <tr class="bg-slate-900 text-white text-[11px]">
                 <th :style="{ left: stickyOffsets[0] + 'px', width: '180px', zIndex: 30 }"
                   class="sticky bg-slate-900 text-left px-2 py-2.5 font-black uppercase tracking-wider border-r border-slate-700 whitespace-nowrap">MAWB</th>
                 <th :style="{ left: stickyOffsets[1] + 'px', width: '200px', zIndex: 30 }"
@@ -145,9 +145,9 @@
                   :class="[highlightFlightId === f.id ? 'bg-amber-500 text-slate-950' : 'hover:bg-slate-800/70']"
                   @mouseenter="hoverFlightCol = f.id" @mouseleave="hoverFlightCol = null"
                   @click="scrollToFlight(f.id)">
-                  <div class="text-[16px] leading-tight">UPS-{{ f.flightNumber }}</div>
-                  <div class="text-[18px] font-bold opacity-90 tracking-wide">{{ formatDate(f.flightDate) }}</div>
-                  <div v-if="flightTotals[f.id]" class="text-[14px] font-normal opacity-60 mt-0.5">{{ flightTotals[f.id] }} pcs</div>
+<div class="text-[11px] leading-tight">UPS-{{ f.flightNumber }}</div>
+                   <div class="text-[11px] font-bold opacity-90 tracking-wide">{{ formatDate(f.flightDate) }}</div>
+                   <div v-if="flightTotals[f.id]" class="text-[11px] font-normal opacity-60 mt-0.5">{{ flightTotals[f.id] }} pcs</div>
                 </th>
               </tr>
             </thead>
@@ -161,8 +161,8 @@
                   :title="statusTitle(row)"
                   @click="goToReceipt(row)">
                   <div class="flex flex-col leading-tight">
-                    <span class="underline decoration-dotted underline-offset-2 truncate text-[15px]">{{ row.awbNumber || '—' }}</span>
-                    <span class="text-[15px] font-normal opacity-70 mt-0.5">
+<span class="underline decoration-dotted underline-offset-2 truncate text-[10px]">{{ row.awbNumber || '—' }}</span>
+                     <span class="text-[10px] font-normal opacity-70 mt-0.5">
                       <template v-if="row.status === 'BOOKED'">Reservado</template>
                       <template v-else-if="row.status === 'RECEIVED'">Recibido</template>
                       <template v-else-if="row.status === 'MANIFESTED'">Montado</template>
@@ -175,41 +175,41 @@
                   class="sticky bg-white px-2 py-2.5 text-slate-800 border-r border-slate-300 whitespace-nowrap"
                   :title="(row.shipperName || '?') + ' / ' + (row.consigneeName || '?')">
                   <div class="flex flex-col leading-tight">
-                    <span class="truncate text-[15px]">{{ row.shipperName || '—' }}</span>
-                    <span class="truncate text-[16px] text-slate-950">/ {{ row.consigneeName || '—' }}</span>
+<span class="truncate text-[10px]">{{ row.shipperName || '—' }}</span>
+                     <span class="truncate text-[10px] text-slate-950">/ {{ row.consigneeName || '—' }}</span>
                   </div>
                 </td>
                 <td :style="{ left: stickyOffsets[2] + 'px', width: '90px', zIndex: 10 }"
                   class="sticky bg-white px-2 py-2.5 text-right font-bold border-r border-slate-300 whitespace-nowrap"
                   :class="row.pieceDiff !== 0 ? 'text-orange-600 bg-orange-50' : 'text-slate-950'">
                   {{ row.reservedPieces || '—' }}
-                  <span v-if="row.pieceDiff > 0" class="text-[15px] text-orange-500 ml-0.5" title="Recibido excede reservado">&#9650;</span>
-                  <span v-else-if="row.pieceDiff < 0" class="text-[15px] text-orange-500 ml-0.5" title="Recibido menor que reservado">&#9660;</span>
+<span v-if="row.pieceDiff > 0" class="text-[10px] text-orange-500 ml-0.5" title="Recibido excede reservado">&#9650;</span>
+                   <span v-else-if="row.pieceDiff < 0" class="text-[10px] text-orange-500 ml-0.5" title="Recibido menor que reservado">&#9660;</span>
                 </td>
                 <td :style="{ left: stickyOffsets[3] + 'px', width: '90px', zIndex: 10 }"
                   class="sticky bg-white px-2 py-2.5 text-right font-bold border-r border-slate-300 whitespace-nowrap"
                   :class="row.pieceDiff !== 0 ? 'text-orange-600 bg-orange-50' : 'text-slate-950'">
                   {{ row.receivedPieces || '—' }}
-                  <span v-if="row.receivedPieces > 0 && row.pieceDiff !== 0" class="text-[15px] text-orange-400 ml-0.5">&#9888;</span>
+                  <span v-if="row.receivedPieces > 0 && row.pieceDiff !== 0" class="text-[10px] text-orange-400 ml-0.5">&#9888;</span>
                 </td>
                 <td :style="{ left: stickyOffsets[4] + 'px', width: '110px', zIndex: 10 }"
                   class="sticky bg-white px-2 py-2.5 text-right font-bold text-slate-950 border-r border-slate-300">{{ row.totalWeightKg ? Number(row.totalWeightKg).toLocaleString() : '—' }}</td>
                 <td :style="{ left: stickyOffsets[5] + 'px', width: '80px', zIndex: 10 }"
-                  class="sticky bg-white px-2 py-2.5 text-left text-slate-950 uppercase text-[15px] border-r border-slate-300">{{ row.destination || '—' }}</td>
+                  class="sticky bg-white px-2 py-2.5 text-left text-slate-950 uppercase text-[10px] border-r border-slate-300">{{ row.destination || '—' }}</td>
                 <td :style="{ left: stickyOffsets[6] + 'px', width: '80px', zIndex: 10 }"
                   class="sticky bg-white px-2 py-2.5 text-right font-bold border-r border-slate-300"
                   :class="row.hasDispatchedExcess ? 'text-rose-600' : 'text-slate-950'">
                   {{ row.pcsDispatched || '—' }}
-                  <span v-if="row.hasDispatchedExcess" class="text-[15px] text-rose-500 ml-0.5" title="Despachado excede recibido">&#9888;</span>
+                  <span v-if="row.hasDispatchedExcess" class="text-[10px] text-rose-500 ml-0.5" title="Despachado excede recibido">&#9888;</span>
                 </td>
                 <td v-for="(f, fi) in flightColumns" :key="f.id"
                   class="px-2 py-2.5 text-center border-x border-slate-200 font-bold transition-all duration-200"
                   :class="cellClasses(row, f, fi)"
                   :title="uldTooltip(row, f)">
-                  <span v-if="getPieces(row, f)" class="chalk-text relative text-[15px]">
+                  <span v-if="getPieces(row, f)" class="chalk-text relative text-[10px]">
                     <span class="flex flex-col items-center leading-tight">
                       <span>{{ getPieces(row, f) }}</span>
-                      <span v-if="(row.uldCountByFlight[f.id] || 0) > 1" class="text-[14px] font-normal opacity-60">{{ row.uldCountByFlight[f.id] }} ULDs</span>
+                      <span v-if="(row.uldCountByFlight[f.id] || 0) > 1" class="text-[10px] font-normal opacity-60">{{ row.uldCountByFlight[f.id] }} ULDs</span>
                     </span>
                     <svg width="16" height="16" viewBox="0 0 14 14" class="inline-block shrink-0 ml-0.5">
                       <circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
