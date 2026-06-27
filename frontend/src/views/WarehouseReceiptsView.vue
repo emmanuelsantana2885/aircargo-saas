@@ -497,8 +497,9 @@
                     <div v-for="(ev, ei) in receiptForms[m.id].mawbEvidence" :key="'mawb-' + ei"
                       class="relative border border-amber-200 rounded bg-amber-50/30 overflow-hidden group">
                       <img v-if="ev.type === 'image' && ev.url" :src="ev.url" class="w-full h-24 object-cover" />
+                      <div v-else-if="ev.type === 'text'" class="w-full h-24 flex items-center justify-center bg-slate-50 text-slate-950 text-[12px] font-mono px-2 text-center leading-tight">{{ ev.name }}</div>
                       <div v-else class="w-full h-24 flex items-center justify-center bg-slate-100 text-slate-950 text-[18px] font-mono">{{ ev.name }}</div>
-                      <span class="block text-[16px] font-mono text-slate-950 px-2 py-1 truncate">{{ ev.name }}</span>
+                      <span class="block text-[12px] font-mono text-slate-950 px-2 py-1 leading-tight">{{ ev.name }}</span>
                     </div>
                   </div>
                 </div>
@@ -1054,16 +1055,25 @@ async function toggleExpand(m) {
                 chargeableLbs: p.chargeableLbs || 0,
               }))
             }
-            // Cargar firmas del recibo como evidencias visuales
+            // Cargar firmas del recibo como evidencias visuales con nombres e identificaciones
+            const dockName = lastReceipt.printName || ''
+            const delName = lastReceipt.deliveredByName || ''
+            const delId = lastReceipt.deliveredByIdNum || ''
+            const brokerNameVal = lastReceipt.brokerName || ''
+            const brokerId = lastReceipt.brokerIdNum || ''
             const sigEntries = [
-              { name: 'Firma Dock', url: lastReceipt.dockSignature },
-              { name: 'Firma Delivered By', url: lastReceipt.deliveredBySigUrl },
-              { name: 'Firma Broker', url: lastReceipt.brokerSigUrl },
+              { name: 'Firma Dock', label: dockName ? 'Recibido por — ' + dockName : '', url: lastReceipt.dockSignature },
+              { name: 'Entregado por' + (delName ? ' — ' + delName : '') + (delId ? ' (ID: ' + delId + ')' : ''), label: '', url: lastReceipt.deliveredBySigUrl },
+              { name: 'Broker' + (brokerNameVal ? ' — ' + brokerNameVal : '') + (brokerId ? ' (ID: ' + brokerId + ')' : ''), label: '', url: lastReceipt.brokerSigUrl },
             ]
             for (const sig of sigEntries) {
               if (sig.url && sig.url.startsWith('data:image')) {
                 const exists = f.mawbEvidence.some(e => e.name === sig.name)
                 if (!exists) f.mawbEvidence.push({ name: sig.name, type: 'image', url: sig.url })
+              }
+              if (sig.label) {
+                const exists = f.mawbEvidence.some(e => e.name === sig.label)
+                if (!exists) f.mawbEvidence.push({ name: sig.label, type: 'text', url: null })
               }
             }
           } catch {}

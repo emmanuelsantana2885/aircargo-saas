@@ -97,7 +97,7 @@ The backend copy also seeds the UPS airline row; the root copy does not. Keep bo
 | `backend/aircargo-api/src/main/java/com/aircargo/repository/BookingRepository.java` | Added `findByMawbId(UUID)` for booking lookup by MAWB |
 | `backend/aircargo-api/src/main/java/com/aircargo/service/ReceiptExportService.java` | Fixed `Workbook` → `XSSFWorkbook` cast error in `createEvidenceSheet` call |
 | All 10 `src/views/*View.vue` + `WarehouseForm.vue` | **Font-size standardisation**: table data → `text-[10px]`, table headers → `text-[11px]`, titles → `text-[12px]` |
-| `frontend/src/views/WarehouseReceiptsView.vue` | **Pieces loaded from existing receipt**: when editing a receipt, existing pieces are now loaded via `receiptsApi.getPieces()` and displayed in the form; `editReceipt` rewritten to send pieces+evidence via POST `/emit` (backend replaces old receipt entirely); signatures (dock/deliveredBy/broker) from existing receipt shown as images in MAWB evidence section |
+| `frontend/src/views/WarehouseReceiptsView.vue` | **Pieces loaded from existing receipt**: when editing a receipt, existing pieces are now loaded via `receiptsApi.getPieces()` and displayed in the form; `editReceipt` rewritten to send pieces+evidence via POST `/emit` (backend replaces old receipt entirely); signatures (dock/deliveredBy/broker) from existing receipt shown as images in MAWB evidence section; **Signature evidence enriched**: each signature image now has a companion text card showing the person's name and ID (printName, deliveredByName+ID, brokerName+ID) in the MAWB evidence grid |
 | `frontend/src/api/receipts.js` | Added `getPieces(id)` — calls `GET /warehouse/receipts/{id}/pieces` |
 
 ## Build
