@@ -9,6 +9,9 @@ export default {
       fontFamily: {
         mono: ['Lucida Console', 'Monaco', 'Courier New', 'monospace'],
       },
+      fontSize: {
+        xs: '16px',
+      },
     },
   },
   plugins: [],

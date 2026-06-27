@@ -18,7 +18,7 @@
       <div
         v-if="isEmpty"
         class="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span class="text-[10px] font-mono text-slate-300 uppercase tracking-widest">Firma aquí</span>
+        <span class="text-xs font-mono text-slate-300 uppercase tracking-widest">Firma aquí</span>
       </div>
     </div>
     <div class="flex justify-between items-center mt-1.5">

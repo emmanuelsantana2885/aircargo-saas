@@ -3,12 +3,12 @@
     <header class="flex flex-wrap items-end justify-between gap-2 border-b border-slate-400 pb-3 shrink-0">
       <div class="flex items-end gap-3 flex-1 min-w-0">
         <div>
-          <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
-          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
+          <h1 class="text-xs font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
+          <p class="text-xs font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
         </div>
         <div class="h-8 w-[1px] bg-slate-200"></div>
         <div class="flex flex-col gap-0.5 opacity-50">
-          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
+          <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
           <select disabled
             class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-800 uppercase tracking-widest text-sm min-w-[140px] cursor-not-allowed">
             <option value="">Todos los vuelos</option>
@@ -18,35 +18,36 @@
           </select>
         </div>
         <div class="flex flex-col gap-0.5 flex-1 min-w-[180px] max-w-[280px]">
-          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
+          <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
           <input v-model="filterText" type="text" placeholder="Ej: *MELYSOL, >50, 406-*, =SDQ"
-            class="w-full text-[10px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+            class="w-full text-xs font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
         <div class="flex flex-col gap-0.5">
-          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+          <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Fecha</span>
           <input v-model="filterDate" type="date"
             class="text-[17px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
       </div>
-        <div class="flex items-center gap-2 text-[11px] font-mono font-bold text-slate-950 shrink-0">
+        <div class="flex items-center gap-2 text-xs font-mono font-bold text-slate-950 shrink-0">
         <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> {{ filteredMawbs.length }}/{{ store.mawbs.length }} MAWBs
       </div>
     </header>
 
     <section class="grid grid-cols-4 gap-3 my-4 shrink-0">
       <div v-for="stat in receiptStats" :key="stat.label"
-        class="chalk-sketch py-1.5 px-3 rounded bg-white border border-slate-400 border-l-4 shadow-pencil-marine flex flex-col justify-between min-h-[68px]"
-        :class="stat.border">
+        class="chalk-sketch py-1.5 px-3 rounded bg-white border border-slate-400 border-l-4 shadow-pencil-marine flex flex-col justify-between min-h-[68px] cursor-pointer transition-all duration-200"
+        :class="[stat.border, statusFilter === stat.filterKey ? 'ring-2 ring-slate-950 scale-[1.02]' : 'hover:scale-[1.01]']"
+        @click="toggleStatusFilter(stat.filterKey)">
         <div class="relative z-10">
-          <h3 class="text-[12px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
+          <h3 class="text-xs font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
           <div class="text-xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
         </div>
-        <div class="text-[10px] font-mono text-slate-950 relative z-10 truncate"><span>{{ stat.sub }}</span></div>
+        <div class="text-xs font-mono text-slate-950 relative z-10 truncate"><span>{{ stat.sub }}</span></div>
       </div>
     </section>
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
-      <div class="bg-slate-950 border-b border-slate-700 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-950 border-b border-slate-700 text-xs font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-3 text-left">MAWB</div>
         <div class="col-span-2 text-left">Shipper</div>
         <div class="col-span-1 text-center">Piezas</div>
@@ -57,17 +58,18 @@
       </div>
 
       <div v-if="store.mawbs.length === 0" class="flex-1 flex items-center justify-center">
-        <p class="text-[10px] font-mono text-slate-950 uppercase tracking-widest">No hay MAWBs</p>
+        <p class="text-xs font-mono text-slate-950 uppercase tracking-widest">No hay MAWBs</p>
       </div>
       <div v-else-if="filteredMawbs.length === 0" class="flex-1 flex items-center justify-center">
-        <p class="text-[10px] font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
+        <p class="text-xs font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
       </div>
-      <div v-else class="divide-y divide-slate-200 text-[10px] text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div v-else class="divide-y divide-slate-200 text-xs text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
           <div v-for="m in filteredMawbs" :key="m.id" class="flex flex-col">
           <div class="row-pencil grid grid-cols-12 items-center py-2.5 px-5 transition-all duration-150 cursor-pointer"
+            :class="expandedId === m.id ? 'row-selected' : ''"
             @click="toggleExpand(m)">
             <div class="col-span-3 font-mono font-bold text-slate-950 relative z-10 flex items-center gap-1.5">
-              <span class="text-[10px] text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
+              <span class="text-xs text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
               {{ m.awbNumber || m.id?.slice(0, 8) || '—' }}
               <span v-if="receiptHawbs[m.id] && receiptHawbs[m.id].length > 1"
                 class="text-[16px] font-black text-amber-600 bg-amber-100 px-2 py-1 rounded leading-none"
@@ -105,7 +107,7 @@
                   :class="getStatusDot(m, s)"
                   :title="s.key + ((m.status || 'BOOKED') === s.key ? ' (actual)' : ' → clic')"></span>
               </div>
-              <span class="text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap"
+              <span class="text-xs font-mono font-bold uppercase tracking-wider whitespace-nowrap"
                 :class="statusLabelClass(m)">{{ statusLabel(m) }}</span>
               <button @click.stop="toggleMawbEvidenceManager(m)"
                 class="ml-auto text-[17px] px-2 py-1 rounded border border-slate-300 text-slate-950 hover:text-slate-950 hover:border-slate-950 transition font-mono"
@@ -196,7 +198,7 @@
                   <div class="space-y-3">
                     <div class="border-2 border-emerald-800 rounded-lg bg-white overflow-hidden shadow-sm">
                       <div class="flex items-center justify-between bg-emerald-800 px-4 py-2.5 border-b border-emerald-900">
-                        <span class="text-[12px] font-mono font-bold text-white uppercase tracking-wider">
+                        <span class="text-xs font-mono font-bold text-white uppercase tracking-wider">
                           HAWBs
                         </span>
                         <div class="flex items-center gap-2 text-sm font-mono">
@@ -257,7 +259,7 @@
 
                     <!-- Checkboxes group -->
                     <div class="border-2 border-emerald-800 rounded-lg bg-white p-4 shadow-sm">
-                      <div class="text-[12px] font-mono font-bold text-emerald-800 uppercase tracking-wider mb-3">Flags / Marcas</div>
+                      <div class="text-xs font-mono font-bold text-emerald-800 uppercase tracking-wider mb-3">Flags / Marcas</div>
                       <div class="grid grid-cols-2 gap-x-5 gap-y-3">
                         <label class="text-sm font-mono font-bold text-slate-950 flex items-center gap-2 cursor-pointer select-none">
                           <input type="checkbox" v-model="receiptForms[m.id].cashOnly" class="accent-emerald-800 rounded" />
@@ -287,7 +289,7 @@
 
               <!-- ═══ STEP 2: PIECES ═══ -->
               <div v-if="localStep === 2" class="space-y-4">
-                <div class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                <div class="text-xs font-mono font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
                   <span>Loose Tender — Dimensiones y Pesos</span>
                   <span class="text-[17px] font-mono font-normal text-slate-950 normal-case tracking-normal">
                     ((L x W x H) x #pcs) / 366 = Kg dimensional
@@ -296,9 +298,9 @@
 
                 <template v-if="(receiptHawbs[m.id] || []).length <= 1">
                   <div class="overflow-x-auto border border-slate-400 rounded">
-                    <table class="w-full text-[10px] font-mono border-collapse">
+                    <table class="w-full text-xs font-mono border-collapse">
                       <thead>
-                        <tr class="bg-slate-700 text-white text-[11px] uppercase tracking-wider">
+                        <tr class="bg-slate-700 text-white text-xs uppercase tracking-wider">
                           <th class="px-3 py-2 border-r border-slate-600 w-6 text-center">#</th>
                           <th class="px-3 py-2 border-r border-slate-600 w-12 text-center">Pieces</th>
                           <th class="px-3 py-2 border-r border-slate-600 w-16 text-center">Length (in)</th>
@@ -354,7 +356,7 @@
                         </tr>
                       </tbody>
                       <tfoot>
-                        <tr class="bg-slate-100 font-bold text-slate-950 text-[10px]">
+                        <tr class="bg-slate-100 font-bold text-slate-950 text-xs">
                           <td class="px-3 py-2 border-t border-slate-300 text-slate-950 text-center"></td>
                           <td class="px-3 py-2 border-t border-slate-300 text-center">{{ totalPieces(m.id, null) }}</td>
                           <td class="px-3 py-2 border-t border-slate-300 text-slate-950 text-[17px]" colspan="3">TOTAL</td>
@@ -383,16 +385,16 @@
                 <template v-else>
                   <div v-for="h in receiptHawbs[m.id]" :key="h.id" class="border border-slate-400 rounded overflow-hidden bg-white">
                     <div class="flex items-center justify-between bg-slate-100 px-4 py-2.5 border-b border-slate-400">
-                      <span class="text-[12px] font-mono font-bold text-slate-950">
+                      <span class="text-xs font-mono font-bold text-slate-950">
                         HAWB: {{ h.hawbNumber }} &mdash; {{ h.consigneeName || '—' }}
                         <span class="text-slate-950 font-normal ml-2">({{ piecesByHawb(m.id, h.id).length }} pieza(s))</span>
                       </span>
                       <span class="text-[17px] font-mono text-slate-950 font-bold">{{ piecesByHawb(m.id, h.id).reduce((s, p) => s + (p.pieces || 1), 0) }} pcs</span>
                     </div>
                     <div class="overflow-x-auto">
-                      <table class="w-full text-[10px] font-mono border-collapse">
+                      <table class="w-full text-xs font-mono border-collapse">
                         <thead>
-                          <tr class="bg-slate-600 text-white text-[11px] uppercase tracking-wider">
+                          <tr class="bg-slate-600 text-white text-xs uppercase tracking-wider">
                             <th class="px-1.5 py-1 border-r border-slate-500 w-5 text-center">#</th>
                             <th class="px-1.5 py-1 border-r border-slate-500 w-10 text-center">Pcs</th>
                             <th class="px-1.5 py-1 border-r border-slate-500 w-14 text-center">L</th>
@@ -448,7 +450,7 @@
                           </tr>
                         </tbody>
                         <tfoot>
-                          <tr class="bg-slate-100 font-bold text-slate-950 text-[10px]">
+                          <tr class="bg-slate-100 font-bold text-slate-950 text-xs">
                             <td class="px-1.5 py-1 border-t border-slate-400"></td>
                             <td class="px-1.5 py-1 border-t border-slate-400 text-center">{{ hawbTotalPieces(m.id, h.id) }}</td>
                             <td class="px-1.5 py-1 border-t border-slate-400" colspan="3">TOTAL</td>
@@ -492,20 +494,20 @@
 
                 <!-- Evidencias del MAWB (desde base de datos) -->
                 <div v-if="(receiptForms[m.id].mawbEvidence || []).length > 0">
-                  <span class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Evidencias del MAWB</span>
+                  <span class="text-xs font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Evidencias del MAWB</span>
                   <div class="grid grid-cols-4 gap-3 mb-4">
                     <div v-for="(ev, ei) in receiptForms[m.id].mawbEvidence" :key="'mawb-' + ei"
                       class="relative border border-amber-200 rounded bg-amber-50/30 overflow-hidden group">
                       <img v-if="ev.type === 'image' && ev.url" :src="ev.url" class="w-full h-24 object-cover" />
-                      <div v-else-if="ev.type === 'text'" class="w-full h-24 flex items-center justify-center bg-slate-50 text-slate-950 text-[12px] font-mono px-2 text-center leading-tight">{{ ev.name }}</div>
+                      <div v-else-if="ev.type === 'text'" class="w-full h-24 flex items-center justify-center bg-slate-50 text-slate-950 text-xs font-mono px-2 text-center leading-tight">{{ ev.name }}</div>
                       <div v-else class="w-full h-24 flex items-center justify-center bg-slate-100 text-slate-950 text-[18px] font-mono">{{ ev.name }}</div>
-                      <span class="block text-[12px] font-mono text-slate-950 px-2 py-1 leading-tight">{{ ev.name }}</span>
+                      <span class="block text-xs font-mono text-slate-950 px-2 py-1 leading-tight">{{ ev.name }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Nuevas evidencias (subidas en este formulario) -->
-                <span class="text-[12px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Nuevas evidencias (este recibo)</span>
+                <span class="text-xs font-mono font-bold text-slate-950 uppercase tracking-wider mb-2 block">Nuevas evidencias (este recibo)</span>
                 <div class="grid grid-cols-4 gap-3">
                   <div v-for="(ev, ei) in receiptForms[m.id].evidence" :key="'rec-' + ei" class="relative border border-slate-400 rounded bg-white overflow-hidden group">
                     <img v-if="ev.type === 'image'" :src="ev.url" class="w-full h-24 object-cover" />
@@ -578,10 +580,13 @@
               </div>
 
               <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-400">
-                <button @click="prevStep" :disabled="localStep === 1"
-                  class="text-[16px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition disabled:opacity-30">
-                  &#9664; Anterior
-                </button>
+                <div class="flex items-center gap-3">
+                  <button @click="prevStep" :disabled="localStep === 1"
+                    class="text-[16px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition disabled:opacity-30">
+                    &#9664; Anterior
+                  </button>
+                  <span v-if="successMsg" class="text-emerald-700 text-[16px] font-mono font-bold animate-pulse">{{ successMsg }}</span>
+                </div>
                 <div v-if="localStep < 5">
                   <button @click="nextStep"
                     class="text-[16px] px-3 py-1.5 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 transition">
@@ -610,7 +615,7 @@
       <div v-if="mawbEvidenceMgr.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeMawbEvidenceMgr">
         <div class="bg-white rounded-lg shadow-2xl overflow-hidden mx-4" style="max-width: 640px; width: 100%; max-height: 80vh;">
           <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-400">
-            <span class="text-[12px] font-mono font-black uppercase tracking-widest text-slate-950">
+            <span class="text-xs font-mono font-black uppercase tracking-widest text-slate-950">
               Evidencias — {{ mawbEvidenceMgr.mawb?.awbNumber || 'MAWB' }}
             </span>
             <button @click="closeMawbEvidenceMgr" class="text-slate-950 hover:text-slate-950 transition text-base">✕</button>
@@ -675,6 +680,8 @@ const localFlightId = ref(store.selectedFlightId)
 const expandedId = ref(null)
 const localStep = ref(1)
 const submitting = ref(false)
+const successMsg = ref('')
+let successTimer = null
 const evidenceInputs = reactive({})
 const showCamera = ref(false)
 const cameraMawbId = ref(null)
@@ -693,11 +700,23 @@ const downloadableReceiptId = computed(() => {
 
 const filterText = ref('')
 const filterDate = ref('')
+const statusFilter = ref(null)
 
 const statusPriority = { BOOKED: 0, RECEIVED: 1, MANIFESTED: 2, DEPARTED: 3 }
 
+function toggleStatusFilter(key) {
+  statusFilter.value = statusFilter.value === key ? null : key
+}
+
 const filteredMawbs = computed(() => {
   let list = store.mawbs
+  if (statusFilter.value === 'PENDING') {
+    list = list.filter(m => !m.status || m.status === 'BOOKED')
+  } else if (statusFilter.value === 'RECEIVED') {
+    list = list.filter(m => m.status === 'RECEIVED' || m.status === 'MANIFESTED')
+  } else if (statusFilter.value === 'MANIFESTED') {
+    list = list.filter(m => m.status === 'MANIFESTED')
+  }
   if (filterDate.value) {
     const target = filterDate.value
     const mawbsWithReceipt = store.receipts
@@ -848,6 +867,58 @@ function initForm(m) {
       totalWeightKg: 0,
     }
   }
+}
+
+async function loadExistingReceiptData(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const existingReceipts = store.receipts.filter(r => (r.mawb?.id || r.mawbId) === m.id)
+  if (existingReceipts.length === 0) return
+  const lastReceipt = existingReceipts[existingReceipts.length - 1]
+  f._existingReceiptId = lastReceipt.id
+  f.gatewayCfs = lastReceipt.gatewayCfs || 'SDQ'
+  f.shipperName = lastReceipt.shipperName || f.shipperName
+  f.consigneeName = lastReceipt.consigneeName || f.consigneeName
+  f.origin = lastReceipt.origin || f.origin
+  f.destination = lastReceipt.destination || f.destination
+  f.awbReportedPieces = lastReceipt.awbReportedPieces || f.awbReportedPieces
+  f.mawbWeightGreatest = lastReceipt.mawbWeightGreatest || f.mawbWeightGreatest
+  f.cashOnly = lastReceipt.cashOnly ?? f.cashOnly
+  f.bookedInAcoms = lastReceipt.bookedInAcoms ?? f.bookedInAcoms
+  f.docsProvided = lastReceipt.docsProvided ?? f.docsProvided
+  f.customsCompleted = lastReceipt.customsCompleted ?? f.customsCompleted
+  f.preBuilt = lastReceipt.preBuilt ?? f.preBuilt
+  f.remarks = lastReceipt.remarks || f.remarks
+  f.dockSignature = lastReceipt.dockSignature || f.dockSignature
+  f.printName = lastReceipt.printName || f.printName
+  f.deliveredByName = lastReceipt.deliveredByName || f.deliveredByName
+  f.deliveredByIdNum = lastReceipt.deliveredByIdNum || f.deliveredByIdNum
+  f.deliveredBySig = lastReceipt.deliveredBySigUrl || f.deliveredBySig
+  f.brokerName = lastReceipt.brokerName || f.brokerName
+  f.brokerIdNum = lastReceipt.brokerIdNum || f.brokerIdNum
+  f.brokerSig = lastReceipt.brokerSigUrl || f.brokerSig
+  f.pieceCount = lastReceipt.pieceCount || 0
+  f.totalWeightKg = lastReceipt.actualWeightKg || lastReceipt.chargeableWeightKg || 0
+  try {
+    const piecesRes = await receiptsApi.getPieces(lastReceipt.id)
+    const loadedPieces = piecesRes.data || []
+    if (loadedPieces.length > 0) {
+      f.pieces = loadedPieces.map(p => ({
+        pieces: 1,
+        hawbId: p.hawbId || null,
+        lengthIn: p.lengthIn || null,
+        widthIn: p.widthIn || null,
+        heightIn: p.heightIn || null,
+        scaleWeightLbs: p.scaleWeightLbs || null,
+        dimWeight: p.dimWeight || 0,
+        dimWeightLbs: p.dimWeightLbs || 0,
+        scaleWeightKg: p.scaleWeightKg || 0,
+        dimWeightKg: p.dimWeightKg || 0,
+        chargeableKg: p.chargeableKg || 0,
+        chargeableLbs: p.chargeableLbs || 0,
+      }))
+    }
+  } catch {}
 }
 
 function calcPiece(mawbId, pi) {
@@ -1008,76 +1079,7 @@ async function toggleExpand(m) {
         // Cargar evidencias del MAWB (solo lectura) en el formulario
         f.mawbEvidence = (docsRes.data || []).filter(d => d.type === 'image' || d.type === 'document')
 
-        // Verificar si hay recibos existentes para cargar datos
-        const existingReceipts = store.receipts.filter(r => (r.mawb?.id || r.mawbId) === m.id)
-        if (existingReceipts.length > 0) {
-          const lastReceipt = existingReceipts[existingReceipts.length - 1]
-          f._existingReceiptId = lastReceipt.id
-          f.gatewayCfs = lastReceipt.gatewayCfs || f.gatewayCfs
-          f.shipperName = lastReceipt.shipperName || f.shipperName
-          f.consigneeName = lastReceipt.consigneeName || f.consigneeName
-          f.origin = lastReceipt.origin || f.origin
-          f.destination = lastReceipt.destination || f.destination
-          f.awbReportedPieces = lastReceipt.awbReportedPieces || f.awbReportedPieces
-          f.mawbWeightGreatest = lastReceipt.mawbWeightGreatest || f.mawbWeightGreatest
-          f.cashOnly = lastReceipt.cashOnly ?? f.cashOnly
-          f.bookedInAcoms = lastReceipt.bookedInAcoms ?? f.bookedInAcoms
-          f.docsProvided = lastReceipt.docsProvided ?? f.docsProvided
-          f.customsCompleted = lastReceipt.customsCompleted ?? f.customsCompleted
-          f.preBuilt = lastReceipt.preBuilt ?? f.preBuilt
-          f.remarks = lastReceipt.remarks || f.remarks
-          f.dockSignature = lastReceipt.dockSignature || f.dockSignature
-          f.printName = lastReceipt.printName || f.printName
-          f.deliveredByName = lastReceipt.deliveredByName || f.deliveredByName
-          f.deliveredByIdNum = lastReceipt.deliveredByIdNum || f.deliveredByIdNum
-          f.deliveredBySig = lastReceipt.deliveredBySigUrl || f.deliveredBySig
-          f.brokerName = lastReceipt.brokerName || f.brokerName
-          f.brokerIdNum = lastReceipt.brokerIdNum || f.brokerIdNum
-          f.brokerSig = lastReceipt.brokerSigUrl || f.brokerSig
-          f.pieceCount = lastReceipt.pieceCount || 0
-          f.totalWeightKg = lastReceipt.actualWeightKg || lastReceipt.chargeableWeightKg || 0
-          // Cargar piezas del recibo existente para edicion
-          try {
-            const piecesRes = await receiptsApi.getPieces(lastReceipt.id)
-            if (piecesRes.data && piecesRes.data.length > 0) {
-              f.pieces = piecesRes.data.map(p => ({
-                pieces: p.pieces || 1,
-                hawbId: p.hawbId || null,
-                lengthIn: p.lengthIn || null,
-                widthIn: p.widthIn || null,
-                heightIn: p.heightIn || null,
-                scaleWeightLbs: p.scaleWeightLbs || null,
-                dimWeight: p.dimWeightLbs || 0,
-                dimWeightLbs: p.dimWeightLbs || 0,
-                scaleWeightKg: p.scaleWeightKg || 0,
-                dimWeightKg: p.dimWeightKg || 0,
-                chargeableKg: p.chargeableKg || 0,
-                chargeableLbs: p.chargeableLbs || 0,
-              }))
-            }
-            // Cargar firmas del recibo como evidencias visuales con nombres e identificaciones
-            const dockName = lastReceipt.printName || ''
-            const delName = lastReceipt.deliveredByName || ''
-            const delId = lastReceipt.deliveredByIdNum || ''
-            const brokerNameVal = lastReceipt.brokerName || ''
-            const brokerId = lastReceipt.brokerIdNum || ''
-            const sigEntries = [
-              { name: 'Firma Dock', label: dockName ? 'Recibido por — ' + dockName : '', url: lastReceipt.dockSignature },
-              { name: 'Entregado por' + (delName ? ' — ' + delName : '') + (delId ? ' (ID: ' + delId + ')' : ''), label: '', url: lastReceipt.deliveredBySigUrl },
-              { name: 'Broker' + (brokerNameVal ? ' — ' + brokerNameVal : '') + (brokerId ? ' (ID: ' + brokerId + ')' : ''), label: '', url: lastReceipt.brokerSigUrl },
-            ]
-            for (const sig of sigEntries) {
-              if (sig.url && sig.url.startsWith('data:image')) {
-                const exists = f.mawbEvidence.some(e => e.name === sig.name)
-                if (!exists) f.mawbEvidence.push({ name: sig.name, type: 'image', url: sig.url })
-              }
-              if (sig.label) {
-                const exists = f.mawbEvidence.some(e => e.name === sig.label)
-                if (!exists) f.mawbEvidence.push({ name: sig.label, type: 'text', url: null })
-              }
-            }
-          } catch {}
-        }
+        await loadExistingReceiptData(m)
 
         if (hawbData.length > 0) {
           const h0 = hawbData[0]
@@ -1270,70 +1272,7 @@ async function downloadPdfById(m) {
 }
 
 async function editReceipt(m) {
-  const f = receiptForms[m.id]
-  if (!f) return
-  if (!confirm('¿Guardar cambios en el recibo existente?')) return
-  submitting.value = true
-  try {
-    const payload = {
-      receipt: {
-        airline: { id: '00000000-0000-0000-0000-000000000001' },
-        mawb: { id: m.id },
-        gatewayCfs: f.gatewayCfs || 'SDQ',
-        shipperName: f.shipperName || m.shipperName,
-        consigneeName: f.consigneeName || m.consigneeName || '',
-        origin: f.origin || 'SDQ',
-        destination: f.destination || 'MIA',
-        awbReportedPieces: f.awbReportedPieces || 0,
-        mawbWeightGreatest: f.mawbWeightGreatest || 0,
-        pieceCount: f.pieces.reduce((s, p) => s + (p.pieces || 1), 0),
-        cashOnly: f.cashOnly || false,
-        bookedInAcoms: f.bookedInAcoms || false,
-        docsProvided: f.docsProvided || false,
-        customsCompleted: f.customsCompleted || false,
-        preBuilt: f.preBuilt || false,
-        remarks: f.remarks || '',
-        dockSignature: f.dockSignature || '',
-        printName: f.printName || '',
-        deliveredByName: f.deliveredByName || '',
-        deliveredByIdNum: f.deliveredByIdNum || '',
-        deliveredBySigUrl: f.deliveredBySig || '',
-        receivedByName: f.printName || '',
-        brokerName: f.brokerName || '',
-        brokerIdNum: f.brokerIdNum || '',
-        brokerSigUrl: f.brokerSig || '',
-        startDatetime: new Date().toISOString(),
-        receiptDate: new Date().toISOString(),
-      },
-      pieces: f.pieces.map((p, i) => ({
-        pieceNumber: i + 1,
-        lengthIn: p.lengthIn || 0,
-        widthIn: p.widthIn || 0,
-        heightIn: p.heightIn || 0,
-        scaleWeightLbs: p.scaleWeightLbs || 0,
-        scaleWeightKg: p.scaleWeightKg || 0,
-        dimWeightLbs: p.dimWeightLbs || 0,
-        dimWeightKg: p.dimWeightKg || 0,
-        chargeableLbs: p.chargeableLbs || 0,
-        chargeableKg: p.chargeableKg || 0,
-      })),
-      supportingDocs: f.evidence.map(ev => ({
-        name: ev.name,
-        type: ev.type,
-        url: ev.url,
-      })),
-    }
-    await store.emitReceipt(payload)
-    receiptForms[m.id] = null
-    expandedId.value = null
-    localStep.value = 1
-    await store.loadReceipts()
-    alert('Recibo actualizado correctamente')
-  } catch (e) {
-    alert('Error actualizando recibo: ' + (e.response?.data?.error || e.message))
-  } finally {
-    submitting.value = false
-  }
+  return submitReceipt(m)
 }
 
 async function submitReceipt(m) {
@@ -1415,32 +1354,41 @@ async function submitReceipt(m) {
       }
     }
 
+    function sendReceipt(payload) {
+      if (f._existingReceiptId) {
+        return receiptsApi.updateEmit(f._existingReceiptId, payload)
+      }
+      return store.emitReceipt(payload)
+    }
+
     if (hawbs.length <= 1) {
-      const res = await store.emitReceipt(buildPayload(f.pieces, ''))
+      const res = await sendReceipt(buildPayload(f.pieces, ''))
       const receiptId = res?.id || res?.receipt?.id || null
       if (receiptId) generatedReceiptId.value = receiptId
     } else {
       let lastId = null
-      const genRes = await store.emitReceipt(buildPayload(f.pieces, 'RECIBO GENERAL'))
+      const genRes = await sendReceipt(buildPayload(f.pieces, 'RECIBO GENERAL'))
       lastId = genRes?.id || genRes?.receipt?.id || null
       for (const h of hawbs) {
         const hawbPieces = f.pieces.filter(p => p.hawbId === h.id)
         if (hawbPieces.length > 0) {
-          await store.emitReceipt(buildPayload(hawbPieces, 'HAWB: ' + h.hawbNumber))
+          await sendReceipt(buildPayload(hawbPieces, 'HAWB: ' + h.hawbNumber))
         }
       }
       if (lastId) generatedReceiptId.value = lastId
     }
-    receiptForms[m.id] = null
-    expandedId.value = null
-    localStep.value = 1
+    const wasExisting = !!f._existingReceiptId
     if (store.selectedFlightId) {
       await store.loadMawbs(store.selectedFlightId)
     } else {
       await store.loadAllMawbs()
     }
     await store.loadReceipts()
-    alert('Recibo' + (hawbs.length > 1 ? 's' : '') + ' de almacén generado' + (hawbs.length > 1 ? ' (' + (hawbs.length + 1) + ' recibos)' : '') + ' exitosamente')
+    await loadExistingReceiptData(m)
+    localStep.value = 5
+    successMsg.value = wasExisting ? 'Recibo actualizado correctamente' : 'Recibo de almacén generado exitosamente'
+    if (successTimer) clearTimeout(successTimer)
+    successTimer = setTimeout(() => { successMsg.value = '' }, 4000)
   } catch (e) {
     const data = e.response?.data
     const msg = data?.error || data?.message || (typeof data === 'string' ? data : null) || e.message
@@ -1477,10 +1425,10 @@ const receiptStats = computed(() => {
   const all = filteredMawbs.value
   const received = all.filter(m => m.status === 'RECEIVED' || m.status === 'MANIFESTED')
   return [
-    { label: "MAWBs Totales", value: all.length, sub: store.mawbs.length + " totales", border: "border-l-slate-700" },
-    { label: "Pendientes", value: all.filter(m => !m.status || m.status === 'BOOKED').length, sub: "Esperando recepción", border: "border-l-amber-500" },
-    { label: "Recibidos", value: received.length, sub: "En bodega", border: "border-l-emerald-500" },
-    { label: "Manifestados", value: all.filter(m => m.status === 'MANIFESTED').length, sub: "En plan de carga", border: "border-l-blue-500" },
+    { label: "MAWBs Totales", value: all.length, sub: store.mawbs.length + " totales", border: "border-l-slate-700", filterKey: null },
+    { label: "Pendientes", value: all.filter(m => !m.status || m.status === 'BOOKED').length, sub: "Esperando recepción", border: "border-l-amber-500", filterKey: 'PENDING' },
+    { label: "Recibidos", value: received.length, sub: "En bodega", border: "border-l-emerald-500", filterKey: 'RECEIVED' },
+    { label: "Manifestados", value: all.filter(m => m.status === 'MANIFESTED').length, sub: "En plan de carga", border: "border-l-blue-500", filterKey: 'MANIFESTED' },
   ]
 })
 

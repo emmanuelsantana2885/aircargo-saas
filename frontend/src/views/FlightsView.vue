@@ -4,7 +4,7 @@
     <!-- Header -->
     <header class="flex justify-between items-center border-b border-slate-400 pb-3 shrink-0">
       <div>
-        <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">Flight Control</h1>
+        <h1 class="text-xs font-black tracking-tight text-slate-950 uppercase font-mono">Flight Control</h1>
         <p class="text-[15px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Ramp Ops // Active Manifest Board</p>
       </div>
       <div class="flex items-center gap-3">
@@ -27,7 +27,7 @@
       <div v-for="stat in kpis" :key="stat.label"
         class="pencil-sketch py-2 px-3 rounded bg-white border border-slate-400 shadow-pencil-marine flex flex-col justify-between min-h-[72px]">
         <div class="relative z-10">
-          <h3 class="text-[12px] font-black text-slate-950 uppercase tracking-wider font-mono">{{ stat.label }}</h3>
+          <h3 class="text-xs font-black text-slate-950 uppercase tracking-wider font-mono">{{ stat.label }}</h3>
           <div class="text-2xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
         </div>
         <div class="pt-1 border-t border-slate-300 text-[15px] font-mono text-slate-950 relative z-10">{{ stat.sub }}</div>
@@ -37,7 +37,7 @@
     <!-- Table -->
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
 
-      <div class="bg-slate-950 border-b border-slate-700 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-950 border-b border-slate-700 text-xs font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2">Vuelo</div>
         <div class="col-span-2">Ruta</div>
         <div class="col-span-1">Aeronave</div>
@@ -65,21 +65,21 @@
       </div>
 
       <!-- Rows -->
-      <div v-else class="divide-y divide-slate-400 text-[10px] text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div v-else class="divide-y divide-slate-400 text-xs text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
         <div v-for="f in store.flights" :key="f.id"
           class="row-pencil grid grid-cols-12 items-center py-3 px-5 transition-all duration-150 cursor-pointer"
           @click="selectFlight(f)">
 
           <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 flex items-center gap-2">
-            <span class="text-[10px] font-bold text-white bg-slate-800 rounded px-1.5 py-0.5 uppercase tracking-wider">{{ airlineCode(f) }}</span>
+            <span class="text-xs font-bold text-white bg-slate-800 rounded px-1.5 py-0.5 uppercase tracking-wider">{{ airlineCode(f) }}</span>
             <span>{{ f.flightNumber }}</span>
           </div>
           <div class="col-span-2 font-semibold text-slate-950 relative z-10">
             {{ f.origin }} <span class="text-slate-500 mx-1">→</span> {{ f.destination }}
           </div>
-          <div class="col-span-1 font-mono text-[10px] text-slate-950 relative z-10">{{ f.aircraftType }}</div>
-          <div class="col-span-1 font-mono text-[10px] text-slate-950 relative z-10">{{ f.aircraftReg || 'TMP-' + f.flightNumber }}</div>
-          <div class="col-span-1 text-center font-mono text-[10px] text-slate-950 relative z-10">{{ f.flightDate }}</div>
+          <div class="col-span-1 font-mono text-xs text-slate-950 relative z-10">{{ f.aircraftType }}</div>
+          <div class="col-span-1 font-mono text-xs text-slate-950 relative z-10">{{ f.aircraftReg || 'TMP-' + f.flightNumber }}</div>
+          <div class="col-span-1 text-center font-mono text-xs text-slate-950 relative z-10">{{ f.flightDate }}</div>
           <div class="col-span-1 text-center font-mono font-black text-slate-950 relative z-10">{{ f.totalPositions || '—' }}</div>
           <div class="col-span-1 text-center font-mono font-black text-slate-950 relative z-10">
             {{ f.maxPayloadKg ? Number(f.maxPayloadKg).toLocaleString() : '—' }}
@@ -93,7 +93,7 @@
                 <span class="h-2 w-2 rounded-full border-2 transition-all"
                   :class="f.status === step.key ? step.active : (statusOrder.indexOf(f.status) > statusOrder.indexOf(step.key) ? 'bg-slate-400 border-slate-500' : 'bg-slate-100 border-slate-400')">
                 </span>
-                <span class="text-[10px] font-mono mt-0.5 font-black uppercase"
+                <span class="text-xs font-mono mt-0.5 font-black uppercase"
                   :class="f.status === step.key ? step.labelClass : 'text-slate-500'">
                   {{ step.label }}
                 </span>
@@ -120,7 +120,7 @@
       <div class="bg-white rounded-xl border border-slate-400 shadow-2xl w-full max-w-xl p-6">
 
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-400">
-          <h2 class="text-[12px] font-black font-mono uppercase tracking-wider text-slate-950">
+          <h2 class="text-xs font-black font-mono uppercase tracking-wider text-slate-950">
             {{ editingFlight ? 'Editar Vuelo' : 'Nuevo Vuelo' }}
           </h2>
           <button @click="closeModal" class="text-slate-950 hover:text-slate-950">

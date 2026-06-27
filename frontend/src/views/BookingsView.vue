@@ -4,21 +4,21 @@
     <header class="flex justify-between items-center border-b border-slate-400 pb-3 shrink-0">
       <div class="flex items-center gap-4">
         <div>
-          <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">Bookings Hub</h1>
-          <p class="text-[12px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Control Desk</p>
+          <h1 class="text-xs font-black tracking-tight text-slate-950 uppercase font-mono">Bookings Hub</h1>
+          <p class="text-xs font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Control Desk</p>
         </div>
         <div class="h-8 w-[1px] bg-slate-400"></div>
         <div class="flex flex-col gap-0.5">
-          <span class="text-[12px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
+          <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
           <select v-model="localFlightId" @change="onFlightChange"
             class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-950 focus:outline-none uppercase tracking-widest text-sm cursor-pointer min-w-[160px]">
             <option value="" disabled>Seleccionar vuelo</option>
             <option v-for="flight in flightList" :key="flight.id" :value="flight.id">
-              UPS-{{ flight.flightNumber }} ({{ flight.origin }}→{{ flight.destination }})
+              UPS-{{ flight.flightNumber }} ({{ flight.origin }}→{{ flight.destination }}) — {{ flight.flightDate }}
             </option>
           </select>
         </div>
-        <div v-if="store.selectedFlight" class="flex gap-3 text-[12px] font-mono font-bold text-slate-950">
+        <div v-if="store.selectedFlight" class="flex gap-3 text-xs font-mono font-bold text-slate-950">
           <span>{{ store.selectedFlight.aircraftReg || '—' }}</span>
           <span>{{ store.selectedFlight.flightDate }}</span>
         </div>
@@ -53,14 +53,14 @@
     </section>
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
-      <div class="bg-slate-950 border-b border-slate-700 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-950 border-b border-slate-700 text-xs font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2 text-left">Booking ID</div>
-        <div class="col-span-1 text-left">Vuelo</div>
+        <div class="col-span-2 text-left">Vuelo / Fecha</div>
         <div class="col-span-2 text-left">Agente / Broker</div>
         <div class="col-span-2 text-left">Shipper <span class="text-slate-300 font-normal">(Recibo)</span></div>
         <div class="col-span-1 text-center">Piezas</div>
         <div class="col-span-1 text-right pr-2">Peso</div>
-        <div class="col-span-2 text-center bg-slate-800 py-0.5 rounded border border-slate-600 text-white font-black tracking-wide">Estatus MAWB</div>
+        <div class="col-span-1 text-center bg-slate-800 py-0.5 rounded border border-slate-600 text-white font-black tracking-wide">Estatus MAWB</div>
         <div class="col-span-1"></div>
       </div>
 
@@ -72,25 +72,26 @@
         <p class="text-[16px] font-mono text-slate-950 uppercase tracking-widest">{{ store.selectedFlightId ? 'No hay reservas para este vuelo' : 'No hay reservas. Crea una con el botón New Booking.' }}</p>
       </div>
 
-      <div v-else class="divide-y divide-slate-400 text-[10px] text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div v-else class="divide-y divide-slate-400 text-xs text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
         <div v-for="b in visibleBookings" :key="b.id"
           class="row-pencil grid grid-cols-12 items-center py-3.5 px-5 transition-all duration-150 cursor-pointer">
 
-          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 text-[10px]">
+          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 text-xs">
             {{ b.awbNumber || b.id?.slice(0, 8) || 'N/A' }}
           </div>
 
-          <div class="col-span-1 font-mono font-bold text-[10px] text-slate-950 bg-white border border-slate-400 rounded px-1 py-0.5 w-max relative z-10 shadow-sm">
-            {{ flightNumber(b.flightId) || '—' }}
+          <div class="col-span-2 font-mono font-bold text-[16px] text-slate-950 relative z-10 flex flex-col leading-tight">
+            <span>{{ flightNumber(b.flightId) || '—' }}</span>
+            <span v-if="b.flightId" class="text-[14px] text-slate-500 font-semibold">{{ flightDate(b.flightId) }}</span>
           </div>
 
           <div class="col-span-2 text-slate-950 font-semibold relative z-10 truncate pr-3">
             {{ b.clientName || '—' }}
           </div>
 
-          <div class="col-span-2 text-slate-900 font-bold relative z-10 truncate pr-2 font-mono text-[10px] flex flex-col leading-tight">
+          <div class="col-span-2 text-slate-900 font-bold relative z-10 truncate pr-2 font-mono text-xs flex flex-col leading-tight">
             <span>{{ bookingReceipt(b)?.shipperName || b.shipperName || '—' }}</span>
-            <span v-if="bookingReceipt(b)" class="text-[10px] text-emerald-600 font-semibold">&#10003; Recibido</span>
+            <span v-if="bookingReceipt(b)" class="text-xs text-emerald-600 font-semibold">&#10003; Recibido</span>
           </div>
 
           <div class="col-span-1 text-center font-mono font-bold text-slate-900 relative z-10">
@@ -100,18 +101,18 @@
 
           <div class="col-span-1 text-right font-mono font-bold text-slate-950 relative z-10 pr-2">
             <template v-if="bookingReceipt(b)">
-              {{ Number(bookingReceipt(b).chargeableWeightKg || bookingReceipt(b).actualWeightKg || 0).toLocaleString() }}<span class="text-[10px] text-slate-950 font-normal font-mono">k</span>
+              {{ Number(bookingReceipt(b).chargeableWeightKg || bookingReceipt(b).actualWeightKg || 0).toLocaleString() }}<span class="text-xs text-slate-950 font-normal font-mono">k</span>
             </template>
             <template v-else>
-              {{ b.reservedKg ? Number(b.reservedKg).toLocaleString() : '—' }}<span class="text-[10px] text-slate-950 font-normal font-mono">k</span>
+              {{ b.reservedKg ? Number(b.reservedKg).toLocaleString() : '—' }}<span class="text-xs text-slate-950 font-normal font-mono">k</span>
             </template>
           </div>
 
-          <div class="col-span-2 flex items-center justify-center gap-1.5 relative z-10">
-            <div class="flex items-center gap-2 text-[10px] font-mono" :title="'MAWB: ' + getMawbStatus(b)">
+          <div class="col-span-1 flex items-center justify-center gap-1.5 relative z-10">
+            <div class="flex items-center gap-2 text-[15px] font-mono" :title="'MAWB: ' + getMawbStatus(b)">
               <span class="inline-block w-2.5 h-2.5" :class="getMawbStatusClass(b)"></span>
-              <span :class="getMawbStatusTextClass(b)" class="font-bold text-[10px] uppercase tracking-wider">{{ getMawbStatus(b) }}</span>
-              <span v-if="getMawbStatus(b) !== '—'" class="text-slate-300 text-[10px]">·</span>
+              <span :class="getMawbStatusTextClass(b)" class="font-bold text-xs uppercase tracking-wider">{{ getMawbStatus(b) }}</span>
+              <span v-if="getMawbStatus(b) !== '—'" class="text-slate-300 text-xs">·</span>
             </div>
           </div>
           <div class="col-span-1 flex justify-end relative z-10">
@@ -129,7 +130,7 @@
     <div v-if="showModal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="closeModal">
       <div class="bg-white rounded-xl border border-slate-400 shadow-2xl w-full max-w-lg p-6">
         <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-400">
-          <h2 class="text-[12px] font-black font-mono uppercase tracking-wider text-slate-950">Nuevo Booking</h2>
+          <h2 class="text-xs font-black font-mono uppercase tracking-wider text-slate-950">Nuevo Booking</h2>
           <button @click="closeModal" class="text-slate-950 hover:text-slate-950"><IconX :size="16" :stroke-width="2" /></button>
         </div>
         <div class="space-y-4">
@@ -226,16 +227,16 @@
       <div class="bg-white rounded-xl border border-slate-400 shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
         <div class="flex justify-between items-center px-6 py-4 border-b border-slate-400 shrink-0">
           <div>
-            <h2 class="text-[12px] font-black font-mono uppercase tracking-wider text-slate-950">Previsualización de Importación</h2>
-            <p class="text-[12px] font-mono text-slate-950 mt-0.5">{{ parsedRows.length }} registros encontrados en el archivo</p>
+            <h2 class="text-xs font-black font-mono uppercase tracking-wider text-slate-950">Previsualización de Importación</h2>
+            <p class="text-xs font-mono text-slate-950 mt-0.5">{{ parsedRows.length }} registros encontrados en el archivo</p>
           </div>
           <button @click="closeImportModal" class="text-slate-950 hover:text-slate-950"><IconX :size="16" :stroke-width="2" /></button>
         </div>
 
         <div class="overflow-auto flex-1 min-h-0">
-          <table class="w-full text-[10px] font-mono">
+          <table class="w-full text-xs font-mono">
             <thead class="bg-slate-100 sticky top-0 z-10">
-              <tr class="text-[11px] font-black text-slate-950 uppercase tracking-wider">
+              <tr class="text-xs font-black text-slate-950 uppercase tracking-wider">
                 <th class="text-left px-5 py-3 border-b border-slate-400">#</th>
                 <th class="text-left px-5 py-3 border-b border-slate-400">Cliente</th>
                 <th class="text-left px-5 py-3 border-b border-slate-400">Contacto</th>
@@ -261,14 +262,14 @@
                 <td class="px-4 py-3 text-center font-bold text-slate-900">{{ row.units || '—' }}</td>
                 <td class="px-4 py-3 text-right font-bold text-slate-900">{{ row.reservedKg.toLocaleString() }}</td>
                 <td class="px-4 py-3 text-center font-bold text-slate-950">{{ row.destination }}</td>
-                <td class="px-4 py-3 text-center"><span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-950 font-semibold">{{ row.commodityType }}</span></td>
+                <td class="px-4 py-3 text-center"><span class="inline-block text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-950 font-semibold">{{ row.commodityType }}</span></td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div class="flex justify-between items-center px-6 py-4 border-t border-slate-400 bg-slate-100 rounded-b-xl shrink-0">
-          <span class="text-[12px] font-mono text-slate-950">Se crearán {{ parsedRows.length }} bookings + MAWBs automáticamente</span>
+          <span class="text-xs font-mono text-slate-950">Se crearán {{ parsedRows.length }} bookings + MAWBs automáticamente</span>
           <div class="flex gap-2">
             <button @click="closeImportModal"
               class="text-[16px] px-3.5 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition">
@@ -380,6 +381,12 @@ function flightNumber(flightId) {
   if (!flightId) return '—'
   const f = store.flights.find(f => f.id === flightId)
   return f ? `UPS-${f.flightNumber}` : flightId.slice(0, 8)
+}
+
+function flightDate(flightId) {
+  if (!flightId) return ''
+  const f = store.flights.find(f => f.id === flightId)
+  return f ? f.flightDate : ''
 }
 
 const form = ref({

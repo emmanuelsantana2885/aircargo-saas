@@ -4,13 +4,13 @@
     <header class="flex justify-between items-center border border-slate-300 bg-white p-3 rounded-t-lg shadow-pencil-marine shrink-0">
       <div class="flex items-center gap-6">
         <div class="flex flex-col gap-0.5">
-           <span class="text-[12px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+           <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Fecha</span>
           <input v-model="selectedDate" type="date" @change="onDateChange"
             class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-950 focus:outline-none text-base cursor-pointer w-[140px]" />
         </div>
         <div class="h-8 w-[1px] bg-slate-200"></div>
         <div class="flex flex-col gap-0.5">
-           <span class="text-[12px] font-black text-slate-950 uppercase tracking-widest">Flight Number</span>
+           <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Flight Number</span>
           <select v-model="selectedFlightId" @change="syncFlightMetadata" class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-950 focus:outline-none uppercase tracking-widest text-base cursor-pointer min-w-[180px]">
             <option value="" disabled>Seleccionar vuelo</option>
             <option v-for="flight in flightDatabase" :key="flight.id" :value="flight.id">
@@ -20,12 +20,12 @@
         </div>
         <div class="h-8 w-[1px] bg-slate-200"></div>
         <div class="flex flex-col justify-center">
-           <span class="text-[12px] font-black text-slate-950 uppercase tracking-widest">Aircraft-Tail</span>
+           <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Aircraft-Tail</span>
           <span class="text-base font-black text-slate-950 uppercase tracking-wider">{{ activeFlightMeta.aircraftReg || '-' }}</span>
         </div>
         <div class="h-8 w-[1px] bg-slate-200"></div>
         <div class="flex flex-col justify-center">
-           <span class="text-[12px] font-black text-slate-950 uppercase tracking-widest">Ruta</span>
+           <span class="text-xs font-black text-slate-950 uppercase tracking-widest">Ruta</span>
           <span class="text-base font-black text-slate-950 uppercase tracking-widest">{{ (activeFlightMeta.origin || '') + '→' + (activeFlightMeta.destination || '-') }}</span>
         </div>
       </div>
@@ -43,7 +43,7 @@
     <!-- ULD Position Summary -->
     <section v-if="activeManifest.length > 0"
       class="flex items-center gap-3 py-1.5 px-3 bg-white border border-slate-400 rounded-lg mb-1 shadow-sm shrink-0 overflow-x-auto lp-scroll-x text-[15px] font-mono">
-      <span class="font-black uppercase tracking-wider text-slate-950 text-[12px] shrink-0">POSITIONS</span>
+      <span class="font-black uppercase tracking-wider text-slate-950 text-xs shrink-0">POSITIONS</span>
       <div v-for="p in positionSummary" :key="p.pos"
         class="flex items-center gap-1.5 px-2 py-0.5 rounded whitespace-nowrap"
         :class="[p.isBelly ? 'bg-amber-50 border border-amber-200' : 'bg-slate-100 border border-slate-400']">
@@ -100,7 +100,7 @@
       class="flex-1 min-h-0 border border-slate-300 rounded-lg overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1 transition-shadow duration-150"
       :class="dragOver ? 'ring-2 ring-amber-400 ring-offset-2' : ''">
       <div class="overflow-x-auto flex flex-col flex-1 min-h-0 lp-scroll-x">
-      <div class="bg-slate-950 text-white text-[11px] font-black uppercase tracking-wider lp-grid py-3.5 px-5 items-center shrink-0 border-b border-slate-600 whitespace-nowrap shadow-sm">
+      <div class="bg-slate-950 text-white text-xs font-black uppercase tracking-wider lp-grid py-3.5 px-5 items-center shrink-0 border-b border-slate-600 whitespace-nowrap shadow-sm">
         <span class="flex items-center gap-1">
           <svg class="w-2.5 h-2.5 text-slate-950" viewBox="0 0 8 8" fill="none"><circle cx="2" cy="2" r="1" fill="currentColor"/><circle cx="6" cy="2" r="1" fill="currentColor"/><circle cx="2" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="6" r="1" fill="currentColor"/></svg>
           ULD
@@ -124,7 +124,7 @@
         <span v-if="floatingUlds.length > 0" class="text-[16px] text-slate-300">— o arrastra un ULD flotante aquí —</span>
       </div>
 
-      <div v-else class="divide-y divide-slate-200 text-[10px] overflow-y-auto flex-1 min-h-0 scrollbar-none bg-slate-100/30">
+      <div v-else class="divide-y divide-slate-200 text-xs overflow-y-auto flex-1 min-h-0 scrollbar-none bg-slate-100/30">
         <div v-for="(uldGroup, uIdx) in activeManifest" :key="uIdx"
           class="bg-white lp-container-block"
           :class="getRowBgStyle(uldGroup.status)">
@@ -248,7 +248,7 @@
       class="fixed inset-0 bg-slate-950/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       @click.self="cancelTransfer">
       <div class="bg-white rounded-xl border border-slate-400 shadow-2xl w-full max-w-md p-5">
-        <h3 class="text-[12px] font-black uppercase tracking-wider text-slate-950 mb-3">
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-950 mb-3">
           Transferir ULD
         </h3>
         <div class="text-[16px] text-slate-950 mb-3">

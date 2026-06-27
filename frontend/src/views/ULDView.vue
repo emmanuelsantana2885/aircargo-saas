@@ -3,18 +3,18 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
   <div class="p-5 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
       <div>
-        <h1 class="text-[12px] font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
-        <p class="text-[10px] font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
+        <h1 class="text-xs font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
+        <p class="text-xs font-mono text-slate-400 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
       </div>
      
       <div class="flex items-center gap-4">
         <button @click="createNewBlankUld"
-          class="bg-slate-950 text-white font-mono text-[11px] font-black uppercase tracking-wider px-4 py-2 rounded border border-slate-900 hover:bg-slate-800 transition-all flex items-center gap-2 shadow-pencil-marine">
+          class="bg-slate-950 text-white font-mono text-xs font-black uppercase tracking-wider px-4 py-2 rounded border border-slate-900 hover:bg-slate-800 transition-all flex items-center gap-2 shadow-pencil-marine">
           <span class="text-xs font-sans">&#65291;</span> Crear ULD / Pallet Sheet
         </button>
        
         <div class="h-6 w-[1px] bg-slate-200"></div>
-        <div class="flex items-center gap-3 font-mono text-[10px] font-bold">
+        <div class="flex items-center gap-3 font-mono text-xs font-bold">
           <span class="text-slate-400">VINCULADO: <strong class="text-slate-950 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">LoadPlanningView.vue</strong></span>
           <div class="flex items-center gap-1.5 text-slate-500">
             <span class="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span> OPERATIONAL SYSTEM LIVE
@@ -41,7 +41,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
      
-      <div class="bg-slate-50 border-b border-slate-300 text-[11px] font-bold text-slate-400 uppercase tracking-wider grid grid-cols-12 py-2.5 px-5 items-center shrink-0 font-mono">
+      <div class="bg-slate-50 border-b border-slate-300 text-xs font-bold text-slate-400 uppercase tracking-wider grid grid-cols-12 py-2.5 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2 text-left">Código ULD</div>
         <div class="col-span-1 text-left">Vuelo</div>
         <div class="col-span-2 text-left">Ruta / Destino</div>
@@ -52,7 +52,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
         <div class="col-span-2 text-center bg-slate-100 py-0.5 rounded border border-slate-200 text-slate-600 font-black tracking-wide">Flujo Rampa</div>
       </div>
      
-      <div class="divide-y divide-slate-200 text-[10px] text-slate-700 overflow-y-auto flex-1 min-h-0 scrollbar-none">
+      <div class="divide-y divide-slate-200 text-xs text-slate-700 overflow-y-auto flex-1 min-h-0 scrollbar-none">
         <div v-for="uld in uldsList" :key="uld.id" class="flex flex-col">
          
           <div @click="toggleUldExpansion(uld.id)"
@@ -68,14 +68,14 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
               <span v-if="!uld.sentToLoadPlanning" class="text-[7.5px] bg-amber-500/10 text-amber-700 border border-amber-300 font-bold px-1 rounded tracking-tight animate-pulse shrink-0 font-sans">LLENANDO</span>
             </div>
            
-            <div class="col-span-1 font-mono font-bold text-[10px] text-slate-800 bg-white border border-slate-200 rounded px-1 py-0.5 w-max relative z-10 shadow-sm">
+            <div class="col-span-1 font-mono font-bold text-xs text-slate-800 bg-white border border-slate-200 rounded px-1 py-0.5 w-max relative z-10 shadow-sm">
               {{ uld.flight || 'TBD' }}
             </div>
            
             <div class="col-span-2 text-slate-600 font-semibold relative z-10 truncate pr-3">
               {{ uld.route || 'Sin Ruta' }}
             </div>
-            <div class="col-span-2 text-slate-900 font-bold relative z-10 truncate pr-2 font-mono text-[10px]">
+            <div class="col-span-2 text-slate-900 font-bold relative z-10 truncate pr-2 font-mono text-xs">
               {{ uld.config || '---' }} <span class="text-slate-400 font-normal">// {{ uld.type || 'Falta Tipo' }}</span>
             </div>
             <div class="col-span-1 text-center font-mono font-black relative z-10" :class="uld.volumePct >= 90 ? 'text-emerald-600' : 'text-slate-950'">
@@ -115,8 +115,8 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
               <div class="flex justify-between items-center border-b border-slate-300 pb-3 mb-5">
                 <div class="flex items-center gap-2">
-                  <span class="text-[12px] font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
-                  <span class="text-[10px] text-slate-400 font-bold">// CONTROL ADICIÓN AUTOMÁTICA</span>
+                  <span class="text-xs font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
+                  <span class="text-xs text-slate-400 font-bold">// CONTROL ADICIÓN AUTOMÁTICA</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-bold text-slate-400 uppercase">Volumen Ocupado:</span>
@@ -173,7 +173,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
 
               <!-- TABLA MAWB - TAMAÑO UNIFORME -->
               <div class="border border-slate-200 rounded overflow-hidden mb-6">
-                <div class="bg-slate-950 text-white text-[11px] font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center">
+                <div class="bg-slate-950 text-white text-xs font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center">
                   <div class="col-span-4">NÚMERO DE GUÍA COMERCIAL (MAWB)</div>
                   <div class="col-span-3">DESCRIPCIÓN</div>
                   <div class="col-span-2 text-right">PIEZAS (PCS)</div>

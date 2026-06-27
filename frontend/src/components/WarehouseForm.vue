@@ -50,9 +50,9 @@
         </div>
       </div>
       <div class="bg-white rounded border border-slate-200 p-4 shadow-pencil-marine">
-        <h4 class="text-[12px] font-mono uppercase tracking-wider font-bold text-slate-400 mb-3">Estado del Embarque</h4>
+        <h4 class="text-xs font-mono uppercase tracking-wider font-bold text-slate-400 mb-3">Estado del Embarque</h4>
         <div class="space-y-2.5">
-          <label v-for="cb in checkboxes" :key="cb.key" class="flex items-center gap-2 text-[11px] font-mono text-slate-700 cursor-pointer"
+          <label v-for="cb in checkboxes" :key="cb.key" class="flex items-center gap-2 text-xs font-mono text-slate-700 cursor-pointer"
             :class="cb.disabled ? 'opacity-60' : ''">
             <input type="checkbox" v-model="form[cb.key]" :disabled="cb.disabled"
               class="w-3.5 h-3.5 rounded border-slate-300 accent-slate-950" />
@@ -66,7 +66,7 @@
     <!-- Step 2 -->
     <div v-if="currentStep === 2">
       <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <h3 class="text-[12px] font-mono uppercase tracking-widest font-bold text-slate-400">Detalle de Piezas por Grupo Dimensional</h3>
+        <h3 class="text-xs font-mono uppercase tracking-widest font-bold text-slate-400">Detalle de Piezas por Grupo Dimensional</h3>
         <div class="flex items-center gap-2 text-[9px] font-mono">
           <span class="text-slate-400 uppercase tracking-wide">Reportado:</span>
           <span class="font-black text-slate-700">{{ form.awbReportedPieces ?? '—' }}</span>
@@ -163,7 +163,7 @@
 
       <div class="flex items-center gap-2 mt-3">
         <button @click="addGroup"
-          class="flex items-center gap-1.5 text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
+          class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
           <IconPlus :size="12" :stroke-width="2.5" /> Agregar Grupo Dimensional
         </button>
       </div>
@@ -171,14 +171,14 @@
 
     <!-- Step 3 -->
     <div v-if="currentStep === 3">
-      <h3 class="text-[12px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Remarks / Observaciones</h3>
+      <h3 class="text-xs font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Remarks / Observaciones</h3>
       <textarea v-model="form.remarks" rows="6" placeholder="DRY CARGO, NOTAS ADICIONALES..."
         class="w-full text-xs font-mono px-3 py-2.5 rounded border border-slate-200 bg-white outline-none focus:border-slate-950 transition shadow-pencil-marine resize-none"></textarea>
     </div>
 
     <!-- Step 4 -->
     <div v-if="currentStep === 4">
-      <h3 class="text-[12px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Evidencias y Documentos</h3>
+      <h3 class="text-xs font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Evidencias y Documentos</h3>
       <div class="grid grid-cols-3 gap-3">
         <button v-for="ev in evidenceButtons" :key="ev.label"
           class="pencil-sketch flex flex-col items-center gap-2 py-6 rounded border border-slate-200 bg-white shadow-pencil-marine hover:border-slate-400 transition">
@@ -190,7 +190,7 @@
 
     <!-- Step 5 -->
     <div v-if="currentStep === 5">
-      <h3 class="text-[12px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Firmas</h3>
+      <h3 class="text-xs font-mono uppercase tracking-widest font-bold text-slate-400 mb-3">Firmas</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div v-for="sig in signatureFields" :key="sig.key">
           <label class="text-[9px] font-mono uppercase tracking-wider font-bold text-slate-400 block mb-1">{{ sig.label }}</label>
@@ -203,15 +203,15 @@
     <!-- Navigation -->
     <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-200">
       <button v-if="currentStep > 1" @click="currentStep--"
-        class="text-[10px] px-3.5 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
+        class="text-xs px-3.5 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
         Anterior
       </button>
       <button v-if="currentStep < 5" @click="currentStep++"
-        class="text-[10px] px-3.5 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-pencil-marine transition active:scale-95">
+        class="text-xs px-3.5 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 shadow-pencil-marine transition active:scale-95">
         Siguiente
       </button>
       <button v-if="currentStep === 5" @click="handleSubmit"
-        class="flex items-center gap-1.5 text-[10px] px-3.5 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-pencil-marine transition active:scale-95">
+        class="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-pencil-marine transition active:scale-95">
         <IconCheck :size="12" :stroke-width="2.5" /> Guardar Recibo Completo
       </button>
     </div>
