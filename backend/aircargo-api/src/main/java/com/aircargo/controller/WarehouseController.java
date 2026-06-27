@@ -82,6 +82,34 @@ public class WarehouseController {
     }
 
     /**
+     * Endpoint para actualizar un recibo existente con nuevas piezas y evidencias (no acumulativo).
+     */
+    @PutMapping("/{receiptId}/emit")
+    public ResponseEntity<?> updateWarehouseReceipt(@PathVariable UUID receiptId, @RequestBody ReceiptPayload payload) {
+        try {
+            if (payload.receipt == null || payload.pieces == null || payload.pieces.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "error", "DATOS INCOMPLETOS: El recibo debe contener al menos una pieza para cubicar."));
+            }
+
+            List<Map<String, String>> docsMap = null;
+            if (payload.supportingDocs != null) {
+                docsMap = payload.supportingDocs.stream()
+                    .map(d -> Map.of(
+                        "name", d.name != null ? d.name : "",
+                        "type", d.type != null ? d.type : "",
+                        "url", d.url != null ? d.url : ""
+                    ))
+                    .collect(Collectors.toList());
+            }
+            WarehouseReceipt processed = warehouseService.updateWarehouseReceipt(receiptId, payload.receipt, payload.pieces, docsMap);
+            return ResponseEntity.ok(processed);
+
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "Error actualizando recibo: " + ex.getMessage()));
+        }
+    }
+
+    /**
      * Endpoint para consultar el desglose de piezas cubicadas asociadas a un recibo.
      */
     @GetMapping("/{receiptId}/pieces")

@@ -2,13 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #eef0f2;
+  --surface: #ffffff;
+  --text: #1e293b;
+  --muted: #94a3b8;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --border: #e2e8f0;
+  --sidebar-width: 230px;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #F8F7F4;
+  background-color: var(--bg);
+  font-size: 12px;
 }
 
 .font-mono {
   font-family: 'Lucida Console', 'Monaco', 'Courier New', monospace;
+}
+
+h1, h2, h3, h4, .title {
+  font-size: 13px;
 }
 
 /* Cards con relieve y hover */
@@ -24,4 +40,32 @@ body {
 
 .table-row:hover {
   background-color: #f0f9ff !important;
+}
+
+/* Selected row: blue tint + pencil-hatch texture 30deg + chalk overlay */
+.row-selected {
+  position: relative;
+  background-color: #dbeafe;
+  background-image: repeating-linear-gradient(
+    30deg,
+    transparent,
+    transparent 2px,
+    rgba(37, 99, 235, 0.12) 2px,
+    rgba(37, 99, 235, 0.12) 4px
+  );
+  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+.row-selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    30deg,
+    transparent,
+    transparent 1px,
+    rgba(255,255,255,0.5) 1px,
+    rgba(255,255,255,0.5) 2px
+  );
 }

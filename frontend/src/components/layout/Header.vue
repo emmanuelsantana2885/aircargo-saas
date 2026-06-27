@@ -21,13 +21,6 @@
       <!-- Date -->
       <span class="text-xs" style="color: var(--muted)">{{ date }}</span>
 
-      <!-- Import button -->
-      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
-        style="background: var(--accent); color: white">
-        <IconUpload :size="13" :stroke-width="2" />
-        Importar xlsx
-      </button>
-
       <!-- Notifications -->
       <button class="relative w-8 h-8 flex items-center justify-center rounded-lg transition-all"
         style="color: var(--muted)"
@@ -43,7 +36,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { IconChevronRight, IconUpload, IconBell } from '@tabler/icons-vue'
+import { IconChevronRight, IconBell } from '@tabler/icons-vue'
 
 const route = useRoute()
 const titles = {

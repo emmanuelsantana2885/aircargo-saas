@@ -58,7 +58,7 @@ cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'E
           <div @click="toggleUldExpansion(uld.id)"
             class="row-pencil grid grid-cols-12 items-center py-2.5 px-5 transition-all duration-150 cursor-pointer"
             :class="[
-              expandedUldId === uld.id ? 'bg-slate-50/90 ring-1 ring-inset ring-slate-200' : '',
+              expandedUldId === uld.id ? 'row-selected' : '',
               !uld.sentToLoadPlanning ? 'bg-filling-pattern shadow-[inset_6px_0_0_0_#f59e0b]' : ''
             ]">
            
