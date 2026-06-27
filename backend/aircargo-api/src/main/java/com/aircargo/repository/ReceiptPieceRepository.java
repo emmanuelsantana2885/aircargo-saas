@@ -9,9 +9,8 @@ import java.util.UUID;
 
 @Repository
 public interface ReceiptPieceRepository extends JpaRepository<ReceiptPiece, UUID> {
-    
-    /**
-     * Recupera el desglose de todas las piezas asociadas a un recibo de bodega específico.
-     */
+
     List<ReceiptPiece> findByReceiptId(UUID id);
+
+    void deleteByReceiptId(UUID receiptId);
 }

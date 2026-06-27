@@ -72,7 +72,7 @@
               <td class="text-center px-2 py-2 font-bold">{{ flightUlds(f.id).length }}</td>
               <td class="text-center px-2 py-2 font-bold">{{ flightPositions(f.id) }}</td>
               <td class="text-right px-2 py-2 font-bold">{{ grossLbs(f.id) }}</td>
-              <td class="text-right px-2 py-2 font-bold text-amber-600">{{ bellyTareLbs(f.id) }}</td>
+               <td class="text-right px-2 py-2 font-bold text-amber-600">{{ totalTareLbs(f.id) }}</td>
               <td class="text-right px-2 py-2 font-bold">{{ netLbs(f.id) }}</td>
               <td class="text-center px-2 py-2 text-slate-400">5</td>
               <td class="text-right px-2 py-2 font-bold text-emerald-600">{{ payloadLbs(f.id) }}</td>
@@ -121,21 +121,17 @@ function grossLbs(flightId) {
   return ulds.reduce((s, u) => s + (Number(u.grossWeightLbs) || 0), 0)
 }
 
-function bellyTareLbs(flightId) {
+function totalTareLbs(flightId) {
   const ulds = flightUlds(flightId)
-  const bellies = ulds.filter(u => {
-    const pos = (u.position || '').trim().toUpperCase()
-    return pos === '34' || pos === '31' || pos === 'LOOSE' || pos === 'AB'
-  })
-  return bellies.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
+  return ulds.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
 }
 
 function netLbs(flightId) {
-  return grossLbs(flightId) - bellyTareLbs(flightId)
+  return grossLbs(flightId) - totalTareLbs(flightId)
 }
 
 function payloadLbs(flightId) {
-  return netLbs(flightId) + 5
+  return netLbs(flightId)
 }
 
 const totalNetPayload = computed(() => {

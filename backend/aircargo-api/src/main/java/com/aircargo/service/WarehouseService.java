@@ -49,6 +49,82 @@ public class WarehouseService {
     }
 
     @Transactional
+    public WarehouseReceipt updateWarehouseReceipt(UUID receiptId, WarehouseReceipt receipt, List<ReceiptPiece> pieces, List<Map<String, String>> supportingDocs) {
+        WarehouseReceipt existing = receiptRepository.findById(receiptId)
+                .orElseThrow(() -> new IllegalArgumentException("Recibo no encontrado: " + receiptId));
+
+        existing.setShipperName(receipt.getShipperName());
+        existing.setConsigneeName(receipt.getConsigneeName());
+        existing.setOrigin(receipt.getOrigin());
+        existing.setDestination(receipt.getDestination());
+        existing.setAwbReportedPieces(receipt.getAwbReportedPieces());
+        existing.setMawbWeightGreatest(receipt.getMawbWeightGreatest());
+        existing.setPieceCount(receipt.getPieceCount());
+        existing.setCashOnly(receipt.getCashOnly());
+        existing.setBookedInAcoms(receipt.getBookedInAcoms());
+        existing.setDocsProvided(receipt.getDocsProvided());
+        existing.setCustomsCompleted(receipt.getCustomsCompleted());
+        existing.setPreBuilt(receipt.getPreBuilt());
+        existing.setRemarks(receipt.getRemarks());
+        existing.setDockSignature(receipt.getDockSignature());
+        existing.setPrintName(receipt.getPrintName());
+        existing.setDeliveredByName(receipt.getDeliveredByName());
+        existing.setDeliveredByIdNum(receipt.getDeliveredByIdNum());
+        existing.setDeliveredBySigUrl(receipt.getDeliveredBySigUrl());
+        existing.setReceivedByName(receipt.getReceivedByName());
+        existing.setReceivedBySigUrl(receipt.getReceivedBySigUrl());
+        existing.setBrokerName(receipt.getBrokerName());
+        existing.setBrokerIdNum(receipt.getBrokerIdNum());
+        existing.setBrokerSigUrl(receipt.getBrokerSigUrl());
+
+        if (supportingDocs != null && !supportingDocs.isEmpty()) {
+            try {
+                existing.setSupportingDocs(objectMapper.writeValueAsString(supportingDocs));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Error serializando documentos de soporte", e);
+            }
+        }
+
+        WarehouseReceipt savedReceipt = receiptRepository.save(existing);
+
+        // Delete old pieces and replace with new ones (non-cumulative)
+        pieceRepository.deleteByReceiptId(receiptId);
+
+        double dimFactor = (savedReceipt.getDimFactorIntl() != null) ? savedReceipt.getDimFactorIntl().doubleValue() : 366.0;
+        BigDecimal lbsToKgFactor = BigDecimal.valueOf(0.45359237);
+
+        for (ReceiptPiece piece : pieces) {
+            piece.setId(null);
+            piece.setReceipt(savedReceipt);
+
+            double length = piece.getLengthIn() != null ? piece.getLengthIn().doubleValue() : 0.0;
+            double width = piece.getWidthIn() != null ? piece.getWidthIn().doubleValue() : 0.0;
+            double height = piece.getHeightIn() != null ? piece.getHeightIn().doubleValue() : 0.0;
+
+            double volWeightLbs = (length * width * height) / dimFactor;
+            piece.setDimWeightLbs(BigDecimal.valueOf(volWeightLbs).setScale(3, RoundingMode.HALF_UP));
+
+            BigDecimal dimWeightKg = piece.getDimWeightLbs().multiply(lbsToKgFactor);
+            piece.setDimWeightKg(dimWeightKg.setScale(3, RoundingMode.HALF_UP));
+
+            if (piece.getScaleWeightLbs() != null && (piece.getScaleWeightKg() == null || piece.getScaleWeightKg().compareTo(BigDecimal.ZERO) == 0)) {
+                piece.setScaleWeightKg(piece.getScaleWeightLbs().multiply(lbsToKgFactor).setScale(3, RoundingMode.HALF_UP));
+            }
+
+            BigDecimal scaleKg = piece.getScaleWeightKg() != null ? piece.getScaleWeightKg() : BigDecimal.ZERO;
+            BigDecimal maxKg = scaleKg.max(piece.getDimWeightKg());
+            piece.setChargeableKg(maxKg.setScale(3, RoundingMode.HALF_UP));
+
+            BigDecimal maxLbs = piece.getScaleWeightLbs().max(piece.getDimWeightLbs());
+            piece.setChargeableLbs(maxLbs.setScale(3, RoundingMode.HALF_UP));
+
+            pieceRepository.save(piece);
+        }
+
+        return savedReceipt;
+    }
+
+    @Transactional
     public WarehouseReceipt processWarehouseReceipt(WarehouseReceipt receipt, List<ReceiptPiece> pieces, List<Map<String, String>> supportingDocs) {
         if (supportingDocs != null && !supportingDocs.isEmpty()) {
             try {
@@ -165,13 +241,9 @@ public class WarehouseService {
         WarehouseReceipt receipt = receiptRepository.findById(receiptId)
                 .orElseThrow(() -> new IllegalArgumentException("Recibo no encontrado: " + receiptId));
 
-        String rawDocs = receipt.getSupportingDocs();
-        if (rawDocs == null || rawDocs.isBlank() || "[]".equals(rawDocs)) {
-            return pdfService.generatePdf("<html><body style='font-family:Helvetica,Arial,sans-serif;padding:1.5cm;color:#1a1a1a'><h2 style='font-size:14pt'>Sin evidencias documentales</h2><p style='font-size:9pt;color:#666'>Este recibo no tiene documentos de soporte asociados.</p></body></html>");
-        }
-
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'/>");
+        sb.append("<meta name='viewport' content='width=device-width,initial-scale=1.0'/>");
         sb.append("<title>Evidencias - ").append(receiptId.toString().substring(0, 8)).append("</title>");
         sb.append("<style>");
         sb.append("@page{margin:1cm}");
@@ -184,39 +256,106 @@ public class WarehouseService {
         sb.append(".page img{display:block;margin:0 auto;max-width:100%;max-height:75vh;object-fit:contain}");
         sb.append(".page .placeholder{font-size:10pt;color:#999;text-align:center;padding:3cm 1cm}");
         sb.append(".footer-text{font-size:7pt;color:#999;text-align:center;margin-top:auto;padding-top:0.5cm;width:100%;border-top:1px solid #ddd}");
+        sb.append(".sig-card{width:100%;border:1px solid #ccc;border-radius:4px;padding:0.4cm 0.5cm;margin-bottom:0.3cm;background:#fafafa}");
+        sb.append(".sig-card h3{font-size:10pt;margin:0 0 0.15cm 0;color:#333;border-bottom:1px solid #ddd;padding-bottom:0.1cm}");
+        sb.append(".sig-row{display:flex;gap:0.3cm;margin-top:0.2cm}");
+        sb.append(".sig-field{flex:1}");
+        sb.append(".sig-field label{font-size:7pt;color:#666;text-transform:uppercase;display:block;margin-bottom:0.05cm}");
+        sb.append(".sig-field .value{font-size:9pt;color:#1a1a1a;font-weight:bold}");
+        sb.append(".sig-img{max-height:1.2cm;max-width:5cm;display:block;margin:0.1cm 0;border:1px solid #eee;padding:0.1cm;background:white}");
+        sb.append(".sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.4cm;width:100%}");
         sb.append("</style></head><body>");
 
         String mawbInfo = "";
+        String shipperInfo = "";
         if (receipt.getMawb() != null) {
-            mawbInfo = "MAWB: " + xmlEscape(receipt.getMawb().getAwbNumber() != null ? receipt.getMawb().getAwbNumber() : "\u2014");
+            mawbInfo = xmlEscape(receipt.getMawb().getAwbNumber() != null ? receipt.getMawb().getAwbNumber() : "\u2014");
+        }
+        if (receipt.getShipperName() != null) {
+            shipperInfo = xmlEscape(receipt.getShipperName());
         }
 
-        try {
-            @SuppressWarnings("unchecked")
-            List<Map<String, String>> docs = objectMapper.readValue(rawDocs, List.class);
-            int idx = 0;
-            String footer = "AirCargo \u2014 generado " + java.time.LocalDateTime.now().toString().replace("T", " ").substring(0, 16);
-            for (Map<String, String> doc : docs) {
-                idx++;
-                String name = xmlEscape(doc.getOrDefault("name", "Documento"));
-                String type = doc.getOrDefault("type", "document");
-                String url = doc.getOrDefault("url", "");
+        String footer = "AirCargo \u2014 generado " + java.time.LocalDateTime.now().toString().replace("T", " ").substring(0, 16);
 
-                sb.append("<div class='page'>");
-                sb.append("<div class='page-header'><h2>Evidencia ").append(idx).append(" / ").append(docs.size()).append("</h2>");
-                sb.append("<div class='meta'>").append(name).append(" &#183; ").append(mawbInfo).append("</div></div>");
+        // ── Page 1: Signature Evidence ──
+        sb.append("<div class='page'>");
+        sb.append("<div class='page-header'><h2>Documentaci\u00f3n de Evidencias \u2014 Firmas</h2>");
+        sb.append("<div class='meta'>MAWB: ").append(mawbInfo).append(" &#183; ").append(shipperInfo).append("</div></div>");
 
-                if ("image".equals(type) && url != null && !url.isEmpty()) {
-                    sb.append("<img src='").append(url).append("' alt='").append(name).append("' />");
-                } else {
-                    sb.append("<div class='placeholder'>&#128196; ").append(name).append("</div>");
+        sb.append("<div class='sig-grid'>");
+
+        // Received by
+        sb.append("<div class='sig-card'>");
+        sb.append("<h3>Recibido por (Almac\u00e9n)</h3>");
+        sb.append("<div class='sig-row'><div class='sig-field'><label>Nombre</label><div class='value'>").append(xmlEscape(receipt.getPrintName() != null ? receipt.getPrintName() : (receipt.getReceivedByName() != null ? receipt.getReceivedByName() : "\u2014"))).append("</div></div></div>");
+        if (receipt.getDockSignature() != null && !receipt.getDockSignature().isEmpty()) {
+            sb.append("<img class='sig-img' src='").append(receipt.getDockSignature()).append("' alt='Firma Recibido' />");
+        } else if (receipt.getReceivedBySigUrl() != null && !receipt.getReceivedBySigUrl().isEmpty()) {
+            sb.append("<img class='sig-img' src='").append(receipt.getReceivedBySigUrl()).append("' alt='Firma Recibido' />");
+        }
+        sb.append("</div>");
+
+        // Delivered by
+        sb.append("<div class='sig-card'>");
+        sb.append("<h3>Entregado por (Transportista)</h3>");
+        sb.append("<div class='sig-row'>");
+        sb.append("<div class='sig-field'><label>Nombre</label><div class='value'>").append(xmlEscape(receipt.getDeliveredByName() != null ? receipt.getDeliveredByName() : "\u2014")).append("</div></div>");
+        sb.append("<div class='sig-field'><label>ID / C\u00e9dula</label><div class='value'>").append(xmlEscape(receipt.getDeliveredByIdNum() != null ? receipt.getDeliveredByIdNum() : "\u2014")).append("</div></div>");
+        sb.append("</div>");
+        if (receipt.getDeliveredBySigUrl() != null && !receipt.getDeliveredBySigUrl().isEmpty()) {
+            sb.append("<img class='sig-img' src='").append(receipt.getDeliveredBySigUrl()).append("' alt='Firma Entregado' />");
+        }
+        sb.append("</div>");
+
+        // Broker representative
+        sb.append("<div class='sig-card'>");
+        sb.append("<h3>Representante de Broker / Agente de Carga</h3>");
+        sb.append("<div class='sig-row'>");
+        sb.append("<div class='sig-field'><label>Nombre</label><div class='value'>").append(xmlEscape(receipt.getBrokerName() != null ? receipt.getBrokerName() : "\u2014")).append("</div></div>");
+        sb.append("<div class='sig-field'><label>ID / C\u00e9dula</label><div class='value'>").append(xmlEscape(receipt.getBrokerIdNum() != null ? receipt.getBrokerIdNum() : "\u2014")).append("</div></div>");
+        sb.append("</div>");
+        if (receipt.getBrokerSigUrl() != null && !receipt.getBrokerSigUrl().isEmpty()) {
+            sb.append("<img class='sig-img' src='").append(receipt.getBrokerSigUrl()).append("' alt='Firma Broker' />");
+        }
+        sb.append("</div>");
+
+        sb.append("</div>"); // end sig-grid
+        sb.append("<div class='footer-text'>").append(footer).append("</div>");
+        sb.append("</div>"); // end page
+
+        // ── Evidence pages ──
+        String rawDocs = receipt.getSupportingDocs();
+        if (rawDocs != null && !rawDocs.isBlank() && !"[]".equals(rawDocs)) {
+            try {
+                @SuppressWarnings("unchecked")
+                List<Map<String, String>> docs = objectMapper.readValue(rawDocs, List.class);
+                int idx = 0;
+                for (Map<String, String> doc : docs) {
+                    idx++;
+                    String name = xmlEscape(doc.getOrDefault("name", "Documento"));
+                    String type = doc.getOrDefault("type", "document");
+                    String url = doc.getOrDefault("url", "");
+
+                    sb.append("<div class='page'>");
+                    sb.append("<div class='page-header'><h2>Evidencia ").append(idx).append(" / ").append(docs.size()).append("</h2>");
+                    sb.append("<div class='meta'>").append(name).append(" &#183; ").append("MAWB: ").append(mawbInfo).append("</div></div>");
+
+                    if ("image".equals(type) && url != null && !url.isEmpty()) {
+                        sb.append("<img src='").append(url).append("' alt='").append(name).append("' />");
+                    } else {
+                        sb.append("<div class='placeholder'>&#128196; ").append(name).append("</div>");
+                    }
+
+                    sb.append("<div class='footer-text'>").append(footer).append("</div>");
+                    sb.append("</div>");
                 }
-
-                sb.append("<div class='footer-text'>").append(footer).append("</div>");
-                sb.append("</div>");
+            } catch (Exception e) {
+                sb.append("<p>Error al procesar evidencias</p>");
             }
-        } catch (Exception e) {
-            sb.append("<p>Error al procesar evidencias</p>");
+        } else {
+            sb.append("<div class='page'><div class='page-header'><h2>Evidencias</h2></div>");
+            sb.append("<div class='placeholder'>Sin evidencias documentales adicionales</div>");
+            sb.append("<div class='footer-text'>").append(footer).append("</div></div>");
         }
 
         sb.append("</body></html>");

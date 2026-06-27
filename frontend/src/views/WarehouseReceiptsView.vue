@@ -35,8 +35,9 @@
 
     <section class="grid grid-cols-4 gap-3 my-4 shrink-0">
       <div v-for="stat in receiptStats" :key="stat.label"
-        class="chalk-sketch py-1.5 px-3 rounded bg-white border border-slate-400 border-l-4 shadow-pencil-marine flex flex-col justify-between min-h-[68px]"
-        :class="stat.border">
+        class="chalk-sketch py-1.5 px-3 rounded bg-white border border-slate-400 border-l-4 shadow-pencil-marine flex flex-col justify-between min-h-[68px] cursor-pointer transition-all duration-200"
+        :class="[stat.border, statusFilter === stat.filterKey ? 'ring-2 ring-slate-950 scale-[1.02]' : 'hover:scale-[1.01]']"
+        @click="toggleStatusFilter(stat.filterKey)">
         <div class="relative z-10">
           <h3 class="text-[14.5px] font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
           <div class="text-xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
@@ -65,6 +66,7 @@
       <div v-else class="divide-y divide-slate-200 text-sm text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
           <div v-for="m in filteredMawbs" :key="m.id" class="flex flex-col">
           <div class="row-pencil grid grid-cols-12 items-center py-2.5 px-5 transition-all duration-150 cursor-pointer"
+            :class="expandedId === m.id ? 'row-selected' : ''"
             @click="toggleExpand(m)">
             <div class="col-span-3 font-mono font-bold text-slate-950 relative z-10 flex items-center gap-1.5">
               <span class="text-[17px] text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
@@ -577,10 +579,13 @@
               </div>
 
               <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-400">
-                <button @click="prevStep" :disabled="localStep === 1"
-                  class="text-[16px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition disabled:opacity-30">
-                  &#9664; Anterior
-                </button>
+                <div class="flex items-center gap-3">
+                  <button @click="prevStep" :disabled="localStep === 1"
+                    class="text-[16px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition disabled:opacity-30">
+                    &#9664; Anterior
+                  </button>
+                  <span v-if="successMsg" class="text-emerald-700 text-[16px] font-mono font-bold animate-pulse">{{ successMsg }}</span>
+                </div>
                 <div v-if="localStep < 5">
                   <button @click="nextStep"
                     class="text-[16px] px-3 py-1.5 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 transition">
@@ -674,6 +679,8 @@ const localFlightId = ref(store.selectedFlightId)
 const expandedId = ref(null)
 const localStep = ref(1)
 const submitting = ref(false)
+const successMsg = ref('')
+let successTimer = null
 const evidenceInputs = reactive({})
 const showCamera = ref(false)
 const cameraMawbId = ref(null)
@@ -692,11 +699,23 @@ const downloadableReceiptId = computed(() => {
 
 const filterText = ref('')
 const filterDate = ref('')
+const statusFilter = ref(null)
 
 const statusPriority = { BOOKED: 0, RECEIVED: 1, MANIFESTED: 2, DEPARTED: 3 }
 
+function toggleStatusFilter(key) {
+  statusFilter.value = statusFilter.value === key ? null : key
+}
+
 const filteredMawbs = computed(() => {
   let list = store.mawbs
+  if (statusFilter.value === 'PENDING') {
+    list = list.filter(m => !m.status || m.status === 'BOOKED')
+  } else if (statusFilter.value === 'RECEIVED') {
+    list = list.filter(m => m.status === 'RECEIVED' || m.status === 'MANIFESTED')
+  } else if (statusFilter.value === 'MANIFESTED') {
+    list = list.filter(m => m.status === 'MANIFESTED')
+  }
   if (filterDate.value) {
     const target = filterDate.value
     const mawbsWithReceipt = store.receipts
@@ -847,6 +866,58 @@ function initForm(m) {
       totalWeightKg: 0,
     }
   }
+}
+
+async function loadExistingReceiptData(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const existingReceipts = store.receipts.filter(r => (r.mawb?.id || r.mawbId) === m.id)
+  if (existingReceipts.length === 0) return
+  const lastReceipt = existingReceipts[existingReceipts.length - 1]
+  f._existingReceiptId = lastReceipt.id
+  f.gatewayCfs = lastReceipt.gatewayCfs || 'SDQ'
+  f.shipperName = lastReceipt.shipperName || f.shipperName
+  f.consigneeName = lastReceipt.consigneeName || f.consigneeName
+  f.origin = lastReceipt.origin || f.origin
+  f.destination = lastReceipt.destination || f.destination
+  f.awbReportedPieces = lastReceipt.awbReportedPieces || f.awbReportedPieces
+  f.mawbWeightGreatest = lastReceipt.mawbWeightGreatest || f.mawbWeightGreatest
+  f.cashOnly = lastReceipt.cashOnly ?? f.cashOnly
+  f.bookedInAcoms = lastReceipt.bookedInAcoms ?? f.bookedInAcoms
+  f.docsProvided = lastReceipt.docsProvided ?? f.docsProvided
+  f.customsCompleted = lastReceipt.customsCompleted ?? f.customsCompleted
+  f.preBuilt = lastReceipt.preBuilt ?? f.preBuilt
+  f.remarks = lastReceipt.remarks || f.remarks
+  f.dockSignature = lastReceipt.dockSignature || f.dockSignature
+  f.printName = lastReceipt.printName || f.printName
+  f.deliveredByName = lastReceipt.deliveredByName || f.deliveredByName
+  f.deliveredByIdNum = lastReceipt.deliveredByIdNum || f.deliveredByIdNum
+  f.deliveredBySig = lastReceipt.deliveredBySigUrl || f.deliveredBySig
+  f.brokerName = lastReceipt.brokerName || f.brokerName
+  f.brokerIdNum = lastReceipt.brokerIdNum || f.brokerIdNum
+  f.brokerSig = lastReceipt.brokerSigUrl || f.brokerSig
+  f.pieceCount = lastReceipt.pieceCount || 0
+  f.totalWeightKg = lastReceipt.actualWeightKg || lastReceipt.chargeableWeightKg || 0
+  try {
+    const piecesRes = await receiptsApi.getPieces(lastReceipt.id)
+    const loadedPieces = piecesRes.data || []
+    if (loadedPieces.length > 0) {
+      f.pieces = loadedPieces.map(p => ({
+        pieces: 1,
+        hawbId: p.hawbId || null,
+        lengthIn: p.lengthIn || null,
+        widthIn: p.widthIn || null,
+        heightIn: p.heightIn || null,
+        scaleWeightLbs: p.scaleWeightLbs || null,
+        dimWeight: p.dimWeight || 0,
+        dimWeightLbs: p.dimWeightLbs || 0,
+        scaleWeightKg: p.scaleWeightKg || 0,
+        dimWeightKg: p.dimWeightKg || 0,
+        chargeableKg: p.chargeableKg || 0,
+        chargeableLbs: p.chargeableLbs || 0,
+      }))
+    }
+  } catch {}
 }
 
 function calcPiece(mawbId, pi) {
@@ -1007,40 +1078,7 @@ async function toggleExpand(m) {
         // Cargar evidencias del MAWB (solo lectura) en el formulario
         f.mawbEvidence = (docsRes.data || []).filter(d => d.type === 'image' || d.type === 'document')
 
-        // Verificar si hay recibos existentes para cargar datos
-        const existingReceipts = store.receipts.filter(r => (r.mawb?.id || r.mawbId) === m.id)
-        if (existingReceipts.length > 0) {
-          const lastReceipt = existingReceipts[existingReceipts.length - 1]
-          f._existingReceiptId = lastReceipt.id
-          f.gatewayCfs = lastReceipt.gatewayCfs || f.gatewayCfs
-          f.shipperName = lastReceipt.shipperName || f.shipperName
-          f.consigneeName = lastReceipt.consigneeName || f.consigneeName
-          f.origin = lastReceipt.origin || f.origin
-          f.destination = lastReceipt.destination || f.destination
-          f.awbReportedPieces = lastReceipt.awbReportedPieces || f.awbReportedPieces
-          f.mawbWeightGreatest = lastReceipt.mawbWeightGreatest || f.mawbWeightGreatest
-          f.cashOnly = lastReceipt.cashOnly ?? f.cashOnly
-          f.bookedInAcoms = lastReceipt.bookedInAcoms ?? f.bookedInAcoms
-          f.docsProvided = lastReceipt.docsProvided ?? f.docsProvided
-          f.customsCompleted = lastReceipt.customsCompleted ?? f.customsCompleted
-          f.preBuilt = lastReceipt.preBuilt ?? f.preBuilt
-          f.remarks = lastReceipt.remarks || f.remarks
-          f.dockSignature = lastReceipt.dockSignature || f.dockSignature
-          f.printName = lastReceipt.printName || f.printName
-          f.deliveredByName = lastReceipt.deliveredByName || f.deliveredByName
-          f.deliveredByIdNum = lastReceipt.deliveredByIdNum || f.deliveredByIdNum
-          f.deliveredBySig = lastReceipt.deliveredBySigUrl || f.deliveredBySig
-          f.brokerName = lastReceipt.brokerName || f.brokerName
-          f.brokerIdNum = lastReceipt.brokerIdNum || f.brokerIdNum
-          f.brokerSig = lastReceipt.brokerSigUrl || f.brokerSig
-          f.pieceCount = lastReceipt.pieceCount || 0
-          f.totalWeightKg = lastReceipt.actualWeightKg || lastReceipt.chargeableWeightKg || 0
-          // Cargar piezas del recibo existente
-          try {
-            const piecesRes = await receiptsApi.getById(lastReceipt.id)
-            // not using pieces from backend for editing - user re-enters
-          } catch {}
-        }
+        await loadExistingReceiptData(m)
 
         if (hawbData.length > 0) {
           const h0 = hawbData[0]
@@ -1233,47 +1271,7 @@ async function downloadPdfById(m) {
 }
 
 async function editReceipt(m) {
-  const f = receiptForms[m.id]
-  if (!f) return
-  if (!confirm('¿Guardar cambios en el recibo existente?')) return
-  submitting.value = true
-  try {
-    const payload = {
-      gatewayCfs: f.gatewayCfs || 'SDQ',
-      shipperName: f.shipperName || m.shipperName,
-      consigneeName: f.consigneeName || m.consigneeName || '',
-      origin: f.origin || 'SDQ',
-      destination: f.destination || 'MIA',
-      awbReportedPieces: f.awbReportedPieces || 0,
-      mawbWeightGreatest: f.mawbWeightGreatest || 0,
-      pieceCount: f.pieces.reduce((s, p) => s + (p.pieces || 1), 0),
-      cashOnly: f.cashOnly || false,
-      bookedInAcoms: f.bookedInAcoms || false,
-      docsProvided: f.docsProvided || false,
-      customsCompleted: f.customsCompleted || false,
-      preBuilt: f.preBuilt || false,
-      remarks: f.remarks || '',
-      dockSignature: f.dockSignature || '',
-      printName: f.printName || '',
-      deliveredByName: f.deliveredByName || '',
-      deliveredByIdNum: f.deliveredByIdNum || '',
-      deliveredBySigUrl: f.deliveredBySig || '',
-      receivedByName: f.printName || '',
-      brokerName: f.brokerName || '',
-      brokerIdNum: f.brokerIdNum || '',
-      brokerSigUrl: f.brokerSig || '',
-    }
-    await receiptsApi.update(f._existingReceiptId, payload)
-    receiptForms[m.id] = null
-    expandedId.value = null
-    localStep.value = 1
-    await store.loadReceipts()
-    alert('Recibo actualizado correctamente')
-  } catch (e) {
-    alert('Error actualizando recibo: ' + (e.response?.data?.error || e.message))
-  } finally {
-    submitting.value = false
-  }
+  return submitReceipt(m)
 }
 
 async function submitReceipt(m) {
@@ -1355,32 +1353,41 @@ async function submitReceipt(m) {
       }
     }
 
+    function sendReceipt(payload) {
+      if (f._existingReceiptId) {
+        return receiptsApi.updateEmit(f._existingReceiptId, payload)
+      }
+      return store.emitReceipt(payload)
+    }
+
     if (hawbs.length <= 1) {
-      const res = await store.emitReceipt(buildPayload(f.pieces, ''))
+      const res = await sendReceipt(buildPayload(f.pieces, ''))
       const receiptId = res?.id || res?.receipt?.id || null
       if (receiptId) generatedReceiptId.value = receiptId
     } else {
       let lastId = null
-      const genRes = await store.emitReceipt(buildPayload(f.pieces, 'RECIBO GENERAL'))
+      const genRes = await sendReceipt(buildPayload(f.pieces, 'RECIBO GENERAL'))
       lastId = genRes?.id || genRes?.receipt?.id || null
       for (const h of hawbs) {
         const hawbPieces = f.pieces.filter(p => p.hawbId === h.id)
         if (hawbPieces.length > 0) {
-          await store.emitReceipt(buildPayload(hawbPieces, 'HAWB: ' + h.hawbNumber))
+          await sendReceipt(buildPayload(hawbPieces, 'HAWB: ' + h.hawbNumber))
         }
       }
       if (lastId) generatedReceiptId.value = lastId
     }
-    receiptForms[m.id] = null
-    expandedId.value = null
-    localStep.value = 1
+    const wasExisting = !!f._existingReceiptId
     if (store.selectedFlightId) {
       await store.loadMawbs(store.selectedFlightId)
     } else {
       await store.loadAllMawbs()
     }
     await store.loadReceipts()
-    alert('Recibo' + (hawbs.length > 1 ? 's' : '') + ' de almacén generado' + (hawbs.length > 1 ? ' (' + (hawbs.length + 1) + ' recibos)' : '') + ' exitosamente')
+    await loadExistingReceiptData(m)
+    localStep.value = 5
+    successMsg.value = wasExisting ? 'Recibo actualizado correctamente' : 'Recibo de almacén generado exitosamente'
+    if (successTimer) clearTimeout(successTimer)
+    successTimer = setTimeout(() => { successMsg.value = '' }, 4000)
   } catch (e) {
     const data = e.response?.data
     const msg = data?.error || data?.message || (typeof data === 'string' ? data : null) || e.message
@@ -1417,10 +1424,10 @@ const receiptStats = computed(() => {
   const all = filteredMawbs.value
   const received = all.filter(m => m.status === 'RECEIVED' || m.status === 'MANIFESTED')
   return [
-    { label: "MAWBs Totales", value: all.length, sub: store.mawbs.length + " totales", border: "border-l-slate-700" },
-    { label: "Pendientes", value: all.filter(m => !m.status || m.status === 'BOOKED').length, sub: "Esperando recepción", border: "border-l-amber-500" },
-    { label: "Recibidos", value: received.length, sub: "En bodega", border: "border-l-emerald-500" },
-    { label: "Manifestados", value: all.filter(m => m.status === 'MANIFESTED').length, sub: "En plan de carga", border: "border-l-blue-500" },
+    { label: "MAWBs Totales", value: all.length, sub: store.mawbs.length + " totales", border: "border-l-slate-700", filterKey: null },
+    { label: "Pendientes", value: all.filter(m => !m.status || m.status === 'BOOKED').length, sub: "Esperando recepción", border: "border-l-amber-500", filterKey: 'PENDING' },
+    { label: "Recibidos", value: received.length, sub: "En bodega", border: "border-l-emerald-500", filterKey: 'RECEIVED' },
+    { label: "Manifestados", value: all.filter(m => m.status === 'MANIFESTED').length, sub: "En plan de carga", border: "border-l-blue-500", filterKey: 'MANIFESTED' },
   ]
 })
 

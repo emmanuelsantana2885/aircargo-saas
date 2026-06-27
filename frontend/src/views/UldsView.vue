@@ -48,31 +48,36 @@
       </div>
 
       <template v-else>
-        <!-- Card grid: 2 columns, 2 rows visible, scrollable -->
-        <div class="grid grid-cols-2 gap-1.5 p-2 overflow-y-auto max-h-[112px] shrink-0 scrollbar-none">
+        <!-- Single row per ULD -->
+        <div class="flex flex-col gap-px p-2 overflow-y-auto max-h-[120px] shrink-0 scrollbar-none">
           <div v-for="uld in filteredUlDs" :key="uld.uid"
             @click="toggleUldExpansion(uld.uid)"
-            class="rounded border cursor-pointer transition-all p-1.5 select-none"
+            class="flex items-center gap-3 rounded border cursor-pointer transition-all px-3 py-2 select-none"
             :class="expandedUldId === uld.uid
-              ? 'border-slate-950 ring-1 ring-slate-950 bg-slate-50'
+              ? 'border-slate-950 ring-1 ring-slate-950 row-selected'
               : 'border-slate-200 hover:border-slate-400 bg-white hover:shadow-sm'">
 
-            <div class="flex justify-between items-center mb-px">
-              <span class="text-[13px] font-black text-slate-950 font-mono truncate mr-1 leading-tight">{{ uld.uldNumber || 'NUEVO-ULD' }}</span>
-              <span class="text-[9px] font-black px-0.5 py-px rounded uppercase whitespace-nowrap leading-none"
-                :class="statusBadgeClass(uld.status)">{{ uld.status }}</span>
-            </div>
+            <span class="text-[13px] font-black text-slate-950 font-mono truncate min-w-[100px] leading-tight">{{ uld.uldNumber || 'NUEVO-ULD' }}</span>
+            <span class="text-[9px] font-black px-1 py-px rounded uppercase whitespace-nowrap leading-none shrink-0"
+              :class="statusBadgeClass(uld.status)">{{ uld.status }}</span>
 
-            <div class="text-[11px] font-mono text-slate-400 mb-px font-semibold truncate leading-tight">
-              {{ flightLabel(uld) }} · {{ uld.route ? uld.route.replace(' -> ', '→') : '---' }}
-            </div>
+            <span class="text-[11px] font-mono text-slate-400 font-semibold truncate leading-tight shrink-0 min-w-[80px]">
+              {{ flightLabel(uld) }}
+            </span>
 
-            <div class="flex justify-between items-center text-[11px] font-mono font-bold text-slate-950 leading-tight mb-px">
-              <span>{{ Number(uld.grossWeightLbs || 0).toLocaleString() }} lb</span>
-              <span>{{ (uld.mawbs || []).length }} MAWB{{ (uld.mawbs || []).length !== 1 ? 's' : '' }}</span>
-            </div>
+            <span class="text-[11px] font-mono text-slate-500 truncate leading-tight shrink-0 min-w-[60px]">
+              {{ uld.route ? uld.route.replace(' -> ', '→') : '---' }}
+            </span>
 
-            <div class="flex items-center gap-1 mt-px">
+            <span class="text-[11px] font-mono font-bold text-slate-950 leading-tight shrink-0 min-w-[70px]">
+              {{ Number(uld.grossWeightLbs || 0).toLocaleString() }} lb
+            </span>
+
+            <span class="text-[11px] font-mono text-slate-500 leading-tight shrink-0 min-w-[60px]">
+              {{ (uld.mawbs || []).length }} MAWB{{ (uld.mawbs || []).length !== 1 ? 's' : '' }}
+            </span>
+
+            <div class="flex items-center gap-1 ml-auto min-w-[80px]">
               <div class="flex-1 h-[2px] bg-slate-100 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-300"
                   :class="uld.volumePct >= 90 ? 'bg-emerald-500' : 'bg-slate-950'"
@@ -134,14 +139,23 @@
                   </div>
                   <div class="divide-y divide-slate-100 max-h-[240px] overflow-y-auto scrollbar-none">
                     <div v-for="(mawb, mIdx) in uld.mawbs" :key="mIdx" class="grid grid-cols-12 items-center py-2 px-5 bg-white gap-2 text-sm">
-                      <div class="col-span-3">
-                        <select v-model="mawb.awbNumber" @change="onMawbSelect(uld, mIdx)"
-                          class="w-full border-b border-slate-200 focus:outline-none focus:border-slate-950 py-1 bg-transparent font-bold tracking-tight text-slate-950 text-xs">
-                          <option value="" disabled>Seleccionar MAWB</option>
-                          <option v-for="m in availableMawbs" :key="m.id" :value="m.awbNumber">
-                            {{ m.awbNumber }} — {{ m.shipperName || m.consigneeName }} [{{ m.commodityType }}]
-                          </option>
-                        </select>
+                      <div class="col-span-3 relative">
+                        <input v-model="mawb.awbNumber" @input="onMawbInput(uld, mIdx)" @focus="onMawbInput(uld, mIdx)" @blur="onMawbBlur(uld, mIdx)"
+                          placeholder="Escribe MAWB..."
+                          class="w-full border-b border-slate-200 focus:outline-none focus:border-slate-950 py-1 bg-transparent font-bold tracking-tight text-slate-950 text-xs" />
+                        <div v-if="mawb._showSuggestions && mawb._suggestions.length"
+                          class="absolute top-full left-0 right-0 z-50 bg-white border border-slate-300 rounded shadow-lg max-h-[160px] overflow-y-auto">
+                          <div v-for="s in mawb._suggestions" :key="s.id"
+                            @mousedown.prevent="selectMawbSuggestion(uld, mIdx, s)"
+                            class="px-2 py-1.5 text-xs font-mono cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-0"
+                            :class="s.availablePieces > 0 ? 'text-slate-950' : 'text-slate-300'">
+                            <span class="font-bold">{{ s.awbNumber }}</span>
+                            <span class="text-slate-400 ml-1">— {{ s.shipperName || s.consigneeName || '' }}</span>
+                            <span class="text-slate-400 text-[10px] ml-1">[{{ s.commodityType }}]</span>
+                            <span v-if="s.availablePieces > 0" class="text-emerald-600 ml-1">disp: {{ s.availablePieces }} pz</span>
+                            <span v-else class="text-rose-400 ml-1">sin piezas</span>
+                          </div>
+                        </div>
                       </div>
                       <div class="col-span-2">
                         <input v-model="mawb.commodityType" type="text" :placeholder="mawb.commodityHint || 'Dry Cargo'"
@@ -324,7 +338,44 @@ const floatingCount = computed(() => (appStore.ulds || []).filter(u => !u.flight
 // Local ULD list derived from backend + new unsaved
 const localUlds = ref([])
 
-const availableMawbs = computed(() => [...specialItems, ...appStore.mawbs])
+const availableMawbs = computed(() => {
+  const mawbsWithAvailability = appStore.mawbs.map(m => {
+    const receipt = appStore.receipts.find(r => r.mawb?.id === m.id || r.mawbId === m.id)
+    const reserved = m.pieces || 0
+    const assignedInUlDs = localUlds.value.flatMap(u =>
+      (u.mawbs || []).filter(mw => mw.awbNumber === m.awbNumber)
+    ).reduce((s, mw) => s + (mw.pieces || 0), 0)
+    const receiptPieces = receipt ? (receipt.pieceCount || 0) : 0
+    const available = Math.max(0, (reserved > 0 ? reserved : receiptPieces) - assignedInUlDs)
+    return { ...m, availablePieces: available }
+  })
+  return [...specialItems, ...mawbsWithAvailability]
+})
+
+function onMawbInput(uld, mIdx) {
+  const mawb = uld.mawbs[mIdx]
+  const q = (mawb.awbNumber || '').toUpperCase().trim()
+  if (!q) {
+    mawb._showSuggestions = false
+    mawb._suggestions = []
+    return
+  }
+  mawb._suggestions = availableMawbs.value.filter(m => {
+    const label = m.awbNumber || ''
+    return label.toUpperCase().includes(q)
+  }).slice(0, 15)
+  mawb._showSuggestions = mawb._suggestions.length > 0
+}
+
+function onMawbBlur(uld, mIdx) {
+  setTimeout(() => { uld.mawbs[mIdx]._showSuggestions = false }, 200)
+}
+
+function selectMawbSuggestion(uld, mIdx, selected) {
+  uld.mawbs[mIdx].awbNumber = selected.awbNumber
+  uld.mawbs[mIdx]._showSuggestions = false
+  onMawbSelect(uld, mIdx)
+}
 
 const pendingReceiptCount = computed(() => {
   const allMawbs = localUlds.value.flatMap(u => u.mawbs || [])
@@ -632,7 +683,7 @@ function toggleUldExpansion(uid) {
 }
 
 function addMawbRow(uld) {
-  uld.mawbs.push({ awbNumber: '', commodityType: 'DRY_CARGO', commodityHint: '', pieces: 0, piecesPct: 0, destination: 'MIA', mawbId: null, hasReceipt: false, receivedPieces: 0 })
+  uld.mawbs.push({ awbNumber: '', commodityType: 'DRY_CARGO', commodityHint: '', pieces: 0, piecesPct: 0, destination: 'MIA', mawbId: null, hasReceipt: false, receivedPieces: 0, _showSuggestions: false, _suggestions: [] })
 }
 
 function removeMawbRow(uld, index) {

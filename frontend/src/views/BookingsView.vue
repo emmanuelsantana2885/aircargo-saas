@@ -14,7 +14,7 @@
             class="bg-slate-100 border border-slate-300 rounded px-3 py-1.5 font-black text-slate-950 focus:outline-none uppercase tracking-widest text-sm cursor-pointer min-w-[160px]">
             <option value="" disabled>Seleccionar vuelo</option>
             <option v-for="flight in flightList" :key="flight.id" :value="flight.id">
-              UPS-{{ flight.flightNumber }} ({{ flight.origin }}→{{ flight.destination }})
+              UPS-{{ flight.flightNumber }} ({{ flight.origin }}→{{ flight.destination }}) — {{ flight.flightDate }}
             </option>
           </select>
         </div>
@@ -55,12 +55,12 @@
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
       <div class="bg-slate-950 border-b border-slate-700 text-[15px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-3 px-5 items-center shrink-0 font-mono">
         <div class="col-span-2 text-left">Booking ID</div>
-        <div class="col-span-1 text-left">Vuelo</div>
+        <div class="col-span-2 text-left">Vuelo / Fecha</div>
         <div class="col-span-2 text-left">Agente / Broker</div>
         <div class="col-span-2 text-left">Shipper <span class="text-slate-300 font-normal">(Recibo)</span></div>
         <div class="col-span-1 text-center">Piezas</div>
         <div class="col-span-1 text-right pr-2">Peso</div>
-        <div class="col-span-2 text-center bg-slate-800 py-0.5 rounded border border-slate-600 text-white font-black tracking-wide">Estatus MAWB</div>
+        <div class="col-span-1 text-center bg-slate-800 py-0.5 rounded border border-slate-600 text-white font-black tracking-wide">Estatus MAWB</div>
         <div class="col-span-1"></div>
       </div>
 
@@ -80,8 +80,9 @@
             {{ b.awbNumber || b.id?.slice(0, 8) || 'N/A' }}
           </div>
 
-          <div class="col-span-1 font-mono font-bold text-[16px] text-slate-950 bg-white border border-slate-400 rounded px-1 py-0.5 w-max relative z-10 shadow-sm">
-            {{ flightNumber(b.flightId) || '—' }}
+          <div class="col-span-2 font-mono font-bold text-[16px] text-slate-950 relative z-10 flex flex-col leading-tight">
+            <span>{{ flightNumber(b.flightId) || '—' }}</span>
+            <span v-if="b.flightId" class="text-[14px] text-slate-500 font-semibold">{{ flightDate(b.flightId) }}</span>
           </div>
 
           <div class="col-span-2 text-slate-950 font-semibold relative z-10 truncate pr-3">
@@ -107,7 +108,7 @@
             </template>
           </div>
 
-          <div class="col-span-2 flex items-center justify-center gap-1.5 relative z-10">
+          <div class="col-span-1 flex items-center justify-center gap-1.5 relative z-10">
             <div class="flex items-center gap-2 text-[15px] font-mono" :title="'MAWB: ' + getMawbStatus(b)">
               <span class="inline-block w-2.5 h-2.5" :class="getMawbStatusClass(b)"></span>
               <span :class="getMawbStatusTextClass(b)" class="font-bold text-[14px] uppercase tracking-wider">{{ getMawbStatus(b) }}</span>
@@ -380,6 +381,12 @@ function flightNumber(flightId) {
   if (!flightId) return '—'
   const f = store.flights.find(f => f.id === flightId)
   return f ? `UPS-${f.flightNumber}` : flightId.slice(0, 8)
+}
+
+function flightDate(flightId) {
+  if (!flightId) return ''
+  const f = store.flights.find(f => f.id === flightId)
+  return f ? f.flightDate : ''
 }
 
 const form = ref({
