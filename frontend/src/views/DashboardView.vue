@@ -121,9 +121,22 @@ function grossLbs(flightId) {
   return ulds.reduce((s, u) => s + (Number(u.grossWeightLbs) || 0), 0)
 }
 
+function isBellyPosition(position) {
+  if (!position) return false
+  const p = position.toString().trim().toUpperCase()
+  return p === '31' || p === '34' || p === 'AB' || p === 'LOOSE' || p === 'BULK' || p.includes('BELLY')
+}
+
 function totalTareLbs(flightId) {
   const ulds = flightUlds(flightId)
   return ulds.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
+}
+
+function bellyTareLbs(flightId) {
+  const ulds = flightUlds(flightId)
+  return ulds
+    .filter(u => isBellyPosition(u.position))
+    .reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
 }
 
 function netLbs(flightId) {
@@ -131,7 +144,7 @@ function netLbs(flightId) {
 }
 
 function payloadLbs(flightId) {
-  return netLbs(flightId)
+  return grossLbs(flightId) - bellyTareLbs(flightId) + 5
 }
 
 const totalNetPayload = computed(() => {

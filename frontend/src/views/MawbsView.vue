@@ -209,7 +209,7 @@
                   <span v-if="getPieces(row, f)" class="chalk-text relative text-xs">
                     <span class="flex flex-col items-center leading-tight">
                       <span>{{ getPieces(row, f) }}</span>
-                      <span v-if="(row.uldCountByFlight[f.id] || 0) > 1" class="text-xs font-normal opacity-60">{{ row.uldCountByFlight[f.id] }} ULDs</span>
+                      <span class="text-xs font-normal opacity-60">{{ row.uldCountByFlight[f.id] || 0 }} ULDs</span>
                     </span>
                     <svg width="16" height="16" viewBox="0 0 14 14" class="inline-block shrink-0 ml-0.5">
                       <circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
@@ -466,6 +466,14 @@ async function buildMatrix() {
       receivedByMawb[r.mawbId] = (receivedByMawb[r.mawbId] || 0) + (r.pieceCount || 0)
     }
 
+    const bookingByMawb = {}
+    for (const b of store.bookings) {
+      if (b.mawbId) {
+        if (!bookingByMawb[b.mawbId]) bookingByMawb[b.mawbId] = []
+        bookingByMawb[b.mawbId].push(b)
+      }
+    }
+
     const mawbPcsByFlight = new Map()
     const mawbUldsByFlight = new Map()
     for (const link of links) {
@@ -533,22 +541,17 @@ async function buildMatrix() {
         breakdown[f.id] = um.get(f.id) || []
       }
       const receivedPieces = receivedByMawb[m.id] || 0
-      const reservedPieces = m.pieces || 0
-      const capRatio = receivedPieces > 0 && pcsDispatched > receivedPieces ? receivedPieces / pcsDispatched : 1
-      let cappedSum = 0
-      for (const f of flights) {
-        const raw = fm.get(f.id) || 0
-        const capped = Math.round(raw * capRatio)
-        cells[f.id] = capped
-        cappedSum += capped
-      }
+      const bookingList = bookingByMawb[m.id]
+      const reservedPieces = bookingList && bookingList.length > 0
+        ? Math.max(...bookingList.map(b => b.skids || 0))
+        : (m.pieces || 0)
       return {
         mawbId: m.id,
         awbNumber: m.awbNumber,
         shipperName: m.shipperName,
         consigneeName: m.consigneeName,
         destination: m.destination,
-        totalPieces: cappedSum || m.pieces || 0,
+        totalPieces: pcsDispatched || m.pieces || 0,
         totalWeightKg: m.reportedWeightKg || m.chargeableWeightKg || null,
         status: m.status,
         reservedPieces,
@@ -802,10 +805,12 @@ function statusTitle(row) {
 }
 
 function uldTooltip(row, flight) {
-  const breakdown = row.breakdownByFlight?.[flight.id]
-  if (!breakdown || !breakdown.length) return ''
-  const lines = breakdown.map(u => `${u.uldNumber}: ${u.pieces} pcs`)
-  return 'ULD / Piezas:\n' + lines.join('\n')
+  const pcs = getPieces(row, flight)
+  const uldCount = row.uldCountByFlight?.[flight.id] || 0
+  if (!pcs) return ''
+  const pcsLabel = `UP${pcs !== 1 ? 'S' : ''}`
+  const uldLabel = `ULD${uldCount !== 1 ? 'S' : ''}`
+  return `${pcs} ${pcsLabel} REPARTIDAS ENTRE ${uldCount} ${uldLabel}`
 }
 
 function formatDate(d) {
@@ -906,6 +911,7 @@ async function onFlightChange() {
     store.selectedFlightId = null
     await store.loadAllMawbs()
   }
+  await store.loadBookings(localFlightId.value || undefined)
   highlightFlightId.value = localFlightId.value || null
   await buildMatrix()
 }
@@ -913,6 +919,7 @@ async function onFlightChange() {
 onMounted(async () => {
   if (!store.flights.length) await store.loadFlights()
   await store.loadReceipts()
+  await store.loadBookings()
   if (store.selectedFlightId) {
     localFlightId.value = store.selectedFlightId
     await store.loadMawbs(store.selectedFlightId)

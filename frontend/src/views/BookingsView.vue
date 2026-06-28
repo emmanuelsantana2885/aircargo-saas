@@ -68,16 +68,17 @@
         <span class="text-[16px] font-mono text-slate-950 animate-pulse">Cargando bookings...</span>
       </div>
 
-      <div v-else-if="visibleBookings.length === 0" class="flex-1 flex items-center justify-center">
+      <div v-else-if="deduplicatedBookings.length === 0" class="flex-1 flex items-center justify-center">
         <p class="text-[16px] font-mono text-slate-950 uppercase tracking-widest">{{ store.selectedFlightId ? 'No hay reservas para este vuelo' : 'No hay reservas. Crea una con el botón New Booking.' }}</p>
       </div>
 
       <div v-else class="divide-y divide-slate-400 text-xs text-slate-950 overflow-y-auto flex-1 min-h-0 scrollbar-none">
-        <div v-for="b in visibleBookings" :key="b.id"
+        <div v-for="b in deduplicatedBookings" :key="b.id"
           class="row-pencil grid grid-cols-12 items-center py-3.5 px-5 transition-all duration-150 cursor-pointer">
 
-          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 text-xs">
-            {{ b.awbNumber || b.id?.slice(0, 8) || 'N/A' }}
+          <div class="col-span-2 font-mono font-black text-slate-950 relative z-10 text-xs flex items-center gap-2">
+            <span>{{ b.awbNumber || b.id?.slice(0, 8) || 'N/A' }}</span>
+            <span v-if="b._dupCount > 1" class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold" title="Reservas duplicadas agrupadas">{{ b._dupCount }}x</span>
           </div>
 
           <div class="col-span-2 font-mono font-bold text-[16px] text-slate-950 relative z-10 flex flex-col leading-tight">
@@ -377,6 +378,22 @@ const visibleBookings = computed(() =>
     : store.bookings
 )
 
+const deduplicatedBookings = computed(() => {
+  const groups = {}
+  for (const b of visibleBookings.value) {
+    const key = b.mawbId || b.awbNumber || b.id
+    if (!groups[key]) {
+      groups[key] = { booking: b, count: 1 }
+    } else {
+      groups[key].count++
+      if ((Number(b.skids) || 0) > (Number(groups[key].booking.skids) || 0)) {
+        groups[key].booking = b
+      }
+    }
+  }
+  return Object.values(groups).map(g => ({ ...g.booking, _dupCount: g.count }))
+})
+
 function flightNumber(flightId) {
   if (!flightId) return '—'
   const f = store.flights.find(f => f.id === flightId)
@@ -441,14 +458,14 @@ function getMawbStatusTextClass(b) {
 }
 
 const computedStats = computed(() => {
-  const b = store.bookings
+  const b = deduplicatedBookings.value
   const receivedCount = b.filter(x => {
     const s = getMawbStatus(x)
     return s === 'RECEIVED' || s === 'MANIFESTED' || s === 'DEPARTED' || s === 'ARRIVED'
   }).length
   const pct = b.length > 0 ? Math.round(receivedCount / b.length * 100) : 0
   return [
-    { label: "Total Reservas", value: b.length, sub: "Activas en sistema", borderClass: "border-l-slate-700" },
+    { label: "Total Reservas", value: b.length, sub: "MAWBs únicos en vista", borderClass: "border-l-slate-700" },
     { label: "Booked", value: b.filter(x => getMawbStatus(x) === 'BOOKED' || getMawbStatus(x) === '—').length, sub: "Pendientes", borderClass: "border-l-amber-500" },
     { label: "Received", value: receivedCount, sub: pct + "% del total", borderClass: "border-l-emerald-500" },
     { label: "Manifested", value: b.filter(x => getMawbStatus(x) === 'MANIFESTED' || getMawbStatus(x) === 'DEPARTED' || getMawbStatus(x) === 'ARRIVED').length, sub: "Facturado/Volado", borderClass: "border-l-rose-500" },
@@ -640,9 +657,18 @@ async function saveBooking() {
 }
 
 async function removeBooking(b) {
-  if (!confirm(`¿Eliminar booking de ${b.clientName || '—'} (${b.awbNumber || b.id?.slice(0, 8) || 'N/A'})?`)) return
+  const keys = b._dupCount > 1 ? store.bookings.filter(x => (x.mawbId === b.mawbId) || (!b.mawbId && x.awbNumber === b.awbNumber)).map(x => x.clientName).filter(Boolean) : []
+  const msg = keys.length > 1
+    ? `¿Eliminar ${keys.length} bookings agrupados (${keys.join(', ')})?`
+    : `¿Eliminar booking de ${b.clientName || '—'} (${b.awbNumber || b.id?.slice(0, 8) || 'N/A'})?`
+  if (!confirm(msg)) return
   try {
-    await store.deleteBooking(b.id)
+    if (b._dupCount > 1) {
+      const group = store.bookings.filter(x => (x.mawbId === b.mawbId) || (!b.mawbId && x.awbNumber === b.awbNumber))
+      await Promise.all(group.map(x => store.deleteBooking(x.id).catch(() => {})))
+    } else {
+      await store.deleteBooking(b.id)
+    }
   } catch (e) {
     const msg = e.response?.data?.error || e.response?.data?.message || e.message
     alert('Error al eliminar: ' + msg)

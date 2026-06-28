@@ -24,19 +24,7 @@
       </div>
     </header>
 
-    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 my-4 shrink-0">
-      <div v-for="stat in uldStats" :key="stat.label"
-        class="pencil-sketch py-2 px-3 rounded bg-white border border-slate-400 shadow-pencil-marine flex flex-col justify-between min-h-[72px]">
-        <div class="relative z-10">
-          <h3 class="text-xs font-black text-slate-950 uppercase tracking-wider font-mono truncate">{{ stat.label }}</h3>
-          <div class="text-2xl font-mono font-black tracking-tight text-slate-950 mt-0.5">{{ stat.value }}</div>
-        </div>
-        <div class="pt-1 border-t border-slate-300 text-xs font-mono text-slate-950 relative z-10 truncate flex justify-between items-center">
-          <span>{{ stat.sub }}</span>
-          <span :class="stat.trendClass" class="font-bold">{{ stat.trend }}</span>
-        </div>
-      </div>
-    </section>
+
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-pencil-marine bg-white flex flex-col mb-1.5">
       <div v-if="appStore.loading && !localUlds.length" class="flex-1 flex items-center justify-center">
@@ -333,7 +321,8 @@ function formatDate(iso) {
   const d = new Date(iso)
   return d.toLocaleDateString('es-DO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
-const floatingCount = computed(() => (appStore.ulds || []).filter(u => !u.flightId).length)
+
+
 
 // Local ULD list derived from backend + new unsaved
 const localUlds = ref([])
@@ -434,19 +423,6 @@ function uldPieceMismatchCount(uld) {
   return (uld.mawbs || []).filter(m => m.receivedPieces != null && m.pieces > m.receivedPieces).length
 }
 
-const uldStats = computed(() => {
-  const all = localUlds.value
-  const totalWt = all.reduce((s, u) => s + (u.grossWeightLbs || 0), 0)
-  return [
-    { label: "ULDs en Rampa", value: all.length + " Activos", sub: "Todos los vuelos", trend: "OK", trendClass: "text-slate-950" },
-    { label: "Peso Total", value: totalWt.toLocaleString() + " lbs", sub: "Suma bruta verificada", trend: "", trendClass: "" },
-    { label: "Ocupación Media", value: all.length ? Math.round(all.reduce((s, u) => s + (u.volumePct || 0), 0) / all.length) + "%" : "—", sub: "Eficiencia de cubicaje", trend: "", trendClass: "" },
-    { label: "Abiertos (OPEN)", value: all.filter(u => u.status === 'OPEN').length, sub: "En edición", trend: "Borradores", trendClass: "text-amber-600" },
-    { label: "Armados (BUILT)", value: all.filter(u => u.status === 'BUILT' || u.status === 'SEALED' || u.status === 'LOADED').length, sub: "En plan de carga", trend: "OK", trendClass: "text-emerald-600" },
-    { label: "Dejados (LB)", value: all.filter(u => u.status === 'LEFT_BEHIND').length, sub: "No despachados", trend: "Revisar", trendClass: "text-rose-600" },
-    { label: "ULDs Flotantes", value: floatingCount.value, sub: "Sin vuelo asignado", trend: floatingCount.value > 0 ? "Pendientes" : "", trendClass: floatingCount.value > 0 ? "text-amber-600" : "text-slate-400" },
-  ]
-})
 
 function rebuildLocalList() {
   const backend = (appStore.ulds || []).map(u => {

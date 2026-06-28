@@ -108,7 +108,7 @@ const sidebarStyle = computed(() => ({
 
 const mainMenu = [
   { path: '/',            label: 'Dashboard',     icon: IconLayoutDashboard,     color: '#f59e0b', activeColor: '#f59e0b' },
-  { path: '/bookings',    label: 'Bookings',       icon: IconClipboardList,      color: '#ef4444', activeColor: '#ef4444', badge: '7' },
+  { path: '/bookings',    label: 'Bookings',       icon: IconClipboardList,      color: '#ef4444', activeColor: '#ef4444' },
   { path: '/receipts',    label: 'WarehouseReceipts', icon: IconBuildingWarehouse, color: '#10b981', activeColor: '#10b981' },
   { path: '/flights',     label: 'Flights',         icon: IconPlane,             color: '#3b82f6', activeColor: '#3b82f6' },
   { path: '/mawbs',       label: 'MAWBs',          icon: IconFileText,           color: '#8b5cf6', activeColor: '#8b5cf6' },

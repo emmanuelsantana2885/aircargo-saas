@@ -1543,6 +1543,45 @@ onMounted(async () => {
     if (m) {
       expandedId.value = m.id
       initForm(m)
+      try {
+        const [hawbRes, docsRes] = await Promise.all([
+          hawbsApi.getByMawb(m.id),
+          mawbsApi.getSupportingDocs(m.id).catch(() => ({ data: [] })),
+        ])
+        receiptHawbs[m.id] = hawbRes.data
+        const f = receiptForms[m.id]
+        if (f) {
+          f.mawbEvidence = (docsRes.data || []).filter(d => d.type === 'image' || d.type === 'document')
+          await loadExistingReceiptData(m)
+          const hawbData = hawbRes.data
+          if (hawbData.length > 0) {
+            const h0 = hawbData[0]
+            if (!f.shipperName) f.shipperName = m.shipperName || h0?.shipperName || ''
+            if (!f.consigneeName) f.consigneeName = m.consigneeName || (hawbData.length === 1 ? h0?.consigneeName : '') || ''
+            if (!f.mawbWeightGreatest) f.mawbWeightGreatest = m.reportedWeightKg || hawbData.reduce((s, h) => s + (h.weightKg ? Number(h.weightKg) : 0), 0) || 0
+            if (!f.awbReportedPieces) f.awbReportedPieces = m.pieces || hawbData.reduce((s, h) => s + (h.pieces || 0), 0) || 0
+            const existingIds = new Set(f.hawbEntries.filter(e => e._dbId).map(e => e._dbId))
+            for (const h of hawbData) {
+              if (!existingIds.has(h.id)) {
+                f.hawbEntries.push({
+                  hawbNumber: h.hawbNumber || '',
+                  consigneeName: h.consigneeName || '',
+                  pieces: h.pieces || 0,
+                  weightKg: h.weightKg ? Number(h.weightKg) : 0,
+                  destination: h.destination || f.destination || 'MIA',
+                  _dbId: h.id,
+                })
+              }
+            }
+            f.hawbCount = f.hawbEntries.length
+          }
+          if (hawbData.length > 1 && receiptForms[m.id]?.pieces?.[0]) {
+            receiptForms[m.id].pieces[0].hawbId = hawbData[0].id
+          }
+        }
+      } catch {
+        receiptHawbs[m.id] = []
+      }
     }
   }
 })
