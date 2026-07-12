@@ -1,0 +1,232 @@
+<template>
+  <div class="p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
+    <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
+      <div>
+        <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Payload Dashboard</h1>
+        <p class="text-[11px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest font-bold">SDQ Hub // Payload Despachado por Vuelo</p>
+      </div>
+      <div class="flex items-center gap-3 text-[10px] font-mono font-bold">
+        <span class="flex items-center gap-1 text-slate-500">
+          <span class="h-2 w-2 rounded-full" style="background: var(--accent)"></span> LIVE
+        </span>
+        <span class="text-slate-300">|</span>
+        <span class="text-slate-950">{{ filteredFlights.length }} vuelos</span>
+        <span class="text-slate-300">|</span>
+        <button @click="descargarReporte"
+          class="flex items-center gap-1 px-3 py-1.5 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold text-[11px] bg-slate-950 text-white hover:bg-slate-800 transition active:scale-95 shadow-sm">
+           <span class="text-[12px] font-semibold leading-none">↓</span> Descargar Reporte
+        </button>
+      </div>
+    </header>
+
+    <section class="flex items-center gap-3 my-3 shrink-0 flex-wrap">
+      <div class="flex items-center gap-2">
+        <label class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-950">Desde</label>
+        <input v-model="dateFrom" type="date"
+          class="text-[12px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950" />
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-950">Hasta</label>
+        <input v-model="dateTo" type="date"
+          class="text-[12px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950" />
+      </div>
+      <div class="text-[10px] font-mono text-slate-500 ml-auto flex items-center gap-4">
+        <span>Total Neto: <strong class="text-slate-950">{{ totalNetPayload }} lbs</strong></span>
+        <span>Total ULDs: <strong class="text-slate-950">{{ totalUldsCount }}</strong></span>
+      </div>
+    </section>
+
+    <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-sm bg-white flex flex-col mb-1.5">
+      <div ref="tableWrapper" class="overflow-auto flex-1 min-h-0 scrollbar-none">
+        <table class="w-full border-collapse text-[11px] font-mono">
+          <thead class="sticky top-0 z-20">
+            <tr class="bg-slate-700 text-white text-[11px] font-bold uppercase tracking-wider border-b border-slate-500 shadow-sm">
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">#</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Vuelo</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Ruta</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Fecha</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Estado</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">ULDs</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Posiciones</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Gross Lbs</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Tare Lbs</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Neto Lbs</th>
+              <th class="text-center px-2 py-2.5 whitespace-nowrap">Docs</th>
+              <th class="text-right px-2 py-2.5 whitespace-nowrap">Payload Lbs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading" class="h-32">
+              <td colspan="11" class="text-center text-[12px] font-mono text-slate-400 ">Cargando datos...</td>
+            </tr>
+            <tr v-else-if="filteredFlights.length === 0" class="h-32">
+              <td colspan="11" class="text-center text-[12px] font-mono text-slate-400 uppercase tracking-widest">No hay vuelos en este rango</td>
+            </tr>
+            <tr v-for="(f, fi) in filteredFlights" :key="f.id"
+              class="border-b border-slate-100 transition-colors hover:bg-slate-50">
+              <td class="text-center px-2 py-2 text-slate-400">{{ fi + 1 }}</td>
+              <td class="text-center px-2 py-2">UPS-{{ f.flightNumber }}</td>
+              <td class="text-center px-2 py-2">{{ f.origin }}→{{ f.destination }}</td>
+              <td class="text-center px-2 py-2 text-slate-500">{{ f.flightDate }}</td>
+              <td class="text-center px-2 py-2">
+                <span class="inline-flex items-center gap-1">
+                  <span :class="getStatusDot(f.status)" class="inline-block w-2 h-2 rounded-full"></span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-medium" style="background: var(--bg); color: var(--text)">{{ statusLabel(f.status) }}</span>
+                </span>
+              </td>
+              <td class="text-center px-2 py-2">{{ flightUlds(f.id).length }}</td>
+              <td class="text-center px-2 py-2">{{ flightPositions(f.id) }}</td>
+              <td class="text-right px-2 py-2">{{ grossLbs(f.id) }}</td>
+              <td class="text-right px-2 py-2" style="color: var(--text)">{{ totalTareLbs(f.id) }}</td>
+              <td class="text-right px-2 py-2">{{ netLbs(f.id) }}</td>
+              <td class="text-center px-2 py-2 text-slate-400">5</td>
+              <td class="text-right px-2 py-2" style="color: var(--accent)">{{ payloadLbs(f.id) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useAppStore } from '../stores/app'
+import { downloadCSV } from '../utils/csv'
+import { useToastStore } from '../stores/toast'
+import { extractError } from '../utils/error'
+
+const appStore = useAppStore()
+const toast = useToastStore()
+
+const dateFrom = ref('')
+const dateTo = ref('')
+const loading = ref(false)
+
+const filteredFlights = computed(() => {
+  let list = appStore.flights
+  if (dateFrom.value) {
+    list = list.filter(f => f.flightDate >= dateFrom.value)
+  }
+  if (dateTo.value) {
+    list = list.filter(f => f.flightDate <= dateTo.value)
+  }
+  return list
+})
+
+const allUlDs = computed(() => appStore.ulds)
+
+function flightUlds(flightId) {
+  return allUlDs.value.filter(u => u.flightId === flightId)
+}
+
+function flightPositions(flightId) {
+  const ulds = flightUlds(flightId)
+  return new Set(ulds.map(u => u.position).filter(Boolean)).size
+}
+
+function grossLbs(flightId) {
+  const ulds = flightUlds(flightId)
+  return ulds.reduce((s, u) => s + (Number(u.grossWeightLbs) || 0), 0)
+}
+
+function isBellyPosition(position) {
+  if (!position) return false
+  const p = position.toString().trim().toUpperCase()
+  return p === '31' || p === '34' || p === 'AB' || p === 'LOOSE' || p === 'BULK' || p.includes('BELLY')
+}
+
+function totalTareLbs(flightId) {
+  const ulds = flightUlds(flightId)
+  return ulds.reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
+}
+
+function bellyTareLbs(flightId) {
+  const ulds = flightUlds(flightId)
+  return ulds
+    .filter(u => isBellyPosition(u.position))
+    .reduce((s, u) => s + (Number(u.tareLbs) || 0), 0)
+}
+
+function netLbs(flightId) {
+  return grossLbs(flightId) - totalTareLbs(flightId)
+}
+
+function payloadLbs(flightId) {
+  return grossLbs(flightId) - bellyTareLbs(flightId) + 5
+}
+
+const totalNetPayload = computed(() => {
+  return filteredFlights.value.reduce((s, f) => s + payloadLbs(f.id), 0)
+})
+
+const totalUldsCount = computed(() => {
+  return filteredFlights.value.reduce((s, f) => s + flightUlds(f.id).length, 0)
+})
+
+function descargarReporte() {
+  const headers = ['Flight Number', 'Route', 'Date', 'Status', 'ULD Count', 'Positions', 'Gross Lbs', 'Tare Lbs', 'Net Lbs', 'Payload Lbs']
+  const rows = filteredFlights.value.map(f => [
+    `UPS-${f.flightNumber}`,
+    `${f.origin}→${f.destination}`,
+    f.flightDate || '',
+    statusLabel(f.status),
+    flightUlds(f.id).length,
+    flightPositions(f.id),
+    grossLbs(f.id),
+    totalTareLbs(f.id),
+    netLbs(f.id),
+    payloadLbs(f.id),
+  ])
+  downloadCSV(headers, rows, `reporte-vuelos-${new Date().toISOString().slice(0, 10)}.csv`)
+}
+
+function getStatusDot(status) {
+  if (status === 'SCHEDULED') return 'bg-slate-300'
+  if (status === 'BOARDING') return 'bg-slate-400'
+  if (status === 'DEPARTED') return 'bg-slate-600'
+  if (status === 'ARRIVED') return 'bg-slate-800'
+  if (status === 'CANCELLED') return 'bg-slate-200'
+  if (status === 'DELAYED') return 'bg-slate-400'
+  return 'bg-slate-200'
+}
+
+function statusLabel(status) {
+  const map = {
+    SCHEDULED: 'SCH',
+    BOARDING: 'BRD',
+    DEPARTED: 'DPT',
+    ARRIVED: 'ARR',
+    CANCELLED: 'CNL',
+    DELAYED: 'DLY',
+  }
+  return map[status] || status?.slice(0, 3) || '—'
+}
+
+function statusTextClass(status) {
+  if (status === 'SCHEDULED') return 'text-slate-400'
+  if (status === 'BOARDING') return 'text-slate-600'
+  if (status === 'DEPARTED') return 'text-slate-800'
+  if (status === 'ARRIVED') return 'text-slate-950'
+  if (status === 'CANCELLED') return 'text-slate-300'
+  if (status === 'DELAYED') return 'text-slate-600'
+  return 'text-slate-400'
+}
+
+onMounted(async () => {
+  loading.value = true
+  await appStore.loadFlights()
+  if (appStore.flights.length) {
+    await Promise.all([
+      appStore.loadUlds(),
+      appStore.loadAllMawbs(),
+    ])
+  }
+  loading.value = false
+})
+</script>
+
+<style scoped>
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

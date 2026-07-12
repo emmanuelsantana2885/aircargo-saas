@@ -1,0 +1,125 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { authApi } from '../api/auth'
+import { useToastStore } from '../stores/toast'
+import { extractError } from '../utils/error'
+
+const STORAGE_KEY = 'aircargo_auth'
+
+function loadStored() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch (e) { console.warn('Failed to parse auth storage:', e) }
+  return null
+}
+
+export const useAuthStore = defineStore('auth', () => {
+  const stored = loadStored()
+  const token = ref(stored?.token || '')
+  const userId = ref(stored?.userId || null)
+  const email = ref(stored?.email || '')
+  const fullName = ref(stored?.fullName || '')
+  const role = ref(stored?.role || '')
+  const airlineId = ref(stored?.airlineId || null)
+  const hasPasswordSet = ref(stored?.hasPasswordSet ?? false)
+  const sites = ref(stored?.sites || [])
+  const selectedSiteId = ref(stored?.selectedSiteId || null)
+
+  const isAuthenticated = computed(() => !!token.value && !!selectedSiteId.value)
+  const hasToken = computed(() => !!token.value)
+  const initials = computed(() => {
+    if (!fullName.value) return '??'
+    return fullName.value.split(' ').map(s => s[0]).join('').toUpperCase().slice(0, 2)
+  })
+  const selectedSite = computed(() => {
+    if (!selectedSiteId.value) return null
+    return sites.value.find(s => s.id === selectedSiteId.value) || null
+  })
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      token: token.value,
+      userId: userId.value,
+      email: email.value,
+      fullName: fullName.value,
+      role: role.value,
+      airlineId: airlineId.value,
+      hasPasswordSet: hasPasswordSet.value,
+      sites: sites.value,
+      selectedSiteId: selectedSiteId.value,
+    }))
+  }
+
+  async function login(loginEmail, password) {
+    const res = await authApi.login(loginEmail, password)
+    const data = res.data
+    token.value = data.token
+    userId.value = data.userId
+    email.value = data.email
+    fullName.value = data.fullName
+    role.value = data.role
+    airlineId.value = data.airlineId
+    hasPasswordSet.value = data.hasPasswordSet
+    sites.value = data.sites || []
+    selectedSiteId.value = null
+    persist()
+    return data
+  }
+
+  function confirmSite(siteId) {
+    selectedSiteId.value = siteId
+    persist()
+  }
+
+  async function refreshProfile() {
+    try {
+      const res = await authApi.me()
+      const data = res.data
+      userId.value = data.userId
+      email.value = data.email
+      fullName.value = data.fullName
+      role.value = data.role
+      airlineId.value = data.airlineId
+      hasPasswordSet.value = data.hasPasswordSet
+      persist()
+    } catch (e) {
+      console.warn('Failed to refresh profile:', e)
+    }
+  }
+
+  function logout() {
+    token.value = ''
+    userId.value = null
+    email.value = ''
+    fullName.value = ''
+    role.value = ''
+    airlineId.value = null
+    hasPasswordSet.value = false
+    sites.value = []
+    selectedSiteId.value = null
+    localStorage.removeItem(STORAGE_KEY)
+  }
+
+  function canView(viewName) {
+    if (!role.value) return false
+    switch (role.value) {
+      case 'SUPER_USER': return true
+      case 'ADMIN': return viewName !== 'SETTINGS'
+      case 'READ_ONLY': return true
+      case 'WAREHOUSE_ASSISTANT': return viewName === 'RECEIPTS' || viewName === 'DASHBOARD'
+      case 'OPERATIONS': return ['DASHBOARD', 'FLIGHTS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
+      case 'TRAFFIC': return ['DASHBOARD', 'BOOKINGS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
+      case 'LOAD_PLANNER': return ['DASHBOARD', 'FLIGHTS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
+      default: return false
+    }
+  }
+
+  return {
+    token, userId, email, fullName, role, airlineId, hasPasswordSet,
+    sites, selectedSiteId, selectedSite,
+    isAuthenticated, hasToken, initials,
+    login, confirmSite, logout, canView,
+    refreshProfile, persist,
+  }
+})

@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f0f0f0;
+  --surface: #ffffff;
+  --text: #111111;
+  --muted: #777777;
+  --accent: #000000;
+  --accent-light: #e0e0e0;
+  --border: #999999;
+  --sidebar-width: 230px;
+}
+
+body {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  background-color: var(--bg);
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* headings: slightly bigger but still mono */
+h1, h2, h3, h4, .title {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* Remove all card effects, shadows, and animations */
+.card {
+  border: 1px solid var(--border);
+}
+
+.card:hover {
+  /* no hover effects */
+}
+
+/* table row hover: simple gray */
+.table-row:hover {
+  background-color: #e5e5e5 !important;
+}
+
+/* Selected row: simple dark border + light gray bg */
+.row-selected {
+  background-color: #e5e5e5;
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+
+/* No blue tints, no pencil-hatch, no chalk overlays */
+
+/* ── Scrollbar ───────────────────────────────── */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Global table styling ────────────────────── */
+table {
+  border-collapse: collapse;
+}
+
+th {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+
+td, th {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+}
+
+/* ── Default button style ────────────────────── */
+button, .btn {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Inputs ──────────────────────────────────── */
+input, select, textarea {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 0;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 60px; }
+  .app-layout { flex-direction: column; }
+  .app-layout > aside { width: 100% !important; height: auto !important; flex-direction: row !important; overflow-x: auto; }
+}
+@media (max-width: 768px) {
+  :root { --sidebar-width: 0px; }
+  .app-layout > aside { display: none; }
+  .app-layout > div { padding-top: 0; }
+}
+@media (max-width: 640px) {
+  .p-5, .p-6 { padding: 12px !important; }
+  .p-4 { padding: 10px !important; }
+  .grid-cols-4, .grid-cols-5, .grid-cols-12 { grid-template-columns: repeat(2, 1fr) !important; }
+  input, select, button { font-size: 13px !important; }
+  .h-screen { height: auto !important; min-height: 100vh; }
+  .max-h-screen { max-height: none !important; }
+  header { flex-wrap: wrap; gap: 8px; }
+}

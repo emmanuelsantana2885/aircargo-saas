@@ -1,0 +1,2393 @@
+<template>
+  <div class="p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
+    <header class="flex flex-wrap items-end justify-between gap-2 border-b border-slate-400 pb-3 shrink-0">
+      <div class="flex items-end gap-3 flex-1 min-w-0">
+        <div>
+          <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
+          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
+        </div>
+        <div class="h-8 w-[1px] bg-slate-200"></div>
+        <div class="flex flex-col gap-0.5 opacity-50">
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
+          <select disabled
+            class="bg-slate-100 border border-slate-300 rounded px-2 py-1 font-black text-slate-800 uppercase tracking-widest text-[13px] min-w-[120px] cursor-not-allowed">
+            <option value="">Todos los vuelos</option>
+            <option v-for="f in store.flights" :key="f.id" :value="f.id">
+              {{ airlineCodeById(f.airlineId) }}-{{ f.flightNumber }} ({{ f.origin }}→{{ f.destination }})
+            </option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[180px] max-w-[280px]">
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
+          <input v-model="filterTextRaw" type="text" placeholder="Ej: *MELYSOL, >50, 406-*, =SDQ"
+            class="w-full text-[11px] font-mono px-2 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+          <input v-model="filterDate" type="date"
+            class="text-[12px] font-mono px-2 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+        </div>
+      </div>
+        <div class="flex items-center gap-2 text-[11px] font-mono font-bold text-slate-950 shrink-0">
+        <span class="h-1.5 w-1.5 rounded-full bg-slate-500 "></span> {{ filteredMawbs.length }}/{{ store.mawbs.length }} MAWBs
+      </div>
+    </header>
+
+    <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-sm bg-white flex flex-col mb-1.5">
+      <div class="bg-slate-700 border-b border-slate-500 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-2 px-5 items-center shrink-0 font-mono shadow-sm">
+        <div class="col-span-1 text-left flex items-center gap-1">
+          <input type="checkbox" :checked="selectedMawbIds.size === filteredMawbs.length && filteredMawbs.length > 0"
+            @change="toggleSelectAll"
+            class="accent-slate-700 rounded w-3 h-3 cursor-pointer" />
+        </div>
+        <div class="col-span-2 text-left relative">
+          <span @click="toggleHeaderFilter('mawb')"
+            class="cursor-pointer select-none transition-all duration-150"
+            :class="columnFilters.mawb ? 'text-slate-300' : 'hover:text-white/80'">
+            MAWB <span class="text-[8px]" :class="columnFilters.mawb ? 'opacity-100' : 'opacity-40'">&#9660;</span>
+          </span>
+          <div v-if="headerFilterOpen === 'mawb'"
+            class="absolute top-full left-0 mt-1 bg-white border border-slate-300 rounded shadow-lg z-50 min-w-[200px] max-h-[200px] overflow-y-auto text-[11px] text-slate-950 font-normal normal-case">
+            <div @click="setColumnFilter('mawb', null)" class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 font-bold" :class="!columnFilters.mawb ? 'bg-slate-100' : ''">Todos</div>
+            <div v-for="v in uniqueValues.mawb" :key="v" @click="setColumnFilter('mawb', v)"
+              class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 truncate" :class="columnFilters.mawb === v ? 'bg-slate-50 text-slate-700 font-bold' : ''">{{ v }}</div>
+          </div>
+        </div>
+        <div class="col-span-2 text-left relative">
+          <span @click="toggleHeaderFilter('shipper')"
+            class="cursor-pointer select-none transition-all duration-150"
+            :class="columnFilters.shipper ? 'text-slate-300' : 'hover:text-white/80'">
+            Shipper <span class="text-[8px]" :class="columnFilters.shipper ? 'opacity-100' : 'opacity-40'">&#9660;</span>
+          </span>
+          <div v-if="headerFilterOpen === 'shipper'"
+            class="absolute top-full left-0 mt-1 bg-white border border-slate-300 rounded shadow-lg z-50 min-w-[200px] max-h-[200px] overflow-y-auto text-[11px] text-slate-950 font-normal normal-case">
+            <div @click="setColumnFilter('shipper', null)" class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 font-bold" :class="!columnFilters.shipper ? 'bg-slate-100' : ''">Todos</div>
+            <div v-for="v in uniqueValues.shipper" :key="v" @click="setColumnFilter('shipper', v)"
+              class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 truncate" :class="columnFilters.shipper === v ? 'bg-slate-50 text-slate-700 font-bold' : ''">{{ v }}</div>
+          </div>
+        </div>
+        <div class="col-span-1 text-center">Piezas</div>
+        <div class="col-span-2 text-right pr-2">Peso (kg)</div>
+        <div class="col-span-1 text-center relative">
+          <span @click="toggleHeaderFilter('dest')"
+            class="cursor-pointer select-none transition-all duration-150"
+            :class="columnFilters.dest ? 'text-slate-300' : 'hover:text-white/80'">
+            Dest <span class="text-[8px]" :class="columnFilters.dest ? 'opacity-100' : 'opacity-40'">&#9660;</span>
+          </span>
+          <div v-if="headerFilterOpen === 'dest'"
+            class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-slate-300 rounded shadow-lg z-50 min-w-[120px] max-h-[200px] overflow-y-auto text-[11px] text-slate-950 font-normal normal-case">
+            <div @click="setColumnFilter('dest', null)" class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 font-bold" :class="!columnFilters.dest ? 'bg-slate-100' : ''">Todos</div>
+            <div v-for="v in uniqueValues.dest" :key="v" @click="setColumnFilter('dest', v)"
+              class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 truncate" :class="columnFilters.dest === v ? 'bg-slate-50 text-slate-700 font-bold' : ''">{{ v }}</div>
+          </div>
+        </div>
+        <div class="col-span-1 text-center">Docs</div>
+        <div class="col-span-2 text-center relative">
+          <span @click="toggleHeaderFilter('status')"
+            class="cursor-pointer select-none transition-all duration-150 inline-flex items-center gap-1"
+            :class="columnFilters.status ? 'text-slate-300' : 'hover:text-white/80'">
+            <span v-if="columnFilters.status" class="w-1.5 h-1.5 rounded-full inline-block"
+              :class="columnFilters.status === 'BOOKED' ? 'bg-slate-400' : columnFilters.status === 'PENDING' ? 'bg-slate-500' : 'bg-slate-600'"></span>
+            Estado <span class="text-[8px]" :class="columnFilters.status ? 'opacity-100' : 'opacity-40'">&#9660;</span>
+          </span>
+          <div v-if="headerFilterOpen === 'status'"
+            class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border border-slate-300 rounded shadow-lg z-50 min-w-[160px] text-[11px] text-slate-950 font-normal normal-case">
+            <div @click="setColumnFilter('status', null)" class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 font-bold text-center" :class="!columnFilters.status ? 'bg-slate-100' : ''">Todos</div>
+            <div v-for="opt in statusOptions" :key="opt.key" @click="setColumnFilter('status', opt.key)"
+              class="px-3 py-1.5 cursor-pointer hover:bg-slate-100 flex items-center gap-2" :class="columnFilters.status === opt.key ? 'bg-slate-50 text-slate-700 font-bold' : ''">
+              <span class="w-2 h-2 rounded-full" :class="opt.dotClass"></span>
+              {{ opt.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-if="selectedMawbIds.size > 0" class="flex items-center gap-2 px-5 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px]">
+        <span class="font-mono font-bold text-slate-950">{{ selectedMawbIds.size }} seleccionados</span>
+        <select v-model="bulkStatusTarget" class="bg-white border border-slate-400 rounded px-2 py-0.5 text-[12px] font-bold font-mono">
+          <option value="">Cambiar estado...</option>
+          <option v-for="s in statusSteps" :key="s.key" :value="s.key">{{ s.label }}</option>
+        </select>
+        <button @click="applyBulkStatus" class="bg-slate-950 hover:bg-slate-800 text-white text-[12px] px-2.5 py-0.5 rounded font-mono font-bold transition">
+          Aplicar
+        </button>
+        <button @click="selectedMawbIds.clear()" class="text-slate-950 hover:text-slate-950 text-[12px] font-mono underline ml-auto">Limpiar</button>
+      </div>
+
+      <div v-if="store.mawbs.length === 0" class="flex-1 flex items-center justify-center">
+        <p class="text-[12px] font-mono text-slate-950 uppercase tracking-widest">No hay MAWBs</p>
+      </div>
+      <div v-else-if="filteredMawbs.length === 0" class="flex-1 flex items-center justify-center">
+        <p class="text-[12px] font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
+      </div>
+      <div v-else class="divide-y divide-slate-200 text-[11px] text-slate-950 overflow-y-auto flex-1 min-h-0 thin-scrollbar">
+          <div v-for="m in filteredMawbs" :key="m.id" v-memo="[m.id, m.status, expandedId, localStep, receiptTotals[m.id]?.pieces, receiptById[m.id], showCamera, formVersion]" class="flex flex-col">
+          <div class="grid grid-cols-12 items-center py-1.5 px-5 transition-all duration-150 cursor-pointer border-t"
+            :class="[expandedId === m.id ? 'row-selected' : '', selectedMawbIds.has(m.id) ? 'bg-slate-50/50' : '']" style="border-color: var(--border)"
+            @click="toggleExpand(m)">
+            <div class="col-span-1 flex items-center justify-center relative z-10">
+              <input type="checkbox" :checked="selectedMawbIds.has(m.id)"
+                @click.stop @change="toggleSelect(m.id)"
+                class="accent-slate-700 rounded w-3 h-3 cursor-pointer" />
+            </div>
+            <div class="col-span-2 font-mono font-bold text-slate-950 relative z-10 flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-950 transition-transform duration-200" :class="{ 'rotate-90': expandedId === m.id }">&#9654;</span>
+              {{ m.awbNumber || m.id?.slice(0, 8) || '—' }}
+              <span v-if="receiptHawbs[m.id] && receiptHawbs[m.id].length > 1"
+                class="text-[11px] font-black text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded leading-none"
+                title="Múltiples HAWBs">{{ receiptHawbs[m.id].length }} HAWBs</span>
+              <span v-else-if="receiptHawbs[m.id] && receiptHawbs[m.id].length === 1"
+                class="text-[11px] font-black text-slate-950 bg-slate-100 px-1.5 py-0.5 rounded leading-none">1 HAWB</span>
+            </div>
+            <div class="col-span-2 text-slate-950 font-semibold relative z-10 truncate pr-3">{{ m.shipperName || '—' }}</div>
+            <div class="col-span-1 text-center font-mono font-bold relative z-10"
+              :class="receiptTotals[m.id]?.pieces > 0 ? 'text-slate-700' : 'text-slate-950'">
+              {{ receiptTotals[m.id]?.pieces || m.pieces || '—' }}
+              <span v-if="receiptTotals[m.id]?.pieces > 0 && receiptTotals[m.id]?.pieces !== m.pieces" class="text-[11px] text-slate-500 block leading-tight">rec: {{ receiptTotals[m.id].pieces }}</span>
+            </div>
+            <div class="col-span-2 text-right font-mono font-bold relative z-10 pr-2"
+              :class="receiptTotals[m.id]?.weightKg > 0 ? 'text-slate-700' : 'text-slate-950'">
+              {{ receiptTotals[m.id]?.weightKg ? Number(receiptTotals[m.id].weightKg).toLocaleString() : (m.reportedWeightKg ? Number(m.reportedWeightKg).toLocaleString() : '—') }}
+              <span v-if="receiptTotals[m.id]?.weightKg > 0 && receiptTotals[m.id]?.weightKg !== Number(m.reportedWeightKg)" class="text-[11px] text-slate-500 block leading-tight">recibo</span>
+            </div>
+            <div class="col-span-1 text-center font-mono font-bold text-slate-950 relative z-10">{{ m.destination || '—' }}</div>
+            <div class="col-span-1 flex items-center justify-center gap-0.5 relative z-10">
+              <template v-if="receiptById[m.id]">
+                <button @click.stop="downloadReceiptById(m)" title="Descargar Excel"
+                  class="text-[11px] px-0.5 py-0.5 rounded hover:bg-slate-100 hover:text-slate-700 transition">&#11015;</button>
+                <button @click.stop="downloadHtmlById(m)" title="Descargar HTML evidencias"
+                  class="text-[11px] px-0.5 py-0.5 rounded hover:bg-slate-200 hover:text-slate-950 transition">&#128196;</button>
+                <button @click.stop="downloadPdfById(m)" title="Descargar PDF evidencias"
+                  class="text-[11px] px-0.5 py-0.5 rounded hover:bg-slate-100 hover:text-slate-700 transition">&#128213;</button>
+              </template>
+            </div>
+            <div class="col-span-2 flex items-center gap-2 relative z-10">
+              <div class="flex items-center gap-1">
+                <span v-for="s in statusSteps" :key="s.key"
+                  @click.stop="changeMawbStatus(m, s.key)"
+                  class="h-3 w-3 rounded-full border-2 transition-all duration-150 cursor-pointer hover:scale-150"
+                  :class="getStatusDot(m, s)"
+                  :title="s.key + ((m.status || 'BOOKED') === s.key ? ' (actual)' : ' → clic')"></span>
+              </div>
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap"
+                :class="statusLabelClass(m)">{{ statusLabel(m) }}</span>
+              <button @click.stop="toggleMawbEvidenceManager(m)"
+                class="ml-auto text-[11px] px-1.5 py-0.5 rounded border border-slate-300 text-slate-950 hover:text-slate-950 hover:border-slate-950 transition font-mono"
+                title="Gestionar evidencias documentales de esta MAWB">
+                &#128193;
+              </button>
+            </div>
+          </div>
+
+          <div v-if="expandedId === m.id && receiptForms[m.id]" class="bg-slate-100 border-b border-slate-400">
+            <div class="p-3 flex flex-col" style="height: calc(100vh - 240px); min-height: 300px;">
+              <!-- Step progress bar -->
+              <div class="mb-2 shrink-0">
+                <div class="flex items-center justify-between">
+                  <div v-for="(step, si) in steps" :key="si" class="flex items-center flex-1">
+                    <div @click="localStep = si + 1"
+                      class="flex flex-col items-center cursor-pointer group flex-1 min-w-0">
+                      <div class="flex items-center w-full">
+                        <div class="flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-black font-mono transition-all duration-200 border-2 shrink-0"
+                          :class="stepClass(si)">
+                          <span v-if="stepDone(si)">&#10003;</span>
+                          <span v-else-if="stepError(si)">&#33;</span>
+                          <span v-else>{{ si + 1 }}</span>
+                        </div>
+                        <div v-if="si < steps.length - 1" class="flex-1 h-1 mx-1 rounded transition-all duration-200"
+                          :class="stepBarClass(si)"></div>
+                      </div>
+                      <span class="text-[12px] font-mono font-bold mt-0.5 transition-all duration-200 truncate max-w-full px-1"
+                        :class="localStep === si + 1 ? 'text-slate-950' : 'text-slate-500'">
+                        {{ step }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                  <span v-if="lastDraftSave && !receiptForms[m.id]?._existingReceiptId" class="text-[12px] font-mono text-slate-700 italic">
+                    &#9998; Borrador guardado {{ lastDraftSave }}
+                  </span>
+                  <span v-else-if="receiptForms[m.id]?._existingReceiptId" class="text-[12px] font-mono text-slate-600 italic ml-auto">
+                    &#9998; Modo edici&oacute;n
+                  </span>
+                </div>
+              </div>
+
+              <!-- ═══ Scrollable step content ═══ -->
+              <div class="flex-1 min-h-0 overflow-y-auto pr-1 overscroll-contain">
+              <div v-if="localStep === 1" class="space-y-2">
+                <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+                  <!-- Left column -->
+                  <div class="space-y-3">
+                    <div>
+                      <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Gateway / CFS Name</label>
+                      <input v-model="receiptForms[m.id].gatewayCfs" type="text" placeholder="SDQ"
+                        class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
+                    </div>
+                    <div>
+                      <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Shipper Name</label>
+                      <div class="flex gap-2 items-center">
+                        <input v-model="receiptForms[m.id].shipperName" type="text" placeholder="Shipper"
+                          class="flex-1 text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition"
+                          @blur="syncMawbName(m, 'shipperName')" />
+                        <span class="text-[10px] text-slate-950 font-mono shrink-0">MAWB: {{ m.shipperName || '—' }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Consignee Name</label>
+                      <div class="flex gap-2 items-center">
+                        <input v-model="receiptForms[m.id].consigneeName" type="text" placeholder="Consignee"
+                          class="flex-1 text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition"
+                          @blur="syncMawbName(m, 'consigneeName')" />
+                        <span class="text-[10px] text-slate-950 font-mono shrink-0">MAWB: {{ m.consigneeName || '—' }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">MAWB Number</label>
+                      <input :value="m.awbNumber || ''" readonly
+                        class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-slate-100 outline-none text-slate-950" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Origin</label>
+                        <input v-model="receiptForms[m.id].origin" type="text" maxlength="3" placeholder="SDQ"
+                          class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
+                      </div>
+                      <div>
+                        <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Destination</label>
+                        <input v-model="receiptForms[m.id].destination" type="text" maxlength="3" placeholder="MIA"
+                          class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 uppercase transition" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div>
+                        <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">AWB Reported Pieces</label>
+                        <input v-model.number="receiptForms[m.id].awbReportedPieces" type="number" min="0"
+                          class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                      <div>
+                        <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">MAWB Weight (Greatest Shipper Reported)</label>
+                        <input v-model.number="receiptForms[m.id].mawbWeightGreatest" type="number" step="0.001"
+                          class="w-full text-[11px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right column: HAWB info + checkboxes -->
+                  <div class="space-y-2">
+                    <div class="border-2 border-slate-700 rounded-lg bg-white overflow-hidden shadow-sm">
+                      <div class="flex items-center justify-between bg-slate-700 px-3 py-1.5 border-b border-slate-800">
+                        <span class="text-[10px] font-mono font-bold text-white uppercase tracking-wider">
+                          HAWBs
+                        </span>
+                        <div class="flex items-center gap-2 text-[11px] font-mono">
+                          <span class="text-slate-200">Cantidad:</span>
+                          <input v-model.number="receiptForms[m.id].hawbCount" type="number" min="1" max="50"
+                            @input="syncHawbCount(m)"
+                            class="w-14 text-center border border-slate-500 rounded px-1 py-0.5 bg-white outline-none focus:border-slate-800 text-[11px] font-bold" />
+                          <span v-if="receiptHawbs[m.id] && receiptHawbs[m.id].length > 0"
+                            class="text-slate-300 ml-1">({{ receiptHawbs[m.id].length }} DB)</span>
+                        </div>
+                      </div>
+                      <div class="overflow-x-auto p-2">
+                        <table class="w-full text-[11px] font-mono border-collapse">
+                          <thead>
+                            <tr class="text-slate-800 font-bold uppercase tracking-wider">
+                              <th class="px-2 py-1 text-left border-b-2 border-slate-200"># HAWB</th>
+                              <th class="px-2 py-1 text-left border-b-2 border-slate-200">Consignee</th>
+                              <th class="px-2 py-1 text-center border-b-2 border-slate-200">Pcs</th>
+                              <th class="px-2 py-1 text-right border-b-2 border-slate-200">Kg</th>
+                              <th class="px-2 py-1 text-center border-b-2 border-slate-200">Dest</th>
+                              <th v-if="(receiptForms[m.id].hawbEntries || []).length > 1"
+                                class="px-2 py-1 text-center border-b-2 border-slate-200"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="(entry, ei) in receiptForms[m.id].hawbEntries" :key="ei"
+                              class="hover:bg-slate-50">
+                              <td class="px-2 py-1 border-b border-slate-100">
+                                <input v-model="entry.hawbNumber" placeholder="HAWB #"
+                                  class="w-20 border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-700 bg-white text-[11px] font-bold text-slate-950" />
+                              </td>
+                              <td class="px-2 py-1 border-b border-slate-100">
+                                <input v-model="entry.consigneeName" placeholder="Consignee"
+                                  class="w-full min-w-[100px] border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-700 bg-white text-[11px]" />
+                              </td>
+                              <td class="px-2 py-1 border-b border-slate-100">
+                                <input v-model.number="entry.pieces" type="number" min="0" placeholder="0"
+                                  class="w-14 text-center border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-700 bg-white text-[11px]" />
+                              </td>
+                              <td class="px-2 py-1 border-b border-slate-100">
+                                <input v-model.number="entry.weightKg" type="number" step="0.1" min="0" placeholder="0"
+                                  class="w-20 text-right border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-700 bg-white text-[11px]" />
+                              </td>
+                              <td class="px-2 py-1 border-b border-slate-100">
+                                <input v-model="entry.destination" maxlength="3" placeholder="MIA"
+                                  class="w-14 text-center border border-slate-200 rounded px-2 py-1 outline-none focus:border-slate-700 bg-white text-[11px] uppercase" />
+                              </td>
+                              <td v-if="(receiptForms[m.id].hawbEntries || []).length > 1"
+                                class="px-2 py-1 text-center border-b border-slate-100">
+                                <button @click="removeHawbEntry(m.id, ei)"
+                                  class="text-slate-400 hover:text-slate-600 transition text-[10px] font-bold">✕</button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- Checkboxes group -->
+                    <div class="border-2 border-slate-700 rounded-lg bg-white p-3 shadow-sm">
+                      <div class="text-[10px] font-mono font-bold text-slate-800 uppercase tracking-wider mb-2">Flags / Marcas</div>
+                      <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                        <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
+                          <input type="checkbox" v-model="receiptForms[m.id].cashOnly" class="accent-slate-700 rounded w-3 h-3" />
+                          <span>Cash Only</span>
+                        </label>
+                        <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
+                          <input type="checkbox" v-model="receiptForms[m.id].bookedInAcoms" class="accent-slate-700 rounded w-3 h-3" />
+                          <span>Booked in ACOMS</span>
+                        </label>
+                        <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
+                          <input type="checkbox" v-model="receiptForms[m.id].docsProvided" class="accent-slate-700 rounded w-3 h-3" />
+                          <span>Documents Provided</span>
+                        </label>
+                        <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
+                          <input type="checkbox" v-model="receiptForms[m.id].customsCompleted" class="accent-slate-700 rounded w-3 h-3" />
+                          <span>Export Customs Completed</span>
+                        </label>
+                        <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
+                          <input type="checkbox" v-model="receiptForms[m.id].preBuilt" class="accent-slate-700 rounded w-3 h-3" />
+                          <span>Pre-built / Shipper Built</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ═══ STEP 2: PIECES ═══ -->
+              <div v-if="localStep === 2" class="space-y-2">
+                <div class="text-[10px] font-mono font-bold text-slate-950 uppercase tracking-wider flex items-center gap-2">
+                  <span>Loose Tender — Dimensiones y Pesos</span>
+                  <span class="text-[10px] font-mono font-normal text-slate-950 normal-case tracking-normal">
+                    ((L x W x H) x #pcs) / 366 = Kg dimensional
+                  </span>
+                </div>
+
+                <template v-if="(receiptHawbs[m.id] || []).length <= 1 && (receiptForms[m.id]?.hawbEntries || []).length <= 1">
+                  <div class="overflow-x-auto border border-slate-400 rounded">
+                    <table class="w-full text-[11px] font-mono border-collapse">
+                      <thead>
+                        <tr class="bg-slate-700 text-white text-[11px] uppercase tracking-wider">
+                          <th class="px-2 py-1 border-r border-slate-600 w-5 text-center">#</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-10 text-center">Pieces</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-14 text-center">Length (in)</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-14 text-center">Width (in)</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-14 text-center">Height (in)</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-14 text-right">Dim Wt</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-16 text-right">Scale LBS</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-16 text-right">Dim LBS</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-16 text-right">S.KGS*</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-16 text-right">Dim KGS</th>
+                          <th class="px-2 py-1 border-r border-slate-600 w-16 text-right">CHG KGS</th>
+                          <th class="px-2 py-1 w-16 text-right">DOM LBS</th>
+                          <th class="px-2 py-1 w-4"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(p, pi) in receiptForms[m.id].pieces" :key="pi"
+                          class="border-b border-slate-300 hover:bg-slate-50 transition-colors">
+                          <td class="px-2 py-1 text-center text-slate-950 border-r border-slate-300">{{ pi + 1 }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300">
+                            <input v-model.number="p.pieces" type="number" min="0"
+                              class="w-full text-center border border-slate-400 rounded px-1.5 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                              @input="calcPiece(m.id, pi)" />
+                          </td>
+                          <td class="px-2 py-1 border-r border-slate-300">
+                            <input v-model.number="p.lengthIn" type="number" step="0.01" min="0"
+                              class="w-full text-center border border-slate-400 rounded px-1.5 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                              @input="calcPiece(m.id, pi)" />
+                          </td>
+                          <td class="px-2 py-1 border-r border-slate-300">
+                            <input v-model.number="p.widthIn" type="number" step="0.01" min="0"
+                              class="w-full text-center border border-slate-400 rounded px-1.5 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                              @input="calcPiece(m.id, pi)" />
+                          </td>
+                          <td class="px-2 py-1 border-r border-slate-300">
+                            <input v-model.number="p.heightIn" type="number" step="0.01" min="0"
+                              class="w-full text-center border border-slate-400 rounded px-1.5 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                              @input="calcPiece(m.id, pi)" />
+                          </td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right font-semibold text-slate-950">{{ p.dimWeight ? p.dimWeight.toFixed(1) : '—' }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300">
+                            <input v-model.number="p.scaleWeightLbs" type="number" step="0.001" min="0"
+                              class="w-full text-center border border-slate-400 rounded px-1.5 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                              @input="calcPiece(m.id, pi)" />
+                          </td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right font-semibold text-slate-950">{{ p.dimWeightLbs ? p.dimWeightLbs.toFixed(1) : '—' }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right font-semibold text-slate-950">{{ (p.scaleWeightKg || 0).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right font-semibold">{{ p.dimWeightKg ? p.dimWeightKg.toFixed(2) : '—' }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right text-slate-900">{{ p.chargeableKg ? p.chargeableKg.toFixed(2) : '—' }}</td>
+                          <td class="px-2 py-1 border-r border-slate-300 text-right text-slate-900">{{ p.chargeableLbs ? p.chargeableLbs.toFixed(2) : '—' }}</td>
+                          <td class="px-2 py-1 text-center">
+                            <button @click="removePiece(m.id, pi)" class="text-slate-400 hover:text-slate-600 transition text-[10px]">✕</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="bg-slate-100 text-slate-950 text-[11px]">
+                          <td class="px-2 py-1 border-t border-slate-300 text-slate-950 text-center"></td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-center">{{ totalPieces(m.id, null) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-slate-950 text-[11px]" colspan="3">TOTAL</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right">{{ totalDimWeight(m.id, null).toFixed(1) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right">{{ totalScaleLbs(m.id, null).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right">{{ totalDimLbs(m.id, null).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right">{{ totalScaleKg(m.id, null).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right">{{ totalDimKg(m.id, null).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right text-slate-950">{{ totalChargeableKg(m.id).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300 text-right text-slate-950">{{ totalChargeableLbs(m.id).toFixed(2) }}</td>
+                          <td class="px-2 py-1 border-t border-slate-300"></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                    <div class="flex justify-between items-center">
+                      <button @click="addPiece(m.id)" class="text-[10px] text-slate-950 font-mono uppercase tracking-wider hover:text-slate-950 transition">+ Agregar pieza</button>
+                      <div class="flex gap-3 text-[10px] font-mono text-slate-950">
+                      <span>Piece Count: <strong class="text-slate-900">{{ totalPieces(m.id, null) }}</strong></span>
+                      <span>Actual: <strong class="text-slate-900">{{ totalScaleKg(m.id, null).toFixed(0) }} KGS / {{ totalScaleLbs(m.id, null).toFixed(0) }} LBS</strong></span>
+                      <span>Chargeable: <strong class="text-slate-900">{{ totalChargeableKg(m.id).toFixed(0) }} KGS / {{ totalChargeableLbs(m.id).toFixed(0) }} LBS</strong></span>
+                    </div>
+                  </div>
+                  <div class="text-[9px] text-slate-400 font-mono mt-1 text-right">* S.KGS = LBS ÷ 2.20462 (auto)</div>
+                </template>
+
+                <template v-else>
+                  <div v-for="(h, hi) in hawbsForDisplay(m.id)" :key="h._hawbId || h.id" class="border border-slate-400 rounded overflow-hidden bg-white">
+                    <div class="flex items-center justify-between bg-slate-100 px-3 py-1.5 border-b border-slate-400">
+                      <span class="text-[10px] font-mono font-bold text-slate-950">
+                        HAWB {{ hi + 1 }}: {{ h.hawbNumber || h.hawbNumber || '—' }} &mdash; {{ h.consigneeName || h.consigneeName || '—' }}
+                        <span class="text-slate-950 font-normal ml-2">({{ piecesByHawb(m.id, h._hawbId || h.id).length }} pieza(s))</span>
+                      </span>
+                      <span class="text-[10px] font-mono text-slate-950 font-bold">{{ piecesByHawb(m.id, h._hawbId || h.id).reduce((s, p) => s + (p.pieces || 1), 0) }} pcs</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-[11px] font-mono border-collapse">
+                        <thead>
+                          <tr class="bg-slate-600 text-white text-[11px] uppercase tracking-wider">
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-5 text-center">#</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-10 text-center">Pcs</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-center">L</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-center">W</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-center">H</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-12 text-right">DimWt</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-16 text-right">S.LBS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-right">DLBS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-16 text-right">S.KGS*</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-right">DKGS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-500 w-14 text-right">CKGS</th>
+                            <th class="px-1 py-0.5 w-16 text-right">CLBS</th>
+                            <th class="px-1 py-0.5 w-4"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(entry, pi) in piecesByHawbIndexed(m.id, (h._hawbId || h.id))" :key="pi"
+                            class="border-b border-slate-300 hover:bg-slate-50">
+                            <td class="px-1 py-0.5 text-center text-slate-950 border-r border-slate-300">{{ pi + 1 }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300">
+                              <input v-model.number="entry.piece.pieces" type="number" min="0"
+                                class="w-full text-center border border-slate-400 rounded px-1 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                                @input="calcPiece(m.id, entry.idx)" />
+                            </td>
+                            <td class="px-1 py-0.5 border-r border-slate-300">
+                              <input v-model.number="entry.piece.lengthIn" type="number" step="0.01"
+                                class="w-full text-center border border-slate-400 rounded px-1 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                                @input="calcPiece(m.id, entry.idx)" />
+                            </td>
+                            <td class="px-1 py-0.5 border-r border-slate-300">
+                              <input v-model.number="entry.piece.widthIn" type="number" step="0.01"
+                                class="w-full text-center border border-slate-400 rounded px-1 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                                @input="calcPiece(m.id, entry.idx)" />
+                            </td>
+                            <td class="px-1 py-0.5 border-r border-slate-300">
+                              <input v-model.number="entry.piece.heightIn" type="number" step="0.01"
+                                class="w-full text-center border border-slate-400 rounded px-1 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                                @input="calcPiece(m.id, entry.idx)" />
+                            </td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right text-slate-950">{{ entry.piece.dimWeight ? entry.piece.dimWeight.toFixed(1) : '—' }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300">
+                              <input v-model.number="entry.piece.scaleWeightLbs" type="number" step="0.001"
+                                class="w-full text-center border border-slate-400 rounded px-1 py-0.5 outline-none focus:border-slate-500 bg-white text-[11px]"
+                                @input="calcPiece(m.id, entry.idx)" />
+                            </td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right text-slate-950">{{ entry.piece.dimWeightLbs ? entry.piece.dimWeightLbs.toFixed(1) : '—' }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right text-slate-950">{{ (entry.piece.scaleWeightKg || 0).toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right">{{ entry.piece.dimWeightKg ? entry.piece.dimWeightKg.toFixed(2) : '—' }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right">{{ entry.piece.chargeableKg ? entry.piece.chargeableKg.toFixed(2) : '—' }}</td>
+                            <td class="px-1 py-0.5 border-r border-slate-300 text-right">{{ entry.piece.chargeableLbs ? entry.piece.chargeableLbs.toFixed(2) : '—' }}</td>
+                            <td class="px-1 py-0.5 text-center">
+                              <button @click="removePiece(m.id, entry.idx)" class="text-slate-400 hover:text-slate-600 text-[10px]">✕</button>
+                            </td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr class="bg-slate-100 text-slate-950 text-[11px]">
+                            <td class="px-1 py-0.5 border-t border-slate-400"></td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-center">{{ hawbTotalPieces(m.id, (h._hawbId || h.id)) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400" colspan="3">TOTAL</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbDimWeight(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbScaleLbs(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbDimLbs(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbScaleKg(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbDimKg(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbChargeableKg(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400 text-right">{{ hawbChargeableLbs(m.id, (h._hawbId || h.id)).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t border-slate-400"></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div class="px-2 py-1 border-t border-slate-300">
+                      <button @click="addPiece(m.id, (h._hawbId || h.id))" class="text-[10px] text-slate-950 font-mono uppercase tracking-wider hover:text-slate-950 transition">+ Agregar pieza a este HAWB</button>
+                      <span class="text-[9px] text-slate-400 font-mono ml-4">* S.KGS = LBS ÷ 2.20462 (auto)</span>
+                    </div>
+                  </div>
+                  <div class="border-t border-slate-300 pt-1 mt-1">
+                    <div class="text-[10px] font-mono text-slate-950 flex flex-wrap gap-x-4 gap-y-0.5">
+                      <span>Total Piezas: <strong class="text-slate-900">{{ totalPieces(m.id, null) }}</strong></span>
+                      <span>Escala: <strong class="text-slate-900">{{ totalScaleKg(m.id, null).toFixed(0) }} KGS</strong></span>
+                      <span>Dimensional: <strong class="text-slate-900">{{ totalDimKg(m.id, null).toFixed(0) }} KGS</strong></span>
+                      <span>Chargeable: <strong class="text-slate-900">{{ totalChargeableKg(m.id).toFixed(0) }} KGS / {{ totalChargeableLbs(m.id).toFixed(0) }} LBS</strong></span>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
+              <!-- ═══ STEP 3: REMARKS ═══ -->
+              <div v-if="localStep === 3" class="space-y-2">
+                <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Remarks / Observaciones</label>
+                <textarea v-model="receiptForms[m.id].remarks" rows="3" placeholder="Notas, observaciones, instrucciones especiales..."
+                  class="w-full text-[10px] font-mono px-3 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition resize-none"></textarea>
+              </div>
+
+              <!-- ═══ STEP 4: EVIDENCE ═══ -->
+              <div v-if="localStep === 4" class="space-y-2">
+                <p class="text-[10px] font-mono text-slate-950">Adjuntar fotos, documentos u otras evidencias</p>
+
+                <!-- Evidencias del MAWB (desde base de datos) -->
+                <div v-if="(receiptForms[m.id].mawbEvidence || []).length > 0">
+                  <span class="text-[10px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-1 block">Evidencias del MAWB</span>
+                  <div class="grid grid-cols-4 gap-2 mb-2">
+                    <div v-for="(ev, ei) in receiptForms[m.id].mawbEvidence" :key="'mawb-' + ei"
+                      class="relative border border-slate-200 rounded bg-slate-50/30 overflow-hidden group cursor-pointer" @click="previewEvidence(ev)">
+                      <img v-if="ev.type === 'image' && ev.url" :src="ev.url" class="w-full h-20 object-cover" />
+                      <div v-else-if="ev.type === 'text'" class="w-full h-20 flex items-center justify-center bg-slate-50 text-slate-950 text-[10px] font-mono px-2 text-center leading-tight">{{ ev.name }}</div>
+                      <div v-else-if="isPdfUrl(ev.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 text-[10px] font-mono">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <span class="text-[8px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
+                      </div>
+                      <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[10px] font-mono">{{ ev.name }}</div>
+                      <span class="block text-[10px] font-mono text-slate-950 px-1.5 py-0.5 leading-tight">{{ ev.name }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Nuevas evidencias (subidas en este formulario) -->
+                <span class="text-[10px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-1 block">Nuevas evidencias (este recibo)</span>
+                <div class="grid grid-cols-4 gap-2">
+                  <div v-for="(ev, ei) in receiptForms[m.id].evidence" :key="'rec-' + ei"
+                    class="relative border border-slate-400 rounded bg-white overflow-hidden group cursor-pointer" @click="previewEvidence(ev)">
+                    <img v-if="ev.type === 'image'" :src="ev.url" class="w-full h-20 object-cover" />
+                    <div v-else-if="isPdfUrl(ev.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 text-[10px] font-mono">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <span class="text-[9px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
+                    </div>
+                    <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[10px] font-mono">{{ ev.name }}</div>
+                    <button @click.stop="removeEvidence(m.id, ei)" class="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-slate-500 text-white rounded-full text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>
+                    <span class="block text-[10px] font-mono text-slate-950 px-1.5 py-0.5 truncate">{{ ev.name }}</span>
+                  </div>
+                  <div class="border-2 border-dashed border-slate-400 rounded flex flex-col items-center justify-center cursor-pointer hover:border-slate-950 transition group min-h-[80px]"
+                    @click="addEvidence(m.id)">
+                    <span class="text-[12px] text-slate-300 font-mono group-hover:text-slate-950 transition leading-none">+</span>
+                    <span class="text-[10px] font-mono text-slate-950 mt-0.5 uppercase tracking-wider">Subir</span>
+                  </div>
+                  <div class="border-2 border-dashed border-slate-400 rounded flex flex-col items-center justify-center cursor-pointer hover:border-slate-950 transition group min-h-[80px]"
+                    @click="openCamera(m.id)">
+                    <IconCamera :size="16" class="text-slate-300 group-hover:text-slate-950 transition" />
+                    <span class="text-[10px] font-mono text-slate-950 mt-0.5 uppercase tracking-wider">Cámara</span>
+                  </div>
+                </div>
+                <CameraCapture :show="showCamera" @close="showCamera = false" @captured="onCameraCapture" />
+              </div>
+
+              <!-- ═══ STEP 5: SIGNATURES ═══ -->
+              <div v-if="localStep === 5" class="space-y-2">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Dock Signature</label>
+                    <SignaturePad v-model="receiptForms[m.id].dockSignature" :width="280" :height="60" />
+                  </div>
+                  <div class="flex flex-col justify-end">
+                    <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Print Name</label>
+                      <input v-model="receiptForms[m.id].printName" type="text" placeholder="Nombre"
+                        class="w-full text-[10px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 border-t border-slate-400 pt-2">
+                  <div>
+                    <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Delivered By</label>
+                    <div class="grid grid-cols-2 gap-1.5 mb-1">
+                      <div>
+                        <label class="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Name</label>
+                        <input v-model="receiptForms[m.id].deliveredByName" type="text"
+                          class="w-full text-[10px] font-mono px-2.5 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                      <div>
+                        <label class="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">ID / Cédula</label>
+                        <input v-model="receiptForms[m.id].deliveredByIdNum" type="text"
+                          class="w-full text-[10px] font-mono px-2.5 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                    </div>
+                    <SignaturePad v-model="receiptForms[m.id].deliveredBySig" :width="280" :height="50" />
+                  </div>
+                  <div>
+                    <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Broker Representative</label>
+                    <div class="grid grid-cols-2 gap-1.5 mb-1">
+                      <div>
+                        <label class="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Name</label>
+                        <input v-model="receiptForms[m.id].brokerName" type="text"
+                          class="w-full text-[10px] font-mono px-2.5 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                      <div>
+                        <label class="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">ID / Cédula</label>
+                        <input v-model="receiptForms[m.id].brokerIdNum" type="text"
+                          class="w-full text-[10px] font-mono px-2.5 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
+                      </div>
+                    </div>
+                    <SignaturePad v-model="receiptForms[m.id].brokerSig" :width="280" :height="50" />
+                  </div>
+                </div>
+              </div>
+
+              </div> <!-- end scrollable step content -->
+
+              <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-400 shrink-0">
+                <div class="flex items-center gap-2">
+                  <button @click="prevStep" :disabled="localStep === 1"
+                    class="text-[10px] px-2.5 py-1 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition disabled:opacity-30">
+                    &#9664; Anterior
+                  </button>
+                  <button @click="cancelForm"
+                    class="text-[10px] px-2.5 py-1 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-600 hover:bg-slate-50 transition">
+                    &#10005; Cancelar
+                  </button>
+                  <span v-if="successMsg" class="text-slate-700 text-[12px] font-mono font-bold ">{{ successMsg }}</span>
+                </div>
+                <div v-if="localStep < 5">
+                  <button @click="nextStep"
+                    class="text-[10px] px-2.5 py-1 rounded border border-slate-950 font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 transition">
+                    Siguiente &#9654;
+                  </button>
+                </div>
+                <div v-else>
+                  <button @click="printPreview(m)"
+                    class="text-[10px] px-2.5 py-1 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-slate-100 transition mr-1.5"
+                    title="Vista previa para impresión">
+                    &#128424; Vista Previa
+                  </button>
+                  <button v-if="receiptForms[m.id]._existingReceiptId" @click="editReceipt(m)"
+                    class="flex items-center gap-1 text-[10px] px-3 py-1 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-700 hover:bg-slate-600 transition mr-1.5">
+                    &#9998; Editar Recibo
+                  </button>
+                  <button @click="openConfirmModal(m)" :disabled="submitting"
+                    class="flex items-center gap-1 text-[10px] px-3 py-1 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-800 hover:bg-slate-700 transition disabled:opacity-50">
+                    <span>{{ submitting ? 'Guardando...' : (receiptForms[m.id]._existingReceiptId ? '&#10003; Actualizar Recibo' : '&#10003; Confirmar Recibo') }}</span>
+                  </button>
+                </div>
+              </div>
+            </div> <!-- end flex-col container -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAWB Evidence Manager Modal -->
+    <Teleport to="body">
+      <div v-if="mawbEvidenceMgr.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="closeMawbEvidenceMgr">
+        <div class="bg-white rounded-lg shadow-2xl overflow-hidden mx-4" style="max-width: 640px; width: 100%; max-height: 80vh;">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-400">
+            <span class="text-[12px] font-mono font-black uppercase tracking-widest text-slate-950">
+              Evidencias — {{ mawbEvidenceMgr.mawb?.awbNumber || 'MAWB' }}
+            </span>
+            <button @click="closeMawbEvidenceMgr" class="text-slate-950 hover:text-slate-950 transition text-base">✕</button>
+          </div>
+          <div class="p-4 overflow-y-auto" style="max-height: calc(80vh - 120px);">
+            <div v-if="mawbEvidenceMgr.docs.length === 0" class="text-[12px] font-mono text-slate-950 text-center py-6 uppercase tracking-widest">
+              Sin evidencias documentales
+            </div>
+            <div v-else class="grid grid-cols-3 gap-2 mb-4">
+              <div v-for="(doc, di) in mawbEvidenceMgr.docs" :key="di"
+                class="relative border border-slate-400 rounded overflow-hidden bg-white group cursor-pointer" @click="previewEvidence(doc)">
+                <img v-if="doc.type === 'image' && doc.url" :src="doc.url" class="w-full h-20 object-cover" />
+                <div v-else-if="isPdfUrl(doc.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 font-mono">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-7 h-7 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <span class="text-[10px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
+                </div>
+                <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[11px] font-mono">{{ doc.name }}</div>
+                <button @click.stop="removeMawbEvidence(di)" class="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-slate-500 text-white rounded-full text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>
+                <span class="block text-[11px] font-mono text-slate-950 px-2 py-1 truncate">{{ doc.name }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 border-t border-slate-300 pt-3">
+              <button @click="mawbEvidenceInput.click()"
+                class="text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition">
+                + Subir archivo
+              </button>
+              <button @click="openMawbCamera()"
+                class="text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider font-bold text-slate-950 hover:bg-white transition flex items-center gap-1">
+                <IconCamera :size="12" /> Cámara
+              </button>
+              <button v-if="mawbEvidenceMgr.docs.length > 0" @click="downloadMawbEvidencePdf()"
+                class="ml-auto text-[10px] px-3 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-700 hover:bg-slate-600 transition">
+                &#128196; PDF
+              </button>
+            </div>
+            <input type="file" ref="mawbEvidenceInput" @change="handleMawbEvidenceUpload" accept="image/*,.pdf" class="hidden" />
+            <CameraCapture :show="mawbCameraOpen" @close="mawbCameraOpen = false" @captured="onMawbCameraCapture" />
+          </div>
+          <div class="flex justify-end px-4 py-2.5 border-t border-slate-400 bg-slate-100">
+            <button @click="saveMawbEvidence()"
+              class="text-[10px] px-4 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 transition">
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Confirm Submit Modal -->
+    <Teleport to="body">
+      <div v-if="showConfirmModal" class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm" @click.self="showConfirmModal = false">
+        <div class="bg-white rounded-lg shadow-2xl overflow-hidden mx-4" style="max-width: 520px; width: 100%; max-height: 80vh;">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-400">
+            <span class="text-[12px] font-mono font-black uppercase tracking-widest text-slate-950">Confirmar Recibo</span>
+            <button @click="showConfirmModal = false" class="text-slate-950 hover:text-slate-950 transition text-base">✕</button>
+          </div>
+          <div class="overflow-y-auto" style="max-height: calc(80vh - 110px);">
+            <template v-if="pendingSubmitMawb">
+              <div class="px-4 py-3 space-y-2 text-[11px] font-mono text-slate-950">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  <span class="text-slate-500 uppercase tracking-wider">MAWB</span>
+                  <span class="font-bold text-right">{{ pendingSubmitMawb.awbNumber }}</span>
+                  <span class="text-slate-500 uppercase tracking-wider">Destino</span>
+                  <span class="font-bold text-right">{{ receiptForms[pendingSubmitMawb.id]?.destination || pendingSubmitMawb.destination || '—' }}</span>
+                  <span class="text-slate-500 uppercase tracking-wider">Piezas</span>
+                  <span class="font-bold text-right">{{ (receiptForms[pendingSubmitMawb.id]?.pieces || []).reduce((s, p) => s + (p.pieces || 1), 0) }}</span>
+                  <span class="text-slate-500 uppercase tracking-wider">Peso (Kg)</span>
+                  <span class="font-bold text-right">{{ (receiptForms[pendingSubmitMawb.id]?.pieces || []).reduce((s, p) => s + (p.scaleWeightKg || 0), 0).toFixed(1) }}</span>
+                  <span class="text-slate-500 uppercase tracking-wider">Shipper</span>
+                  <span class="font-bold text-right truncate">{{ receiptForms[pendingSubmitMawb.id]?.shipperName || pendingSubmitMawb.shipperName || '—' }}</span>
+                  <span class="text-slate-500 uppercase tracking-wider">Consignee</span>
+                  <span class="font-bold text-right truncate">{{ receiptForms[pendingSubmitMawb.id]?.consigneeName || pendingSubmitMawb.consigneeName || '—' }}</span>
+                </div>
+                <div class="border-t border-slate-300 pt-2 mt-2">
+                  <div class="flex flex-wrap gap-2">
+                    <span v-if="receiptForms[pendingSubmitMawb.id]?.cashOnly" class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">Cash Only</span>
+                    <span v-if="receiptForms[pendingSubmitMawb.id]?.bookedInAcoms" class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">Booked in ACOMS</span>
+                    <span v-if="receiptForms[pendingSubmitMawb.id]?.docsProvided" class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">Docs Provided</span>
+                    <span v-if="receiptForms[pendingSubmitMawb.id]?.customsCompleted" class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">Customs Done</span>
+                    <span v-if="receiptForms[pendingSubmitMawb.id]?.preBuilt" class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">Pre-built</span>
+                  </div>
+                </div>
+                <div class="border-t border-slate-300 pt-2 mt-2 flex justify-between text-[10px] text-slate-500">
+                  <span>{{ (receiptForms[pendingSubmitMawb.id]?.evidence || []).length }} evidencias</span>
+                  <span>{{ (receiptForms[pendingSubmitMawb.id]?.pieces || []).filter(p => p.lengthIn).length }} piezas con dimensiones</span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="flex items-center justify-end gap-2 px-4 py-2 border-t border-slate-400 bg-slate-100">
+            <button @click="showConfirmModal = false"
+              class="text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-white transition">
+              Cancelar
+            </button>
+            <button @click="confirmSubmit"
+              class="text-[10px] px-4 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-800 hover:bg-slate-700 transition">
+              &#10003; Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Evidence Preview Modal -->
+    <Teleport to="body">
+      <div v-if="evidencePreview.show" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeEvidencePreview">
+        <div class="bg-white rounded-lg shadow-2xl overflow-hidden mx-4" style="max-width: 900px; width: 100%; max-height: 90vh;">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-400">
+            <span class="text-[12px] font-mono font-black uppercase tracking-widest text-slate-950 truncate max-w-[70%]">
+              {{ evidencePreview.item?.name || 'Vista previa' }}
+            </span>
+            <button @click="closeEvidencePreview" class="text-slate-950 hover:text-slate-950 transition text-base">✕</button>
+          </div>
+          <div class="overflow-auto bg-slate-900 flex items-center justify-center" style="max-height: calc(90vh - 110px); min-height: 200px;">
+            <img v-if="evidencePreview.item?.type === 'image' && evidencePreview.item?.url" :src="evidencePreview.item.url"
+              class="max-w-full max-h-full object-contain" style="max-height: calc(90vh - 120px);" />
+            <embed v-else-if="isPdfUrl(evidencePreview.item?.url)" :src="evidencePreview.item.url"
+              type="application/pdf" class="w-full" style="height: calc(90vh - 110px);" />
+            <div v-else class="text-white/60 font-mono text-[12px] p-8 text-center">
+              {{ evidencePreview.item?.name || 'Sin vista previa disponible' }}
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 px-4 py-2 border-t border-slate-400 bg-slate-100">
+            <button @click="closeEvidencePreview"
+              class="text-[10px] px-3 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-white transition">
+              Cerrar
+            </button>
+            <button @click="downloadEvidenceItem(evidencePreview.item)"
+              class="text-[10px] px-3 py-1.5 rounded font-mono uppercase tracking-wider font-bold text-white bg-slate-950 hover:bg-slate-800 transition">
+              &#128229; Descargar
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAppStore } from '../stores/app'
+import SignaturePad from '../components/SignaturePad.vue'
+import CameraCapture from '../components/CameraCapture.vue'
+import { IconCamera } from '@tabler/icons-vue'
+import { hawbsApi } from '../api/hawbs'
+import { mawbsApi } from '../api/mawbs'
+import { receiptsApi } from '../api/receipts'
+import { useToastStore } from '../stores/toast'
+import { extractError } from '../utils/error'
+
+const store = useAppStore()
+const toast = useToastStore()
+const route = useRoute()
+
+function airlineCodeById(airlineId) {
+  const a = store.airlines.find(x => x.id === airlineId)
+  return a?.code || 'AIR'
+}
+
+const localFlightId = ref(store.selectedFlightId)
+const expandedId = ref(localStorage.getItem('WAREHOUSE_EXPANDED_MAWB') || null)
+const localStep = ref(1)
+const submitting = ref(false)
+const successMsg = ref('')
+const showConfirmModal = ref(false)
+const pendingSubmitMawb = ref(null)
+const formVersion = ref(0)
+function bumpFormVersion() { formVersion.value++ }
+let formVersionDebounceTimer = null
+// Version debounced: coalesce varias pulsaciones de teclado en un solo refresco del bloque
+// memoizado (v-memo) del MAWB, para no forzar un re-render pesado por cada digito tecleado
+// en dimensiones/cantidad, manteniendo la sensacion de actualizacion "en vivo".
+function bumpFormVersionDebounced(delay = 150) {
+  if (formVersionDebounceTimer) clearTimeout(formVersionDebounceTimer)
+  formVersionDebounceTimer = setTimeout(() => {
+    bumpFormVersion()
+    formVersionDebounceTimer = null
+  }, delay)
+}
+let successTimer = null
+const showCamera = ref(false)
+const cameraMawbId = ref(null)
+const uploadingMawbId = ref(null)
+
+const receiptForms = reactive({})
+const receiptHawbs = reactive({})
+const generatedReceiptId = ref(null)
+
+// Draft persistence (auto-save)
+const DRAFT_PREFIX = 'warehouse_draft_'
+const lastDraftSave = ref('')
+const showPrintPreview = ref(false)
+
+function saveDraft(mawbId) {
+  const f = receiptForms[mawbId]
+  if (!f) return
+  try {
+    const data = {
+      gatewayCfs: f.gatewayCfs,
+      shipperName: f.shipperName,
+      consigneeName: f.consigneeName,
+      origin: f.origin,
+      destination: f.destination,
+      awbReportedPieces: f.awbReportedPieces,
+      mawbWeightGreatest: f.mawbWeightGreatest,
+      dimFactorKg: f.dimFactorKg,
+      cashOnly: f.cashOnly,
+      bookedInAcoms: f.bookedInAcoms,
+      docsProvided: f.docsProvided,
+      customsCompleted: f.customsCompleted,
+      preBuilt: f.preBuilt,
+      hawbCount: f.hawbCount,
+      hawbEntries: f.hawbEntries.map(e => ({
+        hawbNumber: e.hawbNumber, consigneeName: e.consigneeName,
+        pieces: e.pieces, weightKg: e.weightKg, destination: e.destination,
+      })),
+      pieces: f.pieces.map(p => ({
+        pieces: p.pieces, hawbId: p.hawbId,
+        lengthIn: p.lengthIn, widthIn: p.widthIn, heightIn: p.heightIn,
+        scaleWeightLbs: p.scaleWeightLbs,
+      })),
+      remarks: f.remarks,
+      printName: f.printName,
+      deliveredByName: f.deliveredByName,
+      deliveredByIdNum: f.deliveredByIdNum,
+      brokerName: f.brokerName,
+      brokerIdNum: f.brokerIdNum,
+    }
+    localStorage.setItem(DRAFT_PREFIX + mawbId, JSON.stringify(data))
+    lastDraftSave.value = new Date().toLocaleTimeString()
+  } catch {}
+}
+
+function loadDraft(mawbId) {
+  try {
+    const raw = localStorage.getItem(DRAFT_PREFIX + mawbId)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch { return null }
+}
+
+function clearDraft(mawbId) {
+  try { localStorage.removeItem(DRAFT_PREFIX + mawbId) } catch {}
+}
+
+function applyDraftToForm(mawbId) {
+  const draft = loadDraft(mawbId)
+  const f = receiptForms[mawbId]
+  if (!draft || !f) return
+  Object.assign(f, {
+    gatewayCfs: draft.gatewayCfs ?? f.gatewayCfs,
+    shipperName: draft.shipperName ?? f.shipperName,
+    consigneeName: draft.consigneeName ?? f.consigneeName,
+    origin: draft.origin ?? f.origin,
+    destination: draft.destination ?? f.destination,
+    awbReportedPieces: draft.awbReportedPieces ?? f.awbReportedPieces,
+    mawbWeightGreatest: draft.mawbWeightGreatest ?? f.mawbWeightGreatest,
+    dimFactorKg: draft.dimFactorKg ?? f.dimFactorKg,
+    cashOnly: draft.cashOnly ?? f.cashOnly,
+    bookedInAcoms: draft.bookedInAcoms ?? f.bookedInAcoms,
+    docsProvided: draft.docsProvided ?? f.docsProvided,
+    customsCompleted: draft.customsCompleted ?? f.customsCompleted,
+    preBuilt: draft.preBuilt ?? f.preBuilt,
+    hawbCount: draft.hawbCount ?? f.hawbCount,
+    hawbEntries: draft.hawbEntries?.length ? draft.hawbEntries : f.hawbEntries,
+    pieces: draft.pieces?.length ? draft.pieces.map(p => ({
+      pieces: p.pieces ?? 1, hawbId: p.hawbId ?? null,
+      lengthIn: p.lengthIn ?? null, widthIn: p.widthIn ?? null, heightIn: p.heightIn ?? null,
+      scaleWeightLbs: p.scaleWeightLbs ?? null,
+      dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0,
+    })) : f.pieces,
+    remarks: draft.remarks ?? f.remarks,
+    printName: draft.printName ?? f.printName,
+    deliveredByName: draft.deliveredByName ?? f.deliveredByName,
+    deliveredByIdNum: draft.deliveredByIdNum ?? f.deliveredByIdNum,
+    brokerName: draft.brokerName ?? f.brokerName,
+    brokerIdNum: draft.brokerIdNum ?? f.brokerIdNum,
+  })
+  lastDraftSave.value = 'borrador'
+}
+
+// Auto-save watch (debounced on active form)
+const activeFormJson = computed(() => {
+  const mId = expandedId.value
+  if (!mId || !receiptForms[mId]) return null
+  const f = receiptForms[mId]
+  if (f._existingReceiptId) return null // don't auto-save existing receipts
+  return JSON.stringify({
+    gc: f.gatewayCfs, sn: f.shipperName, cn: f.consigneeName,
+    or: f.origin, de: f.destination, arp: f.awbReportedPieces,
+    mwg: f.mawbWeightGreatest, dfk: f.dimFactorKg, co: f.cashOnly, bi: f.bookedInAcoms,
+    dp: f.docsProvided, cc: f.customsCompleted, pb: f.preBuilt,
+    hc: f.hawbCount, he: f.hawbEntries.map(e => ({
+      hn: e.hawbNumber, cn: e.consigneeName, p: e.pieces,
+      wk: e.weightKg, d: e.destination
+    })),
+    pcs: f.pieces.map(p => ({
+      p: p.pieces, l: p.lengthIn, w: p.widthIn, h: p.heightIn,
+      sl: p.scaleWeightLbs
+    })),
+    r: f.remarks, pn: f.printName, dbn: f.deliveredByName,
+    dbi: f.deliveredByIdNum, bn: f.brokerName, bii: f.brokerIdNum,
+  })
+})
+
+let draftTimer = null
+watch(activeFormJson, (json) => {
+  if (!json) return
+  if (draftTimer) clearTimeout(draftTimer)
+  draftTimer = setTimeout(() => {
+    const mId = expandedId.value
+    if (mId) saveDraft(mId)
+  }, 2000)
+})
+
+const downloadableReceiptId = computed(() => {
+  if (generatedReceiptId.value) return generatedReceiptId.value
+  const mId = expandedId.value
+  if (!mId) return null
+  const f = receiptForms[mId]
+  return f?._existingReceiptId || null
+})
+
+const filterTextRaw = ref('')
+const filterText = ref('')
+const filterDate = ref('')
+
+// Column header filters
+const headerFilterOpen = ref(null)
+const columnFilters = reactive({ mawb: null, shipper: null, dest: null, status: null })
+
+const uniqueValues = computed(() => {
+  const mawbs = store.mawbs
+  return {
+    mawb: [...new Set(mawbs.map(m => m.awbNumber).filter(Boolean))].sort(),
+    shipper: [...new Set(mawbs.map(m => m.shipperName).filter(Boolean))].sort(),
+    dest: [...new Set(mawbs.map(m => m.destination).filter(Boolean))].sort(),
+  }
+})
+
+const statusOptions = [
+  { key: 'BOOKED', label: 'Pendientes', dotClass: 'bg-slate-400' },
+  { key: 'PENDING', label: 'En Proceso', dotClass: 'bg-slate-500' },
+  { key: 'RECEIVED', label: 'Recibidos', dotClass: 'bg-slate-600' },
+]
+
+function toggleHeaderFilter(col) {
+  headerFilterOpen.value = headerFilterOpen.value === col ? null : col
+}
+
+function setColumnFilter(col, val) {
+  columnFilters[col] = val
+  headerFilterOpen.value = null
+}
+
+// Bulk selection
+const selectedMawbIds = reactive(new Set())
+const bulkStatusTarget = ref('')
+
+function toggleSelectAll(e) {
+  if (e.target.checked) {
+    filteredMawbs.value.forEach(m => selectedMawbIds.add(m.id))
+  } else {
+    selectedMawbIds.clear()
+  }
+}
+
+function toggleSelect(id) {
+  if (selectedMawbIds.has(id)) selectedMawbIds.delete(id)
+  else selectedMawbIds.add(id)
+}
+
+async function applyBulkStatus() {
+  const target = bulkStatusTarget.value
+  if (!target || selectedMawbIds.size === 0) return
+  const ids = [...selectedMawbIds]
+  if (!confirm(`¿Cambiar estado de ${ids.length} MAWB(s) a "${statusSteps.find(s => s.key === target)?.label}"?`)) return
+  let ok = 0, fail = 0
+  for (const id of ids) {
+    try {
+      await mawbsApi.updateStatus(id, target)
+      ok++
+    } catch { fail++ }
+  }
+  selectedMawbIds.clear()
+  bulkStatusTarget.value = ''
+  if (store.selectedFlightId) await store.loadMawbs(store.selectedFlightId); else await store.loadAllMawbs()
+  toast.success(`${ok} actualizado(s)` + (fail ? `, ${fail} error(es)` : ''))
+}
+
+let filterDebounce = null
+watch(filterTextRaw, (val) => {
+  if (filterDebounce) clearTimeout(filterDebounce)
+  filterDebounce = setTimeout(() => { filterText.value = val }, 200)
+})
+
+const statusPriority = { BOOKED: 0, PENDING: 1, RECEIVED: 2 }
+
+const filteredMawbs = computed(() => {
+  let list = store.mawbs
+  if (columnFilters.status === 'BOOKED') {
+    list = list.filter(m => !m.status || m.status === 'BOOKED')
+  } else if (columnFilters.status === 'PENDING') {
+    list = list.filter(m => m.status === 'PENDING')
+  } else if (columnFilters.status === 'RECEIVED') {
+    list = list.filter(m => m.status === 'RECEIVED')
+  }
+  if (columnFilters.mawb) {
+    list = list.filter(m => m.awbNumber === columnFilters.mawb)
+  }
+  if (columnFilters.shipper) {
+    list = list.filter(m => m.shipperName === columnFilters.shipper)
+  }
+  if (columnFilters.dest) {
+    list = list.filter(m => m.destination === columnFilters.dest)
+  }
+  if (filterDate.value) {
+    const target = filterDate.value
+    const mawbsWithReceipt = (store.receipts || [])
+      .filter(r => {
+        const d = r.receiptDate || r.createdAt
+        return d && d.startsWith(target)
+      })
+      .map(r => r.mawb?.id || r.mawbId)
+      .filter(Boolean)
+    list = list.filter(m => mawbsWithReceipt.includes(m.id))
+  }
+  const ft = filterText.value.trim()
+  if (ft) list = list.filter(m => applyFilter(m, ft))
+
+  return [...list].sort((a, b) => {
+    const pa = statusPriority[a.status || 'BOOKED'] ?? 0
+    const pb = statusPriority[b.status || 'BOOKED'] ?? 0
+    if (pa !== pb) return pa - pb
+    return (b.awbNumber || '').localeCompare(a.awbNumber || '')
+  })
+})
+
+function applyFilter(m, ft) {
+  const numMatch = ft.match(/^(>=?|<=?|=)?(\d+(?:\.\d+)?)$/)
+  if (numMatch) {
+    const op = numMatch[1] || '='
+    const val = parseFloat(numMatch[2])
+    // Use received pieces from receiptTotals (what's actually shown in the column)
+    const num = receiptTotals.value[m.id]?.pieces || m.pieces || 0
+    switch (op) {
+      case '>=': return num >= val
+      case '>':  return num > val
+      case '<=': return num <= val
+      case '<':  return num < val
+      case '=':  return num === val
+      default:   return false
+    }
+  }
+  if (ft.startsWith('*') && ft.endsWith('*')) {
+    const mid = ft.slice(1, -1).toLowerCase()
+    return matchAnyField(m, v => v.toLowerCase().includes(mid))
+  }
+  if (ft.startsWith('*')) {
+    const suffix = ft.slice(1).toLowerCase()
+    return matchAnyField(m, v => v.toLowerCase().endsWith(suffix))
+  }
+  if (ft.endsWith('*')) {
+    const prefix = ft.slice(0, -1).toLowerCase()
+    return matchAnyField(m, v => v.toLowerCase().startsWith(prefix))
+  }
+  const lower = ft.toLowerCase()
+  return matchAnyField(m, v => v.toLowerCase().includes(lower))
+}
+
+function matchAnyField(m, fn) {
+  const fields = [
+    m.awbNumber, m.shipperName, m.consigneeName,
+    m.destination, m.origin,
+  ].filter(Boolean)
+  return fields.some(fn)
+}
+
+const steps = ['HEADER', 'PIECES', 'REMARKS', 'EVIDENCE', 'SIGNATURES']
+const statusSteps = [
+  { key: 'BOOKED',   color: 'bg-slate-500 border-slate-600', label: 'Pendiente',  tone: 'slate' },
+  { key: 'PENDING',  color: 'bg-slate-600 border-slate-700',   label: 'En Proceso', tone: 'slate' },
+  { key: 'RECEIVED', color: 'bg-slate-700 border-slate-800', label: 'Recibido', tone: 'slate' },
+]
+const statusOrder = ['BOOKED', 'PENDING', 'RECEIVED']
+
+function getStatusDot(m, s) {
+  const cur = m.status || 'BOOKED'
+  const idx = statusOrder.indexOf(cur)
+  const stepIdx = statusOrder.indexOf(s.key)
+  if (idx < 0) return 'bg-slate-200 border-slate-300'
+  if (stepIdx < idx) return s.color + ' opacity-60'
+  if (stepIdx === idx) return s.color + ' scale-125 ring-2 ring-offset-1 ring-slate-400'
+  return 'bg-slate-200 border-slate-300'
+}
+
+function statusLabel(m) {
+  const labels = { BOOKED: 'Pendiente', PENDING: 'En Proceso', RECEIVED: 'Recibido' }
+  return labels[m.status] || 'Pendiente'
+}
+
+function statusLabelClass(m) {
+  const cls = {
+    BOOKED: 'text-slate-500',
+    PENDING: 'text-slate-600',
+    RECEIVED: 'text-slate-700',
+  }
+  return cls[m.status] || 'text-slate-500'
+}
+
+function initForm(m) {
+  if (!receiptForms[m.id]) {
+  const hawbs = hawbsForDisplay(m.id)
+    const h0 = hawbs[0]
+    const fallbackShipper = h0?.shipperName || m.shipperName || ''
+    const fallbackConsignee = h0?.consigneeName || m.consigneeName || (hawbs.length === 1 ? hawbs[0]?.consigneeName : '') || ''
+    const fallbackWeight = m.reportedWeightKg || (hawbs.length > 0 ? hawbs.reduce((s, h) => s + (h.weightKg ? Number(h.weightKg) : 0), 0) : 0) || 0
+    const hawbEntries = hawbs.length > 0
+      ? hawbs.map(h => ({
+          hawbNumber: h.hawbNumber || '',
+          consigneeName: h.consigneeName || '',
+          pieces: h.pieces || 0,
+          weightKg: h.weightKg ? Number(h.weightKg) : 0,
+          destination: h.destination || m.destination || 'MIA',
+          _dbId: h.id,
+          _hawbId: h.id,
+        }))
+      : [{ hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0, destination: m.destination || 'MIA', _dbId: null, _hawbId: '_hawb_' + Date.now() }]
+
+    receiptForms[m.id] = {
+      gatewayCfs: 'SDQ',
+      shipperName: m.shipperName || fallbackShipper,
+      consigneeName: m.consigneeName || fallbackConsignee,
+      origin: m.origin || store.selectedFlight?.origin || 'SDQ',
+      destination: m.destination || store.selectedFlight?.destination || 'MIA',
+      awbReportedPieces: m.pieces || (hawbs.length > 0 ? hawbs.reduce((s, h) => s + (h.pieces || 0), 0) : 0) || 0,
+      mawbWeightGreatest: 0, // auto-calculado desde scaleWeightLbs de las piezas al cargar
+      dimFactorKg: 366, // factor dimensional (KG); se sincroniza con dimFactorIntl del backend al cargar un recibo existente
+      cashOnly: false,
+      bookedInAcoms: false,
+      docsProvided: false,
+      customsCompleted: false,
+      preBuilt: false,
+      hawbCount: Math.max(hawbs.length, 1),
+      hawbEntries,
+      pieces: [{ pieces: 1, hawbId: null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 }],
+      remarks: '',
+      evidence: [],
+      mawbEvidence: [],
+      dockSignature: '',
+      printName: '',
+      deliveredByName: '',
+      deliveredByIdNum: '',
+      deliveredBySig: '',
+      brokerName: '',
+      brokerIdNum: '',
+      brokerSig: '',
+      _existingReceiptId: null,
+      _existingHawbReceiptIds: {},
+      pieceCount: 0,
+      totalWeightKg: 0,
+    }
+  }
+}
+
+async function loadExistingReceiptData(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const existingReceipts = (store.receipts || []).filter(r => (r.mawb?.id || r.mawbId) === m.id)
+  if (existingReceipts.length === 0) return
+  // Usar el recibo general como fuente de verdad (contiene todas las piezas).
+  // En multi-HAWB, los recibos por HAWB tienen subconjuntos de piezas.
+  const generalReceipts = existingReceipts.filter(r => !r.hawbId)
+  const sourceReceipt = generalReceipts.length > 0
+    ? generalReceipts[generalReceipts.length - 1]
+    : existingReceipts[existingReceipts.length - 1]
+  f._existingReceiptId = generalReceipts.length > 0 ? generalReceipts[generalReceipts.length - 1].id : null
+  // Mapa de hawbId → receiptId para los recibos por HAWB
+  f._existingHawbReceiptIds = {}
+  for (const r of existingReceipts) {
+    if (r.hawbId) {
+      f._existingHawbReceiptIds[r.hawbId] = r.id
+    }
+  }
+  f.gatewayCfs = sourceReceipt.gatewayCfs ?? 'SDQ'
+  f.shipperName = sourceReceipt.shipperName ?? f.shipperName
+  f.consigneeName = sourceReceipt.consigneeName ?? f.consigneeName
+  f.origin = sourceReceipt.origin ?? f.origin
+  f.destination = sourceReceipt.destination ?? f.destination
+  f.awbReportedPieces = sourceReceipt.awbReportedPieces ?? f.awbReportedPieces
+  f.mawbWeightGreatest = sourceReceipt.mawbWeightGreatest ?? f.mawbWeightGreatest
+  f.dimFactorKg = sourceReceipt.dimFactorIntl ? Number(sourceReceipt.dimFactorIntl) : f.dimFactorKg
+  f.cashOnly = sourceReceipt.cashOnly ?? f.cashOnly
+  f.bookedInAcoms = sourceReceipt.bookedInAcoms ?? f.bookedInAcoms
+  f.docsProvided = sourceReceipt.docsProvided ?? f.docsProvided
+  f.customsCompleted = sourceReceipt.customsCompleted ?? f.customsCompleted
+  f.preBuilt = sourceReceipt.preBuilt ?? f.preBuilt
+  f.remarks = sourceReceipt.remarks ?? f.remarks
+  f.dockSignature = sourceReceipt.dockSignature ?? f.dockSignature
+  f.printName = sourceReceipt.printName ?? f.printName
+  f.deliveredByName = sourceReceipt.deliveredByName ?? f.deliveredByName
+  f.deliveredByIdNum = sourceReceipt.deliveredByIdNum ?? f.deliveredByIdNum
+  f.deliveredBySig = sourceReceipt.deliveredBySigUrl ?? f.deliveredBySig
+  f.brokerName = sourceReceipt.brokerName ?? f.brokerName
+  f.brokerIdNum = sourceReceipt.brokerIdNum ?? f.brokerIdNum
+  f.brokerSig = sourceReceipt.brokerSigUrl ?? f.brokerSig
+  f.pieceCount = sourceReceipt.pieceCount ?? 0
+  f.totalWeightKg = sourceReceipt.actualWeightKg ?? sourceReceipt.chargeableWeightKg ?? 0
+  try {
+    const piecesRes = await receiptsApi.getPieces(sourceReceipt.id)
+    const loadedPieces = piecesRes.data || []
+    if (loadedPieces.length > 0) {
+      f.pieces = loadedPieces.map((p, pi) => {
+        const piece = {
+          pieces: p.pieces ?? 1,
+          hawbId: p.hawbId ?? null,
+          lengthIn: p.lengthIn ?? null,
+          widthIn: p.widthIn ?? null,
+          heightIn: p.heightIn ?? null,
+          scaleWeightLbs: p.scaleWeightLbs ?? null,
+          dimWeight: 0, dimWeightLbs: 0,
+          scaleWeightKg: p.scaleWeightKg ?? 0, dimWeightKg: 0,
+          chargeableKg: 0, chargeableLbs: 0,
+        }
+        // Recalculate derived values from stored dimensions
+        if (piece.lengthIn || piece.widthIn || piece.heightIn) {
+          calcPiece(m.id, pi)
+        }
+        return piece
+      })
+      // MAWB weight = suma de pesos de bascula de todas las piezas cargadas
+      f.mawbWeightGreatest = totalScaleLbs(m.id, null)
+    }
+  } catch (e) { toast.error(extractError(e)) }
+  try {
+    const docsRes = await receiptsApi.getSupportingDocsJson(sourceReceipt.id)
+    if (docsRes.data && Array.isArray(docsRes.data)) {
+      f.evidence = docsRes.data.map(d => ({
+        name: d.name || 'documento',
+        type: d.type || 'document',
+        url: d.url || '',
+        file: null,
+      }))
+    }
+  } catch (e) { /* no supporting docs yet */ }
+}
+
+function calcPiece(mawbId, pi) {
+  const p = receiptForms[mawbId].pieces[pi]
+  const l = p.lengthIn || 0
+  const w = p.widthIn || 0
+  const h = p.heightIn || 0
+  const qty = p.pieces || 1
+  const vol = l * w * h * qty
+  // Factor dimensional configurable (backend: WarehouseReceipt.dimFactorIntl, default 366).
+  // El backend usa ESTE MISMO factor tanto para el peso "lbs" como para derivar el "kg"
+  // (kg = lbs_dim * 0.45359237). Se replica aqui exactamente esa formula para que el numero
+  // que se ve al tipear coincida con el que queda guardado despues de emitir el recibo.
+  const dimFactorKg = receiptForms[mawbId]?.dimFactorKg || 366
+  const dimWeightLbsRaw = vol > 0 ? vol / dimFactorKg : 0
+  p.dimWeight = dimWeightLbsRaw
+  p.dimWeightLbs = dimWeightLbsRaw
+  p.dimWeightKg = dimWeightLbsRaw * 0.45359237
+  p.scaleWeightKg = p.scaleWeightLbs ? p.scaleWeightLbs / 2.20462 : 0
+  p.chargeableKg = Math.max(p.dimWeightKg, p.scaleWeightKg)
+  p.chargeableLbs = Math.max(p.dimWeightLbs, p.scaleWeightLbs || 0)
+  // MAWB weight = suma de pesos de bascula de todas las piezas
+  const f = receiptForms[mawbId]
+  if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
+  bumpFormVersionDebounced() // refresca (con debounce) el bloque memoizado del MAWB para reflejar totales al tipear
+}
+
+function allPieces(mawbId, hawbId) {
+  const pieces = receiptForms[mawbId]?.pieces || []
+  return hawbId ? pieces.filter(p => p.hawbId === hawbId) : pieces
+}
+
+function totalPieces(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.pieces || 1), 0)
+}
+
+function totalDimWeight(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.dimWeight || 0), 0)
+}
+
+function totalScaleLbs(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.scaleWeightLbs || 0), 0)
+}
+
+function totalDimLbs(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.dimWeightLbs || 0), 0)
+}
+
+function totalScaleKg(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.scaleWeightKg || 0), 0)
+}
+
+function totalDimKg(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId).reduce((s, p) => s + (p.dimWeightKg || 0), 0)
+}
+
+function totalChargeableKg(mawbId, hawbId) {
+  const pieces = allPieces(mawbId, hawbId)
+  const totalDim = pieces.reduce((s, p) => s + (p.dimWeightKg || 0), 0)
+  const totalScale = pieces.reduce((s, p) => s + (p.scaleWeightKg || 0), 0)
+  return Math.max(totalDim, totalScale)
+}
+
+function totalChargeableLbs(mawbId, hawbId) {
+  const pieces = allPieces(mawbId, hawbId)
+  const totalDim = pieces.reduce((s, p) => s + (p.dimWeightLbs || 0), 0)
+  const totalScale = pieces.reduce((s, p) => s + (p.scaleWeightLbs || 0), 0)
+  return Math.max(totalDim, totalScale)
+}
+
+function hawbsForDisplay(mawbId) {
+  if (receiptHawbs[mawbId] && receiptHawbs[mawbId].length > 0) return receiptHawbs[mawbId]
+  return receiptForms[mawbId]?.hawbEntries || []
+}
+
+function piecesByHawb(mawbId, hawbId) {
+  return allPieces(mawbId, hawbId)
+}
+
+// Igual que piecesByHawb, pero conserva el indice real dentro de receiptForms[mawbId].pieces
+// para cada elemento. Evita tener que hacer pieces.indexOf(p) repetidamente en el template
+// (O(n) por cada input, y fragil si dos piezas fueran el mismo objeto por referencia).
+function piecesByHawbIndexed(mawbId, hawbId) {
+  const pieces = receiptForms[mawbId]?.pieces || []
+  return pieces
+    .map((piece, idx) => ({ piece, idx }))
+    .filter(entry => !hawbId || entry.piece.hawbId === hawbId)
+}
+
+function hawbTotalPieces(mawbId, hawbId) { return totalPieces(mawbId, hawbId) }
+function hawbDimWeight(mawbId, hawbId) { return totalDimWeight(mawbId, hawbId) }
+function hawbScaleLbs(mawbId, hawbId) { return totalScaleLbs(mawbId, hawbId) }
+function hawbDimLbs(mawbId, hawbId) { return totalDimLbs(mawbId, hawbId) }
+function hawbScaleKg(mawbId, hawbId) { return totalScaleKg(mawbId, hawbId) }
+function hawbDimKg(mawbId, hawbId) { return totalDimKg(mawbId, hawbId) }
+function hawbChargeableKg(mawbId, hawbId) { return totalChargeableKg(mawbId, hawbId) }
+function hawbChargeableLbs(mawbId, hawbId) { return totalChargeableLbs(mawbId, hawbId) }
+
+function syncHawbCount(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const target = Math.max(1, Math.min(50, f.hawbCount || 1))
+  f.hawbCount = target
+  while (f.hawbEntries.length < target) {
+    f.hawbEntries.push({ hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0, destination: f.destination || 'MIA', _dbId: null, _hawbId: '_hawb_' + Date.now() + '_' + f.hawbEntries.length })
+  }
+  while (f.hawbEntries.length > target) {
+    f.hawbEntries.pop()
+  }
+}
+
+function removeHawbEntry(mawbId, idx) {
+  const f = receiptForms[mawbId]
+  if (!f || f.hawbEntries.length <= 1) return
+  f.hawbEntries.splice(idx, 1)
+  f.hawbCount = f.hawbEntries.length
+}
+
+function updateHawbConsignee(h, val) {
+  h.consigneeName = val
+  h._dirty = true
+}
+
+async function syncMawbName(m, field) {
+  const val = receiptForms[m.id]?.[field]
+  if (val !== undefined && val !== m[field]) {
+    try {
+      await mawbsApi.update(m.id, { [field]: val })
+      m[field] = val
+    } catch (e) {
+      toast.error(extractError(e))
+      console.warn('Error syncing MAWB ' + field + ':', e)
+    }
+  }
+}
+
+async function changeMawbStatus(m, newStatus) {
+  const cur = m.status || 'BOOKED'
+  if (cur === newStatus) return
+  const labels = { BOOKED: 'Pendiente', PENDING: 'En Proceso', RECEIVED: 'Recibido' }
+  if (!confirm(`¿Cambiar estado de ${m.awbNumber || m.id.slice(0, 8)} de "${labels[cur] ?? cur}" a "${labels[newStatus] ?? newStatus}"?`)) return
+  m.status = newStatus
+  try {
+    await mawbsApi.updateStatus(m.id, newStatus)
+    if (store.selectedFlightId) {
+      await store.loadMawbs(store.selectedFlightId)
+    } else {
+      await store.loadAllMawbs()
+    }
+  } catch (e) {
+    toast.error(extractError(e))
+    m.status = cur
+    alert('Error al actualizar estado: ' + (e.response?.data?.error || e.message))
+  }
+}
+
+function addPiece(mawbId, hawbId) {
+  receiptForms[mawbId].pieces.push({ pieces: 1, hawbId: hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
+  const f = receiptForms[mawbId]
+  if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
+  bumpFormVersion() // fuerza refresco del bloque memoizado del MAWB (ver v-memo en el render de la lista)
+}
+
+function removePiece(mawbId, idx) {
+  const pieces = receiptForms[mawbId].pieces
+  if (pieces.length > 1) pieces.splice(idx, 1)
+  const f = receiptForms[mawbId]
+  if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
+  bumpFormVersion() // fuerza refresco del bloque memoizado del MAWB
+}
+
+function cancelForm() {
+  const mId = expandedId.value
+  if (!mId) return
+  saveDraft(mId)
+  expandedId.value = null
+  localStep.value = 1
+  generatedReceiptId.value = null
+  lastDraftSave.value = ''
+}
+
+// Step validation helpers for progress bar
+function stepData(mawbId) {
+  return receiptForms[mawbId] || null
+}
+
+function stepDone(si) {
+  const mId = expandedId.value
+  const d = stepData(mId)
+  if (!d) return false
+  if (si === 0) return !!(d.shipperName && d.consigneeName && d.origin && d.destination)
+  if (si === 1) return d.pieces.length > 0 && d.pieces.some(p => p.lengthIn || p.widthIn || p.heightIn)
+  if (si === 2) return true // remarks optional
+  if (si === 3) return true // evidence optional
+  if (si === 4) return !!(d.printName || d.dockSignature)
+  return false
+}
+
+function stepError(si) {
+  return false // could add backend validation errors here
+}
+
+function stepClass(si) {
+  if (localStep.value === si + 1) return 'bg-slate-950 text-white border-slate-950 scale-110 shadow-lg'
+  if (stepDone(si)) return 'bg-slate-500 text-white border-slate-500'
+  return 'bg-white text-slate-500 border-slate-300 group-hover:border-slate-500'
+}
+
+function stepBarClass(si) {
+  if (stepDone(si) || localStep.value > si + 1) return 'bg-slate-500'
+  if (localStep.value === si + 1) return 'bg-slate-300'
+  return 'bg-slate-200'
+}
+
+async function toggleExpand(m) {
+  if (expandedId.value === m.id) {
+    cancelForm()
+  } else {
+    expandedId.value = m.id
+    localStep.value = 1
+    generatedReceiptId.value = null
+    initForm(m)
+    applyDraftToForm(m.id)
+    try {
+      const [hawbRes, docsRes] = await Promise.all([
+        hawbsApi.getByMawb(m.id),
+        mawbsApi.getSupportingDocs(m.id).catch(() => ({ data: [] })),
+      ])
+      const hawbData = hawbRes.data
+      receiptHawbs[m.id] = hawbData
+      const f = receiptForms[m.id]
+      if (f) {
+        // Cargar evidencias del MAWB (solo lectura) en el formulario
+        f.mawbEvidence = (docsRes.data || []).filter(d => d.type === 'image' || d.type === 'document')
+
+        await loadExistingReceiptData(m)
+        bumpFormVersion()
+
+        if (hawbData.length > 0) {
+          const h0 = hawbData[0]
+          if (!f.shipperName) f.shipperName = m.shipperName || h0?.shipperName || ''
+          if (!f.consigneeName) f.consigneeName = m.consigneeName || (hawbData.length === 1 ? h0?.consigneeName : '') || ''
+          // mawbWeightGreatest se auto-calculó desde scaleWeightLbs en loadExistingReceiptData o calcPiece
+          if (!f.awbReportedPieces) f.awbReportedPieces = m.pieces || hawbData.reduce((s, h) => s + (h.pieces || 0), 0) || 0
+          const existingIds = new Set(f.hawbEntries.filter(e => e._dbId).map(e => e._dbId))
+          for (const h of hawbData) {
+            if (!existingIds.has(h.id)) {
+              f.hawbEntries.push({
+                hawbNumber: h.hawbNumber || '',
+                consigneeName: h.consigneeName || '',
+                pieces: h.pieces || 0,
+                weightKg: h.weightKg ? Number(h.weightKg) : 0,
+                destination: h.destination || f.destination || 'MIA',
+                _dbId: h.id,
+                _hawbId: h.id,
+              })
+            }
+          }
+          f.hawbCount = f.hawbEntries.length
+        }
+        if (hawbData.length > 1 && receiptForms[m.id]?.pieces?.[0]) {
+          receiptForms[m.id].pieces[0].hawbId = hawbData[0].id
+        }
+      }
+    } catch (e) {
+      toast.error(extractError(e))
+      receiptHawbs[m.id] = []
+    }
+  }
+}
+
+function nextStep() { if (localStep.value < 5) localStep.value++ }
+function prevStep() { if (localStep.value > 1) localStep.value-- }
+
+function openCamera(mawbId) {
+  cameraMawbId.value = mawbId
+  showCamera.value = true
+}
+
+function onCameraCapture(dataUrl) {
+  const mawbId = cameraMawbId.value
+  if (mawbId && dataUrl) {
+    receiptForms[mawbId].evidence.push({
+      name: 'Foto_' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-') + '.jpg',
+      type: 'image',
+      url: dataUrl,
+      file: null,
+    })
+  }
+  cameraMawbId.value = null
+}
+
+function addEvidence(mawbId) {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*,.pdf'
+  input.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:0;height:0;opacity:0;pointer-events:none'
+  const handler = (e) => {
+    input.removeEventListener('change', handler)
+    input.remove()
+    handleEvidenceUpload(mawbId, e)
+  }
+  input.addEventListener('change', handler)
+  document.body.appendChild(input)
+  input.click()
+}
+
+function isPdfUrl(url) {
+  if (!url) return false
+  if (url.startsWith('data:application/pdf')) return true
+  if (url.toLowerCase().endsWith('.pdf')) return true
+  return false
+}
+
+function compressImage(dataUrl, maxDim = 720, quality = 0.4) {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => {
+      let w = img.width, h = img.height
+      if (w > maxDim || h > maxDim) {
+        const s = Math.min(maxDim / w, maxDim / h, 1)
+        w = Math.round(w * s)
+        h = Math.round(h * s)
+      }
+      const c = document.createElement('canvas')
+      c.width = w; c.height = h
+      c.getContext('2d').drawImage(img, 0, 0, w, h)
+      resolve(c.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => resolve(dataUrl)
+    img.src = dataUrl
+  })
+}
+
+async function handleEvidenceUpload(mawbId, e) {
+  const files = e.target.files
+  if (!files || !files.length) return
+  for (const file of files) {
+    const reader = new FileReader()
+    reader.onload = async (ev) => {
+      let url = ev.target.result
+      if (file.type.startsWith('image/')) {
+        url = await compressImage(url)
+      }
+      receiptForms[mawbId].evidence.push({
+        name: file.name,
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        url,
+        file: file,
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+  e.target.value = ''
+}
+
+function removeEvidence(mawbId, idx) {
+  receiptForms[mawbId].evidence.splice(idx, 1)
+}
+
+async function downloadReceipt() {
+  const id = downloadableReceiptId.value
+  if (!id) return
+  try {
+    const res = await receiptsApi.export(id)
+    const disposition = res.headers?.['content-disposition'] || ''
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/)
+    const filename = match ? match[1].trim() : `RECIBO_BODEGA_${id.slice(0, 8)}.xlsx`
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    console.error('Download error:', e)
+    alert('Error descargando el recibo')
+  }
+}
+
+async function downloadSupportingDocsHtml() {
+  const id = downloadableReceiptId.value
+  if (!id) return
+  try {
+    const res = await receiptsApi.getSupportingDocsHtml(id)
+    const blob = new Blob([res.data], { type: 'text/html; charset=UTF-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EVIDENCIAS_${id.slice(0, 8)}.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    console.error('Supporting docs HTML error:', e)
+    alert('Error descargando documento de evidencias')
+  }
+}
+
+async function downloadSupportingDocsPdf() {
+  const id = downloadableReceiptId.value
+  if (!id) return
+  try {
+    const res = await receiptsApi.getSupportingDocsPdf(id)
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EVIDENCIAS_${id.slice(0, 8)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    const msg = e.response?.data?.error || e.response?.data?.message || e.message
+    console.error('Supporting docs PDF error:', e)
+    alert('Error: ' + msg)
+  }
+}
+
+async function downloadReceiptById(m) {
+  const id = receiptById.value[m.id]
+  if (!id) return
+  try {
+    const res = await receiptsApi.export(id)
+    const disposition = res.headers?.['content-disposition'] || ''
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/)
+    const filename = match ? match[1].trim() : `RECIBO_BODEGA_${id.slice(0, 8)}.xlsx`
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    console.error('Download error:', e)
+  }
+}
+
+async function downloadReceiptByIdAuto(receiptId, awbNumber) {
+  try {
+    const res = await receiptsApi.export(receiptId)
+    const filename = `RECIBO_DE_BODEGA_AWB ${awbNumber || receiptId.slice(0, 8)}.xlsx`
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.warn('Auto-download Excel failed:', e)
+  }
+}
+
+async function downloadHtmlById(m) {
+  const id = receiptById.value[m.id]
+  if (!id) return
+  try {
+    const res = await receiptsApi.getSupportingDocsHtml(id)
+    const blob = new Blob([res.data], { type: 'text/html; charset=UTF-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EVIDENCIAS_${id.slice(0, 8)}.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    console.error('Supporting docs HTML error:', e)
+  }
+}
+
+async function downloadPdfById(m) {
+  const id = receiptById.value[m.id]
+  if (!id) return
+  try {
+    const res = await receiptsApi.getSupportingDocsPdf(id)
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EVIDENCIAS_${id.slice(0, 8)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    const msg = e.response?.data?.error || e.response?.data?.message || e.message
+    console.error('Supporting docs PDF error:', e)
+  }
+}
+
+function openConfirmModal(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  if (f.pieces.length === 0) {
+    alert('Ingresa al menos una pieza')
+    return
+  }
+  pendingSubmitMawb.value = m
+  showConfirmModal.value = true
+}
+
+async function confirmSubmit() {
+  if (!pendingSubmitMawb.value) return
+  showConfirmModal.value = false
+  const m = pendingSubmitMawb.value
+  pendingSubmitMawb.value = null
+  await submitReceipt(m)
+}
+
+async function editReceipt(m) {
+  return submitReceipt(m)
+}
+
+async function submitReceipt(m) {
+  if (submitting.value) return
+  const f = receiptForms[m.id]
+  const hawbs = receiptHawbs[m.id] || []
+  if (!f) return
+  if (f.pieces.length === 0) {
+    alert('Ingresa al menos una pieza')
+    return
+  }
+  const hasDimensions = f.pieces.some(p => p.lengthIn || p.widthIn || p.heightIn)
+  if (!hasDimensions && !f._existingReceiptId) {
+    if (!confirm('No has ingresado dimensiones (L×W×H). ¿Continuar de todas formas?')) return
+  }
+  // Descuadre entre lo reportado en el AWB y lo realmente recibido (piezas): solo advierte, no bloquea.
+  const realPieceCount = totalPieces(m.id, null)
+  if (f.awbReportedPieces && Number(f.awbReportedPieces) !== realPieceCount) {
+    if (!confirm(
+      `El AWB reporta ${f.awbReportedPieces} pieza(s) pero se registraron ${realPieceCount} en el recibo. ` +
+      `¿Continuar de todas formas?`
+    )) return
+  }
+  submitting.value = true
+  try {
+    // Save MAWB name changes
+    if (f.shipperName && f.shipperName !== m.shipperName) {
+      await mawbsApi.update(m.id, { shipperName: f.shipperName })
+      m.shipperName = f.shipperName
+    }
+    if (f.consigneeName && f.consigneeName !== m.consigneeName) {
+      await mawbsApi.update(m.id, { consigneeName: f.consigneeName })
+      m.consigneeName = f.consigneeName
+    }
+
+    // Save HAWB consignee changes
+    for (const h of hawbs) {
+      if (h._dirty && h.id) {
+        await hawbsApi.update(h.id, { consigneeName: h.consigneeName })
+      }
+    }
+
+    function buildPayload(pieceList, remarkSuffix, appendOnly = false, hawbId = null) {
+      return {
+        receipt: {
+          airline: { id: m.airline?.id || m.airlineId },
+          mawb: { id: m.id },
+          hawbId: hawbId,
+          gatewayCfs: f.gatewayCfs || 'SDQ',
+          shipperName: f.shipperName ?? m.shipperName ?? '',
+          consigneeName: f.consigneeName ?? m.consigneeName ?? '',
+          origin: f.origin || 'SDQ',
+          destination: f.destination || 'MIA',
+          awbReportedPieces: f.awbReportedPieces ?? pieceList.reduce((s, p) => s + (p.pieces || 1), 0),
+          mawbWeightGreatest: f.mawbWeightGreatest || 0,
+          dimFactorIntl: f.dimFactorKg || 366,
+          pieceCount: pieceList.reduce((s, p) => s + (p.pieces || 1), 0),
+          cashOnly: f.cashOnly || false,
+          bookedInAcoms: f.bookedInAcoms || false,
+          docsProvided: f.docsProvided || false,
+          customsCompleted: f.customsCompleted || false,
+          preBuilt: f.preBuilt || false,
+          remarks: (f.remarks || '') + (remarkSuffix ? ' — ' + remarkSuffix : ''),
+          dockSignature: f.dockSignature || '',
+          printName: f.printName || '',
+          deliveredByName: f.deliveredByName || '',
+          deliveredByIdNum: f.deliveredByIdNum || '',
+          deliveredBySigUrl: f.deliveredBySig || '',
+          receivedByName: f.printName || '',
+          receivedBySigUrl: '',
+          brokerName: f.brokerName || '',
+          brokerIdNum: f.brokerIdNum || '',
+          brokerSigUrl: f.brokerSig || '',
+          startDatetime: new Date().toISOString(),
+          receiptDate: new Date().toISOString(),
+        },
+        pieces: pieceList.map((p, i) => ({
+          pieceNumber: i + 1,
+          pieces: p.pieces || 1,
+          hawbId: p.hawbId || hawbId,
+          lengthIn: p.lengthIn || 0,
+          widthIn: p.widthIn || 0,
+          heightIn: p.heightIn || 0,
+          scaleWeightLbs: p.scaleWeightLbs || 0,
+          scaleWeightKg: p.scaleWeightKg || 0,
+          dimWeightLbs: p.dimWeightLbs || 0,
+          dimWeightKg: p.dimWeightKg || 0,
+          chargeableLbs: p.chargeableLbs || 0,
+          chargeableKg: p.chargeableKg || 0,
+        })),
+        supportingDocs: f.evidence.map(ev => ({
+          name: ev.name,
+          type: ev.type,
+          url: ev.url,
+        })),
+        // appendOnly=true evita que el backend purgue otros recibos del mismo MAWB al insertar
+        // este (necesario cuando se emiten varios recibos -general + por HAWB- en una sesion).
+        appendOnly,
+      }
+    }
+
+    async function sendReceipt(payload) {
+      if (f._existingReceiptId) {
+        const res = await receiptsApi.updateEmit(f._existingReceiptId, payload)
+        return res.data
+      }
+      return store.emitReceipt(payload)
+    }
+
+    if (hawbs.length <= 1) {
+      const res = await sendReceipt(buildPayload(f.pieces, ''))
+      const receiptId = res?.id || null
+      if (receiptId) generatedReceiptId.value = receiptId
+    } else if (f._existingReceiptId) {
+      let lastId = null
+      const genRes = await receiptsApi.updateEmit(f._existingReceiptId, buildPayload(f.pieces, 'RECIBO GENERAL'))
+      lastId = genRes?.data?.id || null
+      if (lastId) generatedReceiptId.value = lastId
+    } else {
+      // Multi-HAWB CREATE: crear UN solo recibo general con todas las piezas.
+      // No se crean recibos por HAWB separados para evitar duplicar conteo de piezas.
+      let lastId = null
+      const genRes = await store.emitReceipt(buildPayload(f.pieces, 'RECIBO GENERAL'))
+      lastId = genRes?.id || null
+      if (lastId) generatedReceiptId.value = lastId
+    }
+    const wasExisting = !!f._existingReceiptId
+    await store.loadReceipts()
+    await loadExistingReceiptData(m)
+    bumpFormVersion()
+    localStep.value = 5
+    clearDraft(m.id)
+    // Reload MAWBs to get server-recalculated piece count, weight, and status
+    if (store.selectedFlightId) {
+      await store.loadMawbs(store.selectedFlightId)
+    } else {
+      await store.loadAllMawbs()
+    }
+    const totalKg = (receiptForms[m.id]?.pieces || []).reduce((s, p) => s + (p.scaleWeightKg || 0), 0)
+    const totalLbs = (receiptForms[m.id]?.pieces || []).reduce((s, p) => s + (p.scaleWeightLbs || 0), 0)
+    const chargeKg = (receiptForms[m.id]?.pieces || []).reduce((s, p) => s + Math.max(p.dimWeightKg || 0, p.scaleWeightKg || 0), 0)
+    successMsg.value = (wasExisting ? 'Recibo actualizado' : 'Recibo generado') +
+      ` — ${totalPieces(m.id, null)} pzas, ${totalKg.toFixed(1)} KGS / ${totalLbs.toFixed(1)} LBS (facturable: ${chargeKg.toFixed(1)} KGS)`
+    if (successTimer) clearTimeout(successTimer)
+    successTimer = setTimeout(() => { successMsg.value = '' }, 6000)
+
+    // Auto-download Excel receipt
+    const downloadId = generatedReceiptId.value
+    if (downloadId) {
+      setTimeout(() => downloadReceiptByIdAuto(downloadId, m.awbNumber), 500)
+    }
+  } catch (e) {
+    toast.error(extractError(e))
+    const data = e.response?.data
+    const msg = data?.error || data?.message || (typeof data === 'string' ? data : null) || e.message
+    console.error('Receipt submit error:', { error: e, responseData: data })
+    alert('Error (' + e.response?.status + '): ' + msg)
+  } finally {
+    submitting.value = false
+  }
+}
+
+const receiptTotals = computed(() => {
+  const totals = {}
+  for (const r of store.receipts || []) {
+    const mawbId = r.mawb?.id || r.mawbId
+    if (!mawbId) continue
+    if (!totals[mawbId]) totals[mawbId] = { pieces: 0, weightKg: 0, weightLbs: 0 }
+    // SUM de todos los recibos: cada recibo contiene un conjunto unico de piezas.
+    // Al editar se reemplazan las piezas (no se acumulan), por lo que SUM refleja el total real.
+    const pc = r.pieceCount || 0
+    totals[mawbId].pieces += pc
+    const wk = Number(r.actualWeightKg || r.chargeableWeightKg || 0)
+    totals[mawbId].weightKg += wk
+    const wl = Number(r.actualWeightLbs || r.chargeableWeightLbs || 0)
+    totals[mawbId].weightLbs += wl
+  }
+  return totals
+})
+
+const receiptById = computed(() => {
+  const map = {}
+  for (const r of store.receipts || []) {
+    const mawbId = r.mawb?.id || r.mawbId
+    if (mawbId) map[mawbId] = r.id
+  }
+  return map
+})
+
+// ── Evidence Preview ──
+const evidencePreview = reactive({ show: false, item: null })
+
+function previewEvidence(item) {
+  evidencePreview.item = item
+  evidencePreview.show = true
+}
+
+function closeEvidencePreview() {
+  evidencePreview.show = false
+  evidencePreview.item = null
+}
+
+function downloadEvidenceItem(item) {
+  if (!item || !item.url) return
+  const isPdf = isPdfUrl(item.url)
+  const mime = isPdf ? 'application/pdf' : (item.type === 'image' ? 'image/png' : 'application/octet-stream')
+  const blob = dataUriToBlob(item.url, mime)
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = item.name || (isPdf ? 'documento.pdf' : 'imagen.png')
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function dataUriToBlob(dataUri, mimeType) {
+  const byteString = atob(dataUri.split(',')[1])
+  const ab = new ArrayBuffer(byteString.length)
+  const ia = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+  return new Blob([ab], { type: mimeType })
+}
+
+// ── MAWB Evidence Manager ──
+const mawbEvidenceMgr = reactive({ show: false, mawbId: null, mawb: null, docs: [], dirty: false })
+const mawbEvidenceInput = ref(null)
+const mawbCameraOpen = ref(false)
+
+async function toggleMawbEvidenceManager(m) {
+  if (mawbEvidenceMgr.show && mawbEvidenceMgr.mawbId === m.id) {
+    closeMawbEvidenceMgr()
+    return
+  }
+  mawbEvidenceMgr.show = true
+  mawbEvidenceMgr.mawbId = m.id
+  mawbEvidenceMgr.mawb = m
+  mawbEvidenceMgr.dirty = false
+  try {
+    const res = await mawbsApi.getSupportingDocs(m.id)
+    mawbEvidenceMgr.docs = res.data || []
+  } catch (e) {
+    toast.error(extractError(e))
+    mawbEvidenceMgr.docs = []
+  }
+}
+
+function closeMawbEvidenceMgr() {
+  if (mawbEvidenceMgr.dirty) {
+    if (!confirm('Hay cambios sin guardar. ¿Descartar cambios?')) return
+  }
+  mawbEvidenceMgr.show = false
+  mawbEvidenceMgr.mawbId = null
+  mawbEvidenceMgr.mawb = null
+  mawbEvidenceMgr.docs = []
+  mawbEvidenceMgr.dirty = false
+}
+
+function handleMawbEvidenceUpload(e) {
+  const files = e.target.files
+  if (!files || !files.length) return
+  for (const file of files) {
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      mawbEvidenceMgr.docs.push({
+        name: file.name,
+        type: file.type.startsWith('image/') ? 'image' : 'document',
+        url: ev.target.result,
+      })
+      mawbEvidenceMgr.dirty = true
+    }
+    reader.readAsDataURL(file)
+  }
+  e.target.value = ''
+}
+
+function openMawbCamera() {
+  mawbCameraOpen.value = true
+}
+
+function onMawbCameraCapture(dataUrl) {
+  if (dataUrl) {
+    mawbEvidenceMgr.docs.push({
+      name: 'Foto_' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-') + '.jpg',
+      type: 'image',
+      url: dataUrl,
+    })
+    mawbEvidenceMgr.dirty = true
+  }
+}
+
+function removeMawbEvidence(idx) {
+  mawbEvidenceMgr.docs.splice(idx, 1)
+  mawbEvidenceMgr.dirty = true
+}
+
+async function saveMawbEvidence() {
+  const id = mawbEvidenceMgr.mawbId
+  if (!id) return
+  try {
+    const docsToSave = mawbEvidenceMgr.docs.map(d => ({ name: d.name, type: d.type, url: d.url }))
+    await mawbsApi.updateSupportingDocs(id, docsToSave)
+    mawbEvidenceMgr.dirty = false
+    alert('Evidencias guardadas correctamente')
+  } catch (e) {
+    toast.error(extractError(e))
+    alert('Error guardando evidencias: ' + (e.response?.data?.error || e.message))
+  }
+}
+
+async function downloadMawbEvidencePdf() {
+  const id = mawbEvidenceMgr.mawbId
+  if (!id || mawbEvidenceMgr.docs.length === 0) return
+  try {
+    const res = await mawbsApi.getSupportingDocsPdf(id)
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `EVIDENCIAS_MAWB_${mawbEvidenceMgr.mawb?.awbNumber || id.slice(0, 8)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error(extractError(e))
+    console.error('MAWB evidence PDF error:', e)
+    alert('Error descargando PDF de evidencias')
+  }
+}
+
+// ── Print Preview ──
+function printPreview(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const win = window.open('', '_blank')
+  if (!win) { toast.error('Permite ventanas emergentes para la vista previa'); return }
+  const pc = f.pieces
+  const tPcs = totalPieces(m.id, null)
+  const tScaleKg = totalScaleKg(m.id, null)
+  const tDimKg = totalDimKg(m.id, null)
+  const tChgKg = totalChargeableKg(m.id, null)
+  const tScaleLbs = totalScaleLbs(m.id, null)
+  const tDimLbs = totalDimLbs(m.id, null)
+  const tChgLbs = totalChargeableLbs(m.id, null)
+
+  win.document.write(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Recibo Bodega ${m.awbNumber || ''}</title>
+<style>
+  body { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; color: #000; margin: 20px; }
+  h1 { font-size: 16px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 16px; }
+  .info { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-bottom: 16px; }
+  .info div { display: flex; }
+  .info label { font-weight: bold; min-width: 100px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { border: 1px solid #000; padding: 4px 8px; text-align: center; font-size: 11px; }
+  th { background: #e5e7eb; font-weight: bold; }
+  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+  .sig-box { border-top: 1px solid #000; padding-top: 4px; margin-top: 40px; text-align: center; }
+  .sig-box div { margin-top: 4px; font-size: 11px; }
+  .total-row { font-weight: bold; background: #f3f4f6; }
+  .footer { text-align: center; font-size: 10px; margin-top: 20px; color: #666; }
+  .checkbox-list { display: flex; gap: 16px; margin-bottom: 12px; font-size: 11px; }
+  .checkbox-list span { border: 1px solid #000; padding: 2px 8px; }
+  .checkbox-list .checked { background: #000; color: #fff; }
+</style></head><body>
+<h1>RECIBO DE BODEGA - WAREHOUSE RECEIPT</h1>
+<div class="info">
+  <div><label>MAWB:</label> ${m.awbNumber || '—'}</div>
+  <div><label>Fecha:</label> ${new Date().toLocaleDateString()}</div>
+  <div><label>Shipper:</label> ${f.shipperName || '—'}</div>
+  <div><label>Consignee:</label> ${f.consigneeName || '—'}</div>
+  <div><label>Origen:</label> ${f.origin || '—'}</div>
+  <div><label>Destino:</label> ${f.destination || '—'}</div>
+  <div><label>Gateway:</label> ${f.gatewayCfs || '—'}</div>
+  <div><label>MAWB Pieces:</label> ${f.awbReportedPieces || '—'}</div>
+</div>
+<div class="checkbox-list">
+  <span${f.cashOnly ? ' class="checked"' : ''}>Cash Only</span>
+  <span${f.bookedInAcoms ? ' class="checked"' : ''}>Booked in ACOMS</span>
+  <span${f.docsProvided ? ' class="checked"' : ''}>Documents Provided</span>
+  <span${f.customsCompleted ? ' class="checked"' : ''}>Export Customs</span>
+  <span${f.preBuilt ? ' class="checked"' : ''}>Pre-built</span>
+</div>
+<table><thead><tr>
+  <th>#</th><th>Pcs</th><th>L (in)</th><th>W (in)</th><th>H (in)</th>
+  <th>Dim Wt</th><th>Scale LBS</th><th>Dim LBS</th>
+  <th>Scale KGS</th><th>Dim KGS</th><th>CHG KGS</th>
+</tr></thead><tbody>
+${pc.map((p, i) => `<tr>
+  <td>${i + 1}</td>
+  <td>${p.pieces || 1}</td>
+  <td>${p.lengthIn ?? '—'}</td>
+  <td>${p.widthIn ?? '—'}</td>
+  <td>${p.heightIn ?? '—'}</td>
+  <td>${(p.dimWeight || 0).toFixed(1)}</td>
+  <td>${(p.scaleWeightLbs || 0).toFixed(1)}</td>
+  <td>${(p.dimWeightLbs || 0).toFixed(1)}</td>
+  <td>${(p.scaleWeightKg || 0).toFixed(2)}</td>
+  <td>${(p.dimWeightKg || 0).toFixed(2)}</td>
+  <td>${(p.chargeableKg || 0).toFixed(2)}</td>
+</tr>`).join('')}
+</tbody><tfoot><tr class="total-row">
+  <td colspan="2">TOTAL</td>
+  <td colspan="3">${tPcs} pcs</td>
+  <td>${tDimKg.toFixed(1)}</td>
+  <td>${tScaleLbs.toFixed(1)}</td>
+  <td>${tDimLbs.toFixed(1)}</td>
+  <td>${tScaleKg.toFixed(2)}</td>
+  <td>${tDimKg.toFixed(2)}</td>
+  <td>${tChgKg.toFixed(2)}</td>
+</tr></tfoot></table>
+${f.remarks ? `<p><strong>Remarks:</strong> ${f.remarks}</p>` : ''}
+<div class="signatures">
+  <div><strong>Dock Signature</strong><div class="sig-box">${f.printName || '________________'}<div>Print Name: ${f.printName || '—'}</div></div></div>
+  <div><strong>Delivered By</strong><div class="sig-box">${f.deliveredByName || '________________'}<div>${f.deliveredByIdNum || '—'}</div></div></div>
+  <div><strong>Broker Representative</strong><div class="sig-box">${f.brokerName || '________________'}<div>${f.brokerIdNum || '—'}</div></div></div>
+</div>
+<div class="footer">Generado el ${new Date().toLocaleString()} — Sistema de Recepción de Carga</div>
+<script>window.onload = function() { window.print(); }<\\/script>
+</body></html>`)
+  win.document.close()
+}
+
+onMounted(async () => {
+  if (!store.airlines.length) await store.loadAirlines()
+  if (!store.flights.length) await store.loadFlights()
+  await store.loadReceipts()
+  await store.loadAllMawbs()
+  if (route.query.mawbId && store.mawbs.length) {
+    const m = store.mawbs.find(x => x.id === route.query.mawbId)
+    if (m) {
+      expandedId.value = m.id
+      initForm(m)
+      try {
+        const [hawbRes, docsRes] = await Promise.all([
+          hawbsApi.getByMawb(m.id),
+          mawbsApi.getSupportingDocs(m.id).catch(() => ({ data: [] })),
+        ])
+        receiptHawbs[m.id] = hawbRes.data
+        const f = receiptForms[m.id]
+        if (f) {
+          f.mawbEvidence = (docsRes.data || []).filter(d => d.type === 'image' || d.type === 'document')
+          await loadExistingReceiptData(m)
+          bumpFormVersion()
+          const hawbData = hawbRes.data
+          if (hawbData.length > 0) {
+            const h0 = hawbData[0]
+            if (!f.shipperName) f.shipperName = m.shipperName || h0?.shipperName || ''
+            if (!f.consigneeName) f.consigneeName = m.consigneeName || (hawbData.length === 1 ? h0?.consigneeName : '') || ''
+            // mawbWeightGreatest se auto-calculó desde scaleWeightLbs en loadExistingReceiptData o calcPiece
+            if (!f.awbReportedPieces) f.awbReportedPieces = m.pieces || hawbData.reduce((s, h) => s + (h.pieces || 0), 0) || 0
+            const existingIds = new Set(f.hawbEntries.filter(e => e._dbId).map(e => e._dbId))
+            for (const h of hawbData) {
+              if (!existingIds.has(h.id)) {
+                f.hawbEntries.push({
+                  hawbNumber: h.hawbNumber || '',
+                  consigneeName: h.consigneeName || '',
+                  pieces: h.pieces || 0,
+                  weightKg: h.weightKg ? Number(h.weightKg) : 0,
+                  destination: h.destination || f.destination || 'MIA',
+                  _dbId: h.id,
+                  _hawbId: h.id,
+                })
+              }
+            }
+            f.hawbCount = f.hawbEntries.length
+          }
+          if (hawbData.length > 1 && receiptForms[m.id]?.pieces?.[0]) {
+            receiptForms[m.id].pieces[0].hawbId = hawbData[0].id
+          }
+        }
+      } catch (e) {
+        toast.error(extractError(e))
+        receiptHawbs[m.id] = []
+      }
+    }
+  }
+})
+
+watch(expandedId, (id) => {
+  if (id) localStorage.setItem('WAREHOUSE_EXPANDED_MAWB', id)
+  else localStorage.removeItem('WAREHOUSE_EXPANDED_MAWB')
+})
+
+watch(() => store.mawbs, (mawbs) => {
+  if (expandedId.value) {
+    const m = mawbs.find(x => x.id === expandedId.value)
+    if (m) {
+      initForm(m)
+      applyDraftToForm(m.id)
+    }
+  }
+})
+
+function onDocumentClick(e) {
+  if (!headerFilterOpen.value) return
+  const headerRow = document.querySelector('.bg-slate-950.border-b.border-slate-700')
+  if (headerRow && !headerRow.contains(e.target)) {
+    headerFilterOpen.value = null
+  }
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick))
+onUnmounted(() => document.removeEventListener('click', onDocumentClick))
+</script>
+
+<style scoped>
+.thin-scrollbar::-webkit-scrollbar { width: 4px; }
+.thin-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.thin-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 2px; }
+.thin-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+.thin-scrollbar { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
+.overscroll-contain { overscroll-behavior: contain; }
+</style>

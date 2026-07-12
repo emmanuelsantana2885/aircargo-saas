@@ -1,0 +1,86 @@
+<template>
+  <div v-if="auth.isAuthenticated" class="flex h-screen overflow-hidden app-layout">
+    <Sidebar />
+    <div class="flex flex-col flex-1 min-w-0">
+      <Header />
+      <main class="flex-1 overflow-auto">
+        <router-view />
+      </main>
+    </div>
+  </div>
+  <router-view v-else />
+  <ToastNotifications />
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth'
+import { useToastStore } from './stores/toast'
+import Sidebar from './components/layout/Sidebar.vue'
+import Header from './components/layout/Header.vue'
+import ToastNotifications from './components/ToastNotifications.vue'
+import { usersApi } from './api/users'
+import api from './api/client'
+
+const auth = useAuthStore()
+const toast = useToastStore()
+const router = useRouter()
+let heartbeatInterval
+const prevReceiptCount = ref(0)
+const NOTIFY_ROLES = ['TRAFFIC', 'OPERATIONS', 'SUPER_USER', 'ADMIN']
+
+// Global keyboard shortcuts
+function onKeydown(e) {
+  if (!auth.isAuthenticated) return
+  // Ignore if user is typing in an input/textarea/select
+  const tag = document.activeElement?.tagName || ''
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+  // Ctrl+G → Dashboard
+  if (e.ctrlKey && e.key === 'g') { e.preventDefault(); router.push('/') }
+  // Ctrl+B → Bookings
+  if (e.ctrlKey && e.key === 'b') { e.preventDefault(); router.push('/bookings') }
+  // Ctrl+F → Flights
+  if (e.ctrlKey && e.key === 'f') { e.preventDefault(); router.push('/flights') }
+  // Ctrl+L → Load Planning
+  if (e.ctrlKey && e.key === 'l') { e.preventDefault(); router.push('/load-planning') }
+  // Ctrl+U → ULDs
+  if (e.ctrlKey && e.key === 'u') { e.preventDefault(); router.push('/ulds') }
+  // Ctrl+R → Receipts
+  if (e.ctrlKey && e.key === 'r') { e.preventDefault(); router.push('/receipts') }
+  // Ctrl+M → MAWBs
+  if (e.ctrlKey && e.key === 'm') { e.preventDefault(); router.push('/mawbs') }
+}
+
+async function checkNewReceipts() {
+  try {
+    const res = await api.get('/receipts')
+    const current = Array.isArray(res.data) ? res.data : []
+    if (prevReceiptCount.value > 0 && current.length > prevReceiptCount.value && NOTIFY_ROLES.includes(auth.role)) {
+      const newCount = current.length - prevReceiptCount.value
+      toast.info(`Nuevo${newCount > 1 ? 's' : ''} recibo${newCount > 1 ? 's' : ''} de bodega disponible${newCount > 1 ? 's' : ''} (${newCount})`, 6000)
+    }
+    prevReceiptCount.value = current.length
+  } catch (e) {
+    // silent
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+  if (auth.isAuthenticated) {
+    auth.refreshProfile()
+    usersApi.heartbeat().catch(() => {})
+    checkNewReceipts()
+    heartbeatInterval = setInterval(() => {
+      usersApi.heartbeat().catch(() => {})
+      checkNewReceipts()
+    }, 60000)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown)
+  if (heartbeatInterval) clearInterval(heartbeatInterval)
+})
+</script>
