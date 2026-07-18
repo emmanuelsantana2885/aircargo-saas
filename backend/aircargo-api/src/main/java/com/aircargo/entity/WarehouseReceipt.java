@@ -192,10 +192,13 @@ public class WarehouseReceipt {
     @Column(name = "print_name", length = 150)
     private String printName;
 
-    @Lob
-    @Column(name = "excel_data")
+    @Column(name = "excel_data", columnDefinition = "bytea")
     @JsonIgnore
     private byte[] excelData;
+
+    @Column(name = "pdf_data", columnDefinition = "bytea")
+    @JsonIgnore
+    private byte[] pdfData;
 
     @OneToMany(mappedBy = "receipt", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("receipt")

@@ -14,12 +14,13 @@ public class PermissionService {
         UserRole role = UserRole.valueOf(user.role());
         return switch (role) {
             case SUPER_USER -> true;
-            case ADMIN -> !"SETTINGS".equals(viewName);
+            case ADMIN -> Set.of("DASHBOARD", "FLIGHTS", "BOOKINGS", "RECEIPTS", "MAWBS", "LOAD_PLANNING", "ULDS", "USERS", "EXPORTS", "BI").contains(viewName);
             case READ_ONLY -> true;
             case WAREHOUSE_ASSISTANT -> "RECEIPTS".equals(viewName) || "DASHBOARD".equals(viewName);
             case OPERATIONS -> Set.of("DASHBOARD", "FLIGHTS", "MAWBS", "LOAD_PLANNING", "ULDS").contains(viewName);
             case TRAFFIC -> Set.of("DASHBOARD", "BOOKINGS", "MAWBS", "LOAD_PLANNING", "ULDS").contains(viewName);
             case LOAD_PLANNER -> Set.of("DASHBOARD", "FLIGHTS", "LOAD_PLANNING", "ULDS").contains(viewName);
+            case BI_USER -> Set.of("DASHBOARD", "BI").contains(viewName);
         };
     }
 }

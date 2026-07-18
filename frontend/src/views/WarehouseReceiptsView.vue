@@ -1,5 +1,5 @@
 <template>
-  <div class="p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
+  <div class="p-3 md:p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex flex-wrap items-end justify-between gap-2 border-b border-slate-400 pb-3 shrink-0">
       <div class="flex items-end gap-3 flex-1 min-w-0">
         <div>
@@ -120,7 +120,7 @@
         <p class="text-[12px] font-mono text-slate-950 uppercase tracking-widest">Ningún MAWB coincide con el filtro</p>
       </div>
       <div v-else class="divide-y divide-slate-200 text-[11px] text-slate-950 overflow-y-auto flex-1 min-h-0 thin-scrollbar">
-          <div v-for="m in filteredMawbs" :key="m.id" v-memo="[m.id, m.status, expandedId, localStep, receiptTotals[m.id]?.pieces, receiptById[m.id], showCamera, formVersion]" class="flex flex-col">
+          <div v-for="m in filteredMawbs" :key="m.id" class="flex flex-col">
           <div class="grid grid-cols-12 items-center py-1.5 px-5 transition-all duration-150 cursor-pointer border-t"
             :class="[expandedId === m.id ? 'row-selected' : '', selectedMawbIds.has(m.id) ? 'bg-slate-50/50' : '']" style="border-color: var(--border)"
             @click="toggleExpand(m)">
@@ -281,12 +281,12 @@
                           HAWBs
                         </span>
                         <div class="flex items-center gap-2 text-[11px] font-mono">
-                          <span class="text-slate-200">Cantidad:</span>
-                          <input v-model.number="receiptForms[m.id].hawbCount" type="number" min="1" max="50"
-                            @input="syncHawbCount(m)"
-                            class="w-14 text-center border border-slate-500 rounded px-1 py-0.5 bg-white outline-none focus:border-slate-800 text-[11px] font-bold" />
+                          <span class="text-slate-200">HAWBs: <strong class="text-white">{{ (receiptForms[m.id].hawbEntries || []).length }}</strong></span>
+                          <button @click="addHawbEntry(m)"
+                            class="ml-1 w-5 h-5 flex items-center justify-center rounded bg-white text-slate-700 hover:bg-slate-200 transition text-[12px] font-bold leading-none"
+                            title="Agregar HAWB">+</button>
                           <span v-if="receiptHawbs[m.id] && receiptHawbs[m.id].length > 0"
-                            class="text-slate-300 ml-1">({{ receiptHawbs[m.id].length }} DB)</span>
+                            class="text-slate-300 ml-1">({{ receiptHawbs[m.id].length }} en DB)</span>
                         </div>
                       </div>
                       <div class="overflow-x-auto p-2">
@@ -553,12 +553,61 @@
                       <span class="text-[9px] text-slate-400 font-mono ml-4">* S.KGS = LBS ÷ 2.20462 (auto)</span>
                     </div>
                   </div>
-                  <div class="border-t border-slate-300 pt-1 mt-1">
-                    <div class="text-[10px] font-mono text-slate-950 flex flex-wrap gap-x-4 gap-y-0.5">
-                      <span>Total Piezas: <strong class="text-slate-900">{{ totalPieces(m.id, null) }}</strong></span>
-                      <span>Escala: <strong class="text-slate-900">{{ totalScaleKg(m.id, null).toFixed(0) }} KGS</strong></span>
-                      <span>Dimensional: <strong class="text-slate-900">{{ totalDimKg(m.id, null).toFixed(0) }} KGS</strong></span>
-                      <span>Chargeable: <strong class="text-slate-900">{{ totalChargeableKg(m.id).toFixed(0) }} KGS / {{ totalChargeableLbs(m.id).toFixed(0) }} LBS</strong></span>
+                  <!-- Resumen General: agrupado por dimensión única LxWxH -->
+                  <div class="border-2 border-slate-600 rounded overflow-hidden bg-white mt-2">
+                    <div class="flex items-center justify-between bg-slate-600 px-3 py-1.5 border-b border-slate-700">
+                      <span class="text-[10px] font-mono font-bold text-white uppercase tracking-wider">Resumen General — Todas las HAWBs</span>
+                      <span class="text-[10px] font-mono text-slate-200">{{ totalPieces(m.id, null) }} piezas · {{ groupedSummary(m.id).length }} dim</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-[11px] font-mono border-collapse">
+                        <thead>
+                          <tr class="bg-slate-200 text-slate-800 text-[11px] uppercase tracking-wider">
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-5 text-center">#</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-center">L</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-center">W</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-center">H</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-10 text-center">Pcs</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-12 text-right">DimWt</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-16 text-right">S.LBS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-right">DLBS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-16 text-right">S.KGS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-right">DKGS</th>
+                            <th class="px-1 py-0.5 border-r border-slate-300 w-14 text-right">CKGS</th>
+                            <th class="px-1 py-0.5 w-14 text-right">CLBS</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(g, gi) in groupedSummary(m.id)" :key="gi"
+                            class="border-b border-slate-200 hover:bg-slate-50">
+                            <td class="px-1 py-0.5 text-center text-slate-500 border-r border-slate-200">{{ gi + 1 }}</td>
+                            <td class="px-1 py-0.5 text-center border-r border-slate-200">{{ g.lengthIn || '—' }}</td>
+                            <td class="px-1 py-0.5 text-center border-r border-slate-200">{{ g.widthIn || '—' }}</td>
+                            <td class="px-1 py-0.5 text-center border-r border-slate-200">{{ g.heightIn || '—' }}</td>
+                            <td class="px-1 py-0.5 text-center border-r border-slate-200 font-bold">{{ g.totalPieces }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalDimWeight.toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalScaleLbs.toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalDimLbs.toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalScaleKg.toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalDimKg.toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 text-right border-r border-slate-200">{{ g.totalChargeableKg.toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 text-right">{{ g.totalChargeableLbs.toFixed(2) }}</td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr class="bg-slate-100 text-slate-950 text-[11px] font-bold">
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400" colspan="4">TOTAL</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-center">{{ totalPieces(m.id, null) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalDimWeight(m.id, null).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalScaleLbs(m.id, null).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalDimLbs(m.id, null).toFixed(1) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalScaleKg(m.id, null).toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalDimKg(m.id, null).toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalChargeableKg(m.id, null).toFixed(2) }}</td>
+                            <td class="px-1 py-0.5 border-t-2 border-slate-400 text-right">{{ totalChargeableLbs(m.id, null).toFixed(2) }}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
                     </div>
                   </div>
                 </template>
@@ -925,6 +974,7 @@ function saveDraft(mawbId) {
       awbReportedPieces: f.awbReportedPieces,
       mawbWeightGreatest: f.mawbWeightGreatest,
       dimFactorKg: f.dimFactorKg,
+      dimFactorLbs: f.dimFactorLbs,
       cashOnly: f.cashOnly,
       bookedInAcoms: f.bookedInAcoms,
       docsProvided: f.docsProvided,
@@ -934,6 +984,7 @@ function saveDraft(mawbId) {
       hawbEntries: f.hawbEntries.map(e => ({
         hawbNumber: e.hawbNumber, consigneeName: e.consigneeName,
         pieces: e.pieces, weightKg: e.weightKg, destination: e.destination,
+        _dbId: e._dbId || null, _hawbId: e._hawbId || null,
       })),
       pieces: f.pieces.map(p => ({
         pieces: p.pieces, hawbId: p.hawbId,
@@ -941,11 +992,14 @@ function saveDraft(mawbId) {
         scaleWeightLbs: p.scaleWeightLbs,
       })),
       remarks: f.remarks,
+      dockSignature: f.dockSignature || '',
       printName: f.printName,
       deliveredByName: f.deliveredByName,
       deliveredByIdNum: f.deliveredByIdNum,
+      deliveredBySig: f.deliveredBySig || '',
       brokerName: f.brokerName,
       brokerIdNum: f.brokerIdNum,
+      brokerSig: f.brokerSig || '',
     }
     localStorage.setItem(DRAFT_PREFIX + mawbId, JSON.stringify(data))
     lastDraftSave.value = new Date().toLocaleTimeString()
@@ -977,13 +1031,18 @@ function applyDraftToForm(mawbId) {
     awbReportedPieces: draft.awbReportedPieces ?? f.awbReportedPieces,
     mawbWeightGreatest: draft.mawbWeightGreatest ?? f.mawbWeightGreatest,
     dimFactorKg: draft.dimFactorKg ?? f.dimFactorKg,
+    dimFactorLbs: draft.dimFactorLbs ?? f.dimFactorLbs,
     cashOnly: draft.cashOnly ?? f.cashOnly,
     bookedInAcoms: draft.bookedInAcoms ?? f.bookedInAcoms,
     docsProvided: draft.docsProvided ?? f.docsProvided,
     customsCompleted: draft.customsCompleted ?? f.customsCompleted,
     preBuilt: draft.preBuilt ?? f.preBuilt,
     hawbCount: draft.hawbCount ?? f.hawbCount,
-    hawbEntries: draft.hawbEntries?.length ? draft.hawbEntries : f.hawbEntries,
+    hawbEntries: draft.hawbEntries?.length ? draft.hawbEntries.map(e => ({
+      hawbNumber: e.hawbNumber || '', consigneeName: e.consigneeName || '',
+      pieces: e.pieces || 0, weightKg: e.weightKg || 0, destination: e.destination || 'MIA',
+      _dbId: e._dbId || null, _hawbId: e._hawbId || null,
+    })) : f.hawbEntries,
     pieces: draft.pieces?.length ? draft.pieces.map(p => ({
       pieces: p.pieces ?? 1, hawbId: p.hawbId ?? null,
       lengthIn: p.lengthIn ?? null, widthIn: p.widthIn ?? null, heightIn: p.heightIn ?? null,
@@ -991,13 +1050,17 @@ function applyDraftToForm(mawbId) {
       dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0,
     })) : f.pieces,
     remarks: draft.remarks ?? f.remarks,
+    dockSignature: draft.dockSignature ?? f.dockSignature,
     printName: draft.printName ?? f.printName,
     deliveredByName: draft.deliveredByName ?? f.deliveredByName,
     deliveredByIdNum: draft.deliveredByIdNum ?? f.deliveredByIdNum,
+    deliveredBySig: draft.deliveredBySig ?? f.deliveredBySig,
     brokerName: draft.brokerName ?? f.brokerName,
     brokerIdNum: draft.brokerIdNum ?? f.brokerIdNum,
+    brokerSig: draft.brokerSig ?? f.brokerSig,
   })
   lastDraftSave.value = 'borrador'
+  f.pieces.forEach((_, pi) => calcPiece(mawbId, pi))
 }
 
 // Auto-save watch (debounced on active form)
@@ -1009,7 +1072,7 @@ const activeFormJson = computed(() => {
   return JSON.stringify({
     gc: f.gatewayCfs, sn: f.shipperName, cn: f.consigneeName,
     or: f.origin, de: f.destination, arp: f.awbReportedPieces,
-    mwg: f.mawbWeightGreatest, dfk: f.dimFactorKg, co: f.cashOnly, bi: f.bookedInAcoms,
+    mwg: f.mawbWeightGreatest, dfk: f.dimFactorKg, dfl: f.dimFactorLbs, co: f.cashOnly, bi: f.bookedInAcoms,
     dp: f.docsProvided, cc: f.customsCompleted, pb: f.preBuilt,
     hc: f.hawbCount, he: f.hawbEntries.map(e => ({
       hn: e.hawbNumber, cn: e.consigneeName, p: e.pieces,
@@ -1020,7 +1083,9 @@ const activeFormJson = computed(() => {
       sl: p.scaleWeightLbs
     })),
     r: f.remarks, pn: f.printName, dbn: f.deliveredByName,
-    dbi: f.deliveredByIdNum, bn: f.brokerName, bii: f.brokerIdNum,
+    dbi: f.deliveredByIdNum, ds: f.dockSignature?.length || 0,
+    dbs: f.deliveredBySig?.length || 0,
+    bn: f.brokerName, bii: f.brokerIdNum, bs: f.brokerSig?.length || 0,
   })
 })
 
@@ -1257,6 +1322,7 @@ function initForm(m) {
       awbReportedPieces: m.pieces || (hawbs.length > 0 ? hawbs.reduce((s, h) => s + (h.pieces || 0), 0) : 0) || 0,
       mawbWeightGreatest: 0, // auto-calculado desde scaleWeightLbs de las piezas al cargar
       dimFactorKg: 366, // factor dimensional (KG); se sincroniza con dimFactorIntl del backend al cargar un recibo existente
+      dimFactorLbs: 194, // factor dimensional (LBS); se sincroniza con dimFactorDom del backend
       cashOnly: false,
       bookedInAcoms: false,
       docsProvided: false,
@@ -1264,7 +1330,9 @@ function initForm(m) {
       preBuilt: false,
       hawbCount: Math.max(hawbs.length, 1),
       hawbEntries,
-      pieces: [{ pieces: 1, hawbId: null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 }],
+      pieces: hawbEntries.length > 0
+        ? hawbEntries.map(e => ({ pieces: 1, hawbId: e._hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 }))
+        : [{ pieces: 1, hawbId: null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 }],
       remarks: '',
       evidence: [],
       mawbEvidence: [],
@@ -1311,6 +1379,7 @@ async function loadExistingReceiptData(m) {
   f.awbReportedPieces = sourceReceipt.awbReportedPieces ?? f.awbReportedPieces
   f.mawbWeightGreatest = sourceReceipt.mawbWeightGreatest ?? f.mawbWeightGreatest
   f.dimFactorKg = sourceReceipt.dimFactorIntl ? Number(sourceReceipt.dimFactorIntl) : f.dimFactorKg
+  f.dimFactorLbs = sourceReceipt.dimFactorDom ? Number(sourceReceipt.dimFactorDom) : f.dimFactorLbs
   f.cashOnly = sourceReceipt.cashOnly ?? f.cashOnly
   f.bookedInAcoms = sourceReceipt.bookedInAcoms ?? f.bookedInAcoms
   f.docsProvided = sourceReceipt.docsProvided ?? f.docsProvided
@@ -1343,10 +1412,8 @@ async function loadExistingReceiptData(m) {
           scaleWeightKg: p.scaleWeightKg ?? 0, dimWeightKg: 0,
           chargeableKg: 0, chargeableLbs: 0,
         }
-        // Recalculate derived values from stored dimensions
-        if (piece.lengthIn || piece.widthIn || piece.heightIn) {
-          calcPiece(m.id, pi)
-        }
+        // Recalculate derived values from stored dimensions/scale
+        calcPiece(m.id, pi)
         return piece
       })
       // MAWB weight = suma de pesos de bascula de todas las piezas cargadas
@@ -1373,18 +1440,14 @@ function calcPiece(mawbId, pi) {
   const h = p.heightIn || 0
   const qty = p.pieces || 1
   const vol = l * w * h * qty
-  // Factor dimensional configurable (backend: WarehouseReceipt.dimFactorIntl, default 366).
-  // El backend usa ESTE MISMO factor tanto para el peso "lbs" como para derivar el "kg"
-  // (kg = lbs_dim * 0.45359237). Se replica aqui exactamente esa formula para que el numero
-  // que se ve al tipear coincida con el que queda guardado despues de emitir el recibo.
   const dimFactorKg = receiptForms[mawbId]?.dimFactorKg || 366
-  const dimWeightLbsRaw = vol > 0 ? vol / dimFactorKg : 0
-  p.dimWeight = dimWeightLbsRaw
-  p.dimWeightLbs = dimWeightLbsRaw
-  p.dimWeightKg = dimWeightLbsRaw * 0.45359237
+  const dimFactorLbs = receiptForms[mawbId]?.dimFactorLbs || 194
+  p.dimWeightKg = vol > 0 ? vol / dimFactorKg : 0
+  p.dimWeightLbs = vol > 0 ? vol / dimFactorLbs : 0
+  p.dimWeight = p.dimWeightLbs
   p.scaleWeightKg = p.scaleWeightLbs ? p.scaleWeightLbs / 2.20462 : 0
   p.chargeableKg = Math.max(p.dimWeightKg, p.scaleWeightKg)
-  p.chargeableLbs = Math.max(p.dimWeightLbs, p.scaleWeightLbs || 0)
+  p.chargeableLbs = p.chargeableKg * 2.20462
   // MAWB weight = suma de pesos de bascula de todas las piezas
   const f = receiptForms[mawbId]
   if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
@@ -1428,14 +1491,10 @@ function totalChargeableKg(mawbId, hawbId) {
 }
 
 function totalChargeableLbs(mawbId, hawbId) {
-  const pieces = allPieces(mawbId, hawbId)
-  const totalDim = pieces.reduce((s, p) => s + (p.dimWeightLbs || 0), 0)
-  const totalScale = pieces.reduce((s, p) => s + (p.scaleWeightLbs || 0), 0)
-  return Math.max(totalDim, totalScale)
+  return totalChargeableKg(mawbId, hawbId) * 2.20462
 }
 
 function hawbsForDisplay(mawbId) {
-  if (receiptHawbs[mawbId] && receiptHawbs[mawbId].length > 0) return receiptHawbs[mawbId]
   return receiptForms[mawbId]?.hawbEntries || []
 }
 
@@ -1447,10 +1506,39 @@ function piecesByHawb(mawbId, hawbId) {
 // para cada elemento. Evita tener que hacer pieces.indexOf(p) repetidamente en el template
 // (O(n) por cada input, y fragil si dos piezas fueran el mismo objeto por referencia).
 function piecesByHawbIndexed(mawbId, hawbId) {
+  if (hawbId == null) return []
   const pieces = receiptForms[mawbId]?.pieces || []
-  return pieces
-    .map((piece, idx) => ({ piece, idx }))
-    .filter(entry => !hawbId || entry.piece.hawbId === hawbId)
+  const result = []
+  for (let i = 0; i < pieces.length; i++) {
+    if (pieces[i].hawbId === hawbId) {
+      result.push({ piece: pieces[i], idx: i })
+    }
+  }
+  return result
+}
+
+function groupedSummary(mawbId) {
+  const pieces = receiptForms[mawbId]?.pieces || []
+  const groups = {}
+  pieces.forEach(p => {
+    const l = Number(p.lengthIn) || 0
+    const w = Number(p.widthIn) || 0
+    const h = Number(p.heightIn) || 0
+    const key = `${l}x${w}x${h}`
+    if (!groups[key]) {
+      groups[key] = { lengthIn: l, widthIn: w, heightIn: h, totalPieces: 0, totalDimWeight: 0, totalScaleLbs: 0, totalDimLbs: 0, totalScaleKg: 0, totalDimKg: 0, totalChargeableKg: 0, totalChargeableLbs: 0 }
+    }
+    const g = groups[key]
+    g.totalPieces += Number(p.pieces) || 1
+    g.totalDimWeight += Number(p.dimWeight) || 0
+    g.totalScaleLbs += Number(p.scaleWeightLbs) || 0
+    g.totalDimLbs += Number(p.dimWeightLbs) || 0
+    g.totalScaleKg += Number(p.scaleWeightKg) || 0
+    g.totalDimKg += Number(p.dimWeightKg) || 0
+    g.totalChargeableKg += Number(p.chargeableKg) || 0
+    g.totalChargeableLbs += Number(p.chargeableLbs) || 0
+  })
+  return Object.values(groups)
 }
 
 function hawbTotalPieces(mawbId, hawbId) { return totalPieces(mawbId, hawbId) }
@@ -1468,18 +1556,44 @@ function syncHawbCount(m) {
   const target = Math.max(1, Math.min(50, f.hawbCount || 1))
   f.hawbCount = target
   while (f.hawbEntries.length < target) {
-    f.hawbEntries.push({ hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0, destination: f.destination || 'MIA', _dbId: null, _hawbId: '_hawb_' + Date.now() + '_' + f.hawbEntries.length })
+    const newHawbId = '_hawb_' + Date.now() + '_' + f.hawbEntries.length
+    f.hawbEntries.push({ hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0, destination: f.destination || 'MIA', _dbId: null, _hawbId: newHawbId })
+    f.pieces.push({ pieces: 1, hawbId: newHawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
   }
   while (f.hawbEntries.length > target) {
-    f.hawbEntries.pop()
+    const removedEntry = f.hawbEntries.pop()
+    f.pieces = f.pieces.filter(p => p.hawbId !== removedEntry._hawbId)
+  }
+  if (f.pieces.length === 0) {
+    f.pieces.push({ pieces: 1, hawbId: f.hawbEntries[0]?._hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
   }
 }
 
 function removeHawbEntry(mawbId, idx) {
   const f = receiptForms[mawbId]
   if (!f || f.hawbEntries.length <= 1) return
+  const removedHawbId = f.hawbEntries[idx]._hawbId
   f.hawbEntries.splice(idx, 1)
   f.hawbCount = f.hawbEntries.length
+  f.pieces = f.pieces.filter(p => p.hawbId !== removedHawbId)
+  if (f.pieces.length === 0) {
+    f.pieces.push({ pieces: 1, hawbId: f.hawbEntries[0]?._hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
+  }
+  bumpFormVersion()
+}
+
+function addHawbEntry(m) {
+  const f = receiptForms[m.id]
+  if (!f) return
+  const newHawbId = '_hawb_' + Date.now() + '_' + f.hawbEntries.length
+  f.hawbEntries.push({
+    hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0,
+    destination: f.destination || m.destination || 'MIA', _dbId: null,
+    _hawbId: newHawbId
+  })
+  f.hawbCount = f.hawbEntries.length
+  f.pieces.push({ pieces: 1, hawbId: newHawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
+  bumpFormVersion()
 }
 
 function updateHawbConsignee(h, val) {
@@ -1521,18 +1635,19 @@ async function changeMawbStatus(m, newStatus) {
 }
 
 function addPiece(mawbId, hawbId) {
-  receiptForms[mawbId].pieces.push({ pieces: 1, hawbId: hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
   const f = receiptForms[mawbId]
+  const newPiece = { pieces: 1, hawbId: hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 }
+  f.pieces = [...f.pieces, newPiece]
   if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
-  bumpFormVersion() // fuerza refresco del bloque memoizado del MAWB (ver v-memo en el render de la lista)
+  bumpFormVersion()
 }
 
 function removePiece(mawbId, idx) {
-  const pieces = receiptForms[mawbId].pieces
-  if (pieces.length > 1) pieces.splice(idx, 1)
   const f = receiptForms[mawbId]
+  const pieces = f.pieces
+  if (pieces.length > 1) f.pieces = pieces.filter((_, i) => i !== idx)
   if (f) f.mawbWeightGreatest = totalScaleLbs(mawbId, null)
-  bumpFormVersion() // fuerza refresco del bloque memoizado del MAWB
+  bumpFormVersion()
 }
 
 function cancelForm() {
@@ -1622,10 +1737,27 @@ async function toggleExpand(m) {
               })
             }
           }
+          // Remove phantom default entries (no _dbId) when real DB HAWBs exist
+          f.hawbEntries = f.hawbEntries.filter(e => e._dbId != null || f.hawbEntries.filter(e2 => e2._dbId != null).length === 0)
           f.hawbCount = f.hawbEntries.length
-        }
-        if (hawbData.length > 1 && receiptForms[m.id]?.pieces?.[0]) {
-          receiptForms[m.id].pieces[0].hawbId = hawbData[0].id
+          // Build set of valid hawbIds from real entries
+          const validHawbIds = new Set(f.hawbEntries.map(e => e._hawbId).filter(Boolean))
+          // Remove orphaned pieces (hawbId doesn't match any real entry) that have no dimensions
+          f.pieces = f.pieces.filter(p => validHawbIds.has(p.hawbId) || p.lengthIn || p.widthIn || p.heightIn || p.scaleWeightLbs)
+          // Re-link any remaining orphaned pieces (with dimensions but stale hawbId) to first real entry
+          for (const p of f.pieces) {
+            if (!validHawbIds.has(p.hawbId)) {
+              p.hawbId = f.hawbEntries[0]?._hawbId || null
+            }
+          }
+          // Ensure every HAWB entry has at least one piece
+          if (f.hawbEntries.length > 0) {
+            for (const e of f.hawbEntries) {
+              if (!f.pieces.some(p => p.hawbId === e._hawbId)) {
+                f.pieces.push({ pieces: 1, hawbId: e._hawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
+              }
+            }
+          }
         }
       }
     } catch (e) {
@@ -1819,6 +1951,21 @@ async function downloadReceiptByIdAuto(receiptId, awbNumber) {
   }
 }
 
+async function downloadReceiptPdfAuto(receiptId, awbNumber) {
+  try {
+    const res = await receiptsApi.getFullPdf(receiptId)
+    const filename = `RECIBO_DE_BODEGA_AWB ${awbNumber || receiptId.slice(0, 8)}.pdf`
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.warn('Auto-download PDF failed:', e)
+  }
+}
+
 async function downloadHtmlById(m) {
   const id = receiptById.value[m.id]
   if (!id) return
@@ -1859,6 +2006,7 @@ async function downloadPdfById(m) {
 function openConfirmModal(m) {
   const f = receiptForms[m.id]
   if (!f) return
+  f.pieces = f.pieces.filter(p => p.hawbId != null || p.lengthIn || p.widthIn || p.heightIn || p.scaleWeightLbs)
   if (f.pieces.length === 0) {
     alert('Ingresa al menos una pieza')
     return
@@ -1884,39 +2032,32 @@ async function submitReceipt(m) {
   const f = receiptForms[m.id]
   const hawbs = receiptHawbs[m.id] || []
   if (!f) return
+  // Safety net: remove phantom pieces (no hawbId, no dimensions) that slipped through
+  f.pieces = f.pieces.filter(p => p.hawbId != null || p.lengthIn || p.widthIn || p.heightIn || p.scaleWeightLbs)
   if (f.pieces.length === 0) {
     alert('Ingresa al menos una pieza')
     return
   }
-  const hasDimensions = f.pieces.some(p => p.lengthIn || p.widthIn || p.heightIn)
-  if (!hasDimensions && !f._existingReceiptId) {
-    if (!confirm('No has ingresado dimensiones (L×W×H). ¿Continuar de todas formas?')) return
-  }
-  // Descuadre entre lo reportado en el AWB y lo realmente recibido (piezas): solo advierte, no bloquea.
-  const realPieceCount = totalPieces(m.id, null)
-  if (f.awbReportedPieces && Number(f.awbReportedPieces) !== realPieceCount) {
-    if (!confirm(
-      `El AWB reporta ${f.awbReportedPieces} pieza(s) pero se registraron ${realPieceCount} en el recibo. ` +
-      `¿Continuar de todas formas?`
-    )) return
-  }
   submitting.value = true
   try {
-    // Save MAWB name changes
-    if (f.shipperName && f.shipperName !== m.shipperName) {
-      await mawbsApi.update(m.id, { shipperName: f.shipperName })
-      m.shipperName = f.shipperName
-    }
-    if (f.consigneeName && f.consigneeName !== m.consigneeName) {
-      await mawbsApi.update(m.id, { consigneeName: f.consigneeName })
-      m.consigneeName = f.consigneeName
-    }
-
-    // Save HAWB consignee changes
-    for (const h of hawbs) {
-      if (h._dirty && h.id) {
-        await hawbsApi.update(h.id, { consigneeName: h.consigneeName })
+    console.log('[Submit] START', { mawbId: m.id, awbNumber: m.awbNumber, existingReceipt: f._existingReceiptId, pieceCount: f.pieces.length, hawbCount: hawbs.length })
+    // Save MAWB name changes (non-critical — catch 403/500 so receipt emit still proceeds)
+    try {
+      if (f.shipperName && f.shipperName !== m.shipperName) {
+        await mawbsApi.update(m.id, { shipperName: f.shipperName })
+        m.shipperName = f.shipperName
       }
+      if (f.consigneeName && f.consigneeName !== m.consigneeName) {
+        await mawbsApi.update(m.id, { consigneeName: f.consigneeName })
+        m.consigneeName = f.consigneeName
+      }
+      for (const h of hawbs) {
+        if (h._dirty && h.id) {
+          await hawbsApi.update(h.id, { consigneeName: h.consigneeName })
+        }
+      }
+    } catch (nameErr) {
+      console.warn('Non-critical: failed to sync MAWB/HAWB names', nameErr)
     }
 
     function buildPayload(pieceList, remarkSuffix, appendOnly = false, hawbId = null) {
@@ -1933,6 +2074,7 @@ async function submitReceipt(m) {
           awbReportedPieces: f.awbReportedPieces ?? pieceList.reduce((s, p) => s + (p.pieces || 1), 0),
           mawbWeightGreatest: f.mawbWeightGreatest || 0,
           dimFactorIntl: f.dimFactorKg || 366,
+          dimFactorDom: f.dimFactorLbs || 194,
           pieceCount: pieceList.reduce((s, p) => s + (p.pieces || 1), 0),
           cashOnly: f.cashOnly || false,
           bookedInAcoms: f.bookedInAcoms || false,
@@ -1987,7 +2129,9 @@ async function submitReceipt(m) {
     }
 
     if (hawbs.length <= 1) {
+      console.log('[Submit] Sending single receipt...', { existing: !!f._existingReceiptId, pieces: f.pieces.length })
       const res = await sendReceipt(buildPayload(f.pieces, ''))
+      console.log('[Submit] Receipt response:', res)
       const receiptId = res?.id || null
       if (receiptId) generatedReceiptId.value = receiptId
     } else if (f._existingReceiptId) {
@@ -2004,10 +2148,12 @@ async function submitReceipt(m) {
       if (lastId) generatedReceiptId.value = lastId
     }
     const wasExisting = !!f._existingReceiptId
+    console.log('[Submit] Receipt sent, reloading data...', { wasExisting, generatedReceiptId: generatedReceiptId.value })
     await store.loadReceipts()
     await loadExistingReceiptData(m)
     bumpFormVersion()
     localStep.value = 5
+    console.log('[Submit] SUCCESS — step set to 5, reloading MAWBs...')
     clearDraft(m.id)
     // Reload MAWBs to get server-recalculated piece count, weight, and status
     if (store.selectedFlightId) {
@@ -2023,10 +2169,11 @@ async function submitReceipt(m) {
     if (successTimer) clearTimeout(successTimer)
     successTimer = setTimeout(() => { successMsg.value = '' }, 6000)
 
-    // Auto-download Excel receipt
+    // Auto-download Excel + PDF receipt
     const downloadId = generatedReceiptId.value
     if (downloadId) {
       setTimeout(() => downloadReceiptByIdAuto(downloadId, m.awbNumber), 500)
+      setTimeout(() => downloadReceiptPdfAuto(downloadId, m.awbNumber), 1200)
     }
   } catch (e) {
     toast.error(extractError(e))
@@ -2208,96 +2355,27 @@ async function downloadMawbEvidencePdf() {
 }
 
 // ── Print Preview ──
-function printPreview(m) {
+async function printPreview(m) {
   const f = receiptForms[m.id]
   if (!f) return
-  const win = window.open('', '_blank')
-  if (!win) { toast.error('Permite ventanas emergentes para la vista previa'); return }
-  const pc = f.pieces
-  const tPcs = totalPieces(m.id, null)
-  const tScaleKg = totalScaleKg(m.id, null)
-  const tDimKg = totalDimKg(m.id, null)
-  const tChgKg = totalChargeableKg(m.id, null)
-  const tScaleLbs = totalScaleLbs(m.id, null)
-  const tDimLbs = totalDimLbs(m.id, null)
-  const tChgLbs = totalChargeableLbs(m.id, null)
-
-  win.document.write(`<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>Recibo Bodega ${m.awbNumber || ''}</title>
-<style>
-  body { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; color: #000; margin: 20px; }
-  h1 { font-size: 16px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 16px; }
-  .info { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin-bottom: 16px; }
-  .info div { display: flex; }
-  .info label { font-weight: bold; min-width: 100px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-  th, td { border: 1px solid #000; padding: 4px 8px; text-align: center; font-size: 11px; }
-  th { background: #e5e7eb; font-weight: bold; }
-  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
-  .sig-box { border-top: 1px solid #000; padding-top: 4px; margin-top: 40px; text-align: center; }
-  .sig-box div { margin-top: 4px; font-size: 11px; }
-  .total-row { font-weight: bold; background: #f3f4f6; }
-  .footer { text-align: center; font-size: 10px; margin-top: 20px; color: #666; }
-  .checkbox-list { display: flex; gap: 16px; margin-bottom: 12px; font-size: 11px; }
-  .checkbox-list span { border: 1px solid #000; padding: 2px 8px; }
-  .checkbox-list .checked { background: #000; color: #fff; }
-</style></head><body>
-<h1>RECIBO DE BODEGA - WAREHOUSE RECEIPT</h1>
-<div class="info">
-  <div><label>MAWB:</label> ${m.awbNumber || '—'}</div>
-  <div><label>Fecha:</label> ${new Date().toLocaleDateString()}</div>
-  <div><label>Shipper:</label> ${f.shipperName || '—'}</div>
-  <div><label>Consignee:</label> ${f.consigneeName || '—'}</div>
-  <div><label>Origen:</label> ${f.origin || '—'}</div>
-  <div><label>Destino:</label> ${f.destination || '—'}</div>
-  <div><label>Gateway:</label> ${f.gatewayCfs || '—'}</div>
-  <div><label>MAWB Pieces:</label> ${f.awbReportedPieces || '—'}</div>
-</div>
-<div class="checkbox-list">
-  <span${f.cashOnly ? ' class="checked"' : ''}>Cash Only</span>
-  <span${f.bookedInAcoms ? ' class="checked"' : ''}>Booked in ACOMS</span>
-  <span${f.docsProvided ? ' class="checked"' : ''}>Documents Provided</span>
-  <span${f.customsCompleted ? ' class="checked"' : ''}>Export Customs</span>
-  <span${f.preBuilt ? ' class="checked"' : ''}>Pre-built</span>
-</div>
-<table><thead><tr>
-  <th>#</th><th>Pcs</th><th>L (in)</th><th>W (in)</th><th>H (in)</th>
-  <th>Dim Wt</th><th>Scale LBS</th><th>Dim LBS</th>
-  <th>Scale KGS</th><th>Dim KGS</th><th>CHG KGS</th>
-</tr></thead><tbody>
-${pc.map((p, i) => `<tr>
-  <td>${i + 1}</td>
-  <td>${p.pieces || 1}</td>
-  <td>${p.lengthIn ?? '—'}</td>
-  <td>${p.widthIn ?? '—'}</td>
-  <td>${p.heightIn ?? '—'}</td>
-  <td>${(p.dimWeight || 0).toFixed(1)}</td>
-  <td>${(p.scaleWeightLbs || 0).toFixed(1)}</td>
-  <td>${(p.dimWeightLbs || 0).toFixed(1)}</td>
-  <td>${(p.scaleWeightKg || 0).toFixed(2)}</td>
-  <td>${(p.dimWeightKg || 0).toFixed(2)}</td>
-  <td>${(p.chargeableKg || 0).toFixed(2)}</td>
-</tr>`).join('')}
-</tbody><tfoot><tr class="total-row">
-  <td colspan="2">TOTAL</td>
-  <td colspan="3">${tPcs} pcs</td>
-  <td>${tDimKg.toFixed(1)}</td>
-  <td>${tScaleLbs.toFixed(1)}</td>
-  <td>${tDimLbs.toFixed(1)}</td>
-  <td>${tScaleKg.toFixed(2)}</td>
-  <td>${tDimKg.toFixed(2)}</td>
-  <td>${tChgKg.toFixed(2)}</td>
-</tr></tfoot></table>
-${f.remarks ? `<p><strong>Remarks:</strong> ${f.remarks}</p>` : ''}
-<div class="signatures">
-  <div><strong>Dock Signature</strong><div class="sig-box">${f.printName || '________________'}<div>Print Name: ${f.printName || '—'}</div></div></div>
-  <div><strong>Delivered By</strong><div class="sig-box">${f.deliveredByName || '________________'}<div>${f.deliveredByIdNum || '—'}</div></div></div>
-  <div><strong>Broker Representative</strong><div class="sig-box">${f.brokerName || '________________'}<div>${f.brokerIdNum || '—'}</div></div></div>
-</div>
-<div class="footer">Generado el ${new Date().toLocaleString()} — Sistema de Recepción de Carga</div>
-<script>window.onload = function() { window.print(); }<\\/script>
-</body></html>`)
-  win.document.close()
+  const receiptId = f._existingReceiptId || generatedReceiptId.value
+  if (!receiptId) {
+    toast.error('Primero confirma o actualiza el recibo antes de imprimir')
+    return
+  }
+  try {
+    const res = await receiptsApi.getFullPdf(receiptId)
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `RECIBO_DE_BODEGA_AWB ${m.awbNumber || receiptId.slice(0, 8)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    toast.error('Error generando PDF: ' + (e.response?.data?.error || e.message))
+    console.error('Print preview PDF error:', e)
+  }
 }
 
 onMounted(async () => {
@@ -2342,10 +2420,24 @@ onMounted(async () => {
                 })
               }
             }
+            // Remove phantom default entries (no _dbId) when real DB HAWBs exist
+            f.hawbEntries = f.hawbEntries.filter(e => e._dbId != null || f.hawbEntries.filter(e2 => e2._dbId != null).length === 0)
             f.hawbCount = f.hawbEntries.length
-          }
-          if (hawbData.length > 1 && receiptForms[m.id]?.pieces?.[0]) {
-            receiptForms[m.id].pieces[0].hawbId = hawbData[0].id
+            // Clean up phantom pieces (same logic as toggleExpand)
+            const validHawbIds = new Set(f.hawbEntries.map(e => e._hawbId).filter(Boolean))
+            f.pieces = f.pieces.filter(p => validHawbIds.has(p.hawbId) || p.lengthIn || p.widthIn || p.heightIn || p.scaleWeightLbs)
+            for (const p of f.pieces) {
+              if (!validHawbIds.has(p.hawbId)) {
+                p.hawbId = f.hawbEntries[0]?._hawbId || null
+              }
+            }
+            if (f.hawbEntries.length > 0) {
+              for (const e of f.hawbEntries) {
+                if (!f.pieces.some(p => p.hawbId === e._hawbId)) {
+                  f.pieces.push({ pieces: 1, hawbId: e._hawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
+                }
+              }
+            }
           }
         }
       } catch (e) {
@@ -2366,7 +2458,6 @@ watch(() => store.mawbs, (mawbs) => {
     const m = mawbs.find(x => x.id === expandedId.value)
     if (m) {
       initForm(m)
-      applyDraftToForm(m.id)
     }
   }
 })

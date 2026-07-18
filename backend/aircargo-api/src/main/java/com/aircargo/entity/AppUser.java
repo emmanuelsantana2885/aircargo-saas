@@ -47,6 +47,21 @@ public class AppUser {
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
+    @Column(name = "mfa_secret", length = 255)
+    private String mfaSecret;
+
+    @Builder.Default
+    @Column(name = "mfa_enabled", nullable = false)
+    private Boolean mfaEnabled = false;
+
+    @Builder.Default
+    @Column(name = "mfa_locked", nullable = false)
+    private Boolean mfaLocked = false;
+
+    @Builder.Default
+    @Column(name = "must_change_password", nullable = false)
+    private Boolean mustChangePassword = true;
+
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;

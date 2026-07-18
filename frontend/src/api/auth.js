@@ -1,8 +1,10 @@
 import api from './client'
 
 export const authApi = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
+  login: (email, password, totpCode) => api.post('/auth/login', { email, password, totpCode }),
   setPassword: (email, newPassword, currentPassword) =>
     api.post('/auth/set-password', { email, newPassword, currentPassword }),
+  changePassword: (newPassword, currentPassword, totpCode) =>
+    api.post('/auth/change-password', { newPassword, currentPassword, totpCode }),
   me: () => api.get('/auth/me'),
 }

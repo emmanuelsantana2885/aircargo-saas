@@ -10,4 +10,10 @@ export const usersApi = {
   getConnected: () => api.get('/users/connected'),
   getAuditLogs: (userId) => api.get('/audit-logs', { params: { userId } }),
   heartbeat: () => api.get('/auth/heartbeat'),
+  mfaSetup: (id) => api.post(`/users/${id}/mfa/setup`),
+  mfaEnable: (id, secret, totpCode) => api.post(`/users/${id}/mfa/enable`, { secret, totpCode }),
+  mfaDisable: (id) => api.post(`/users/${id}/mfa/disable`),
+  mfaLock: (id) => api.post(`/users/${id}/mfa/lock`),
+  mfaUnlock: (id) => api.post(`/users/${id}/mfa/unlock`),
+  generateTempPassword: (id) => api.post(`/users/${id}/generate-temp-password`),
 }

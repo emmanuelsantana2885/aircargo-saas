@@ -7,5 +7,6 @@ public enum UserRole {
     TRAFFIC,
     LOAD_PLANNER,
     ADMIN,
-    SUPER_USER
+    SUPER_USER,
+    BI_USER
 }

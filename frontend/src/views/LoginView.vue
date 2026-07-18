@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center" style="background: var(--bg)">
-    <div class="w-full max-w-sm p-8 rounded-lg shadow-md" style="background: var(--surface); border: 1px solid var(--border)">
+  <div class="min-h-screen flex items-center justify-center p-3 md:p-8" style="background: var(--bg)">
+    <div class="w-full max-w-sm p-6 md:p-8 rounded-lg shadow-md" style="background: var(--surface); border: 1px solid var(--border)">
       <!-- Step 1: Credentials -->
       <template v-if="step === 'credentials'">
         <div class="text-center mb-6">
@@ -61,7 +61,61 @@
         </form>
       </template>
 
-      <!-- Step 2: Site selection -->
+      <!-- Step 2: MFA TOTP -->
+      <template v-if="step === 'mfa'">
+        <div class="text-center mb-6">
+          <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: var(--accent)">
+            <IconShieldLock :size="28" color="white" :stroke-width="2" />
+          </div>
+          <h1 class="text-xl font-bold" style="color: var(--text)">Verificación en dos pasos</h1>
+          <p class="text-sm mt-1" style="color: var(--muted)">Ingresa el código de tu aplicación de autenticación</p>
+        </div>
+
+        <form @submit.prevent="handleMfa" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium mb-1" style="color: var(--text)">Código de verificación</label>
+            <input
+              v-model="totpCode"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              required
+              placeholder="000000"
+              class="w-full px-3 py-2.5 rounded text-sm text-center font-mono tracking-[0.5em] outline-none transition-all border-slate-300"
+              style="background: var(--bg); color: var(--text); font-size: 18px"
+              :disabled="loading"
+              autofocus
+            />
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading || totpCode.length !== 6"
+            class="w-full py-2.5 rounded text-sm font-semibold transition-all"
+            :class="loading ? 'opacity-60' : 'hover:brightness-110 active:scale-[0.98]'"
+            style="background: var(--accent); color: white"
+          >
+            <span v-if="loading" class="inline-flex items-center gap-2">
+              <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              Verificando...
+            </span>
+            <span v-else>Verificar</span>
+          </button>
+
+          <p v-if="errorMsg" class="text-xs text-center" style="color: var(--muted)">{{ errorMsg }}</p>
+
+          <button
+            @click="handleBackToLogin"
+            class="w-full py-1.5 rounded text-xs font-medium transition-all hover:brightness-110"
+            style="background: transparent; color: var(--muted)"
+          >
+            Volver
+          </button>
+        </form>
+      </template>
+
+      <!-- Step 3: Site selection -->
       <template v-if="step === 'site-select'">
         <div class="text-center mb-6">
           <div class="w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3" style="background: var(--accent)">
@@ -112,7 +166,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { IconPlaneDeparture, IconBuildingStore } from '@tabler/icons-vue'
+import { IconPlaneDeparture, IconBuildingStore, IconShieldLock } from '@tabler/icons-vue'
 import { useToastStore } from '../stores/toast'
 import { extractError } from '../utils/error'
 
@@ -122,12 +176,15 @@ const auth = useAuthStore()
 
 const loginEmail = ref('')
 const password = ref('')
+const totpCode = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 const needsPassword = ref(false)
 const showSetupLink = ref(false)
 const step = ref('credentials')
 const selectedSite = ref(null)
+const pendingEmail = ref('')
+const pendingPassword = ref('')
 
 const selectedSiteLabel = computed(() => {
   if (!selectedSite.value) return ''
@@ -141,39 +198,90 @@ async function handleLogin() {
   loading.value = true
   try {
     await auth.login(loginEmail.value, password.value)
-    if (auth.sites.length === 0) {
-      errorMsg.value = 'No tienes sitios asignados'
+    // If user must change password, redirect to change-password page
+    if (auth.mustChangePassword) {
+      router.push('/change-password')
       return
     }
-    if (auth.sites.length === 1) {
-      selectedSite.value = auth.sites[0].id
-      auth.confirmSite(selectedSite.value)
-      router.push('/')
-      return
-    }
-    selectedSite.value = auth.sites[0].id
-    step.value = 'site-select'
+    proceedAfterLogin()
   } catch (e) {
-    toast.error(extractError(e))
     const status = e.response?.status
+    const data = e.response?.data
+    if (status === 428 && data?.mfaRequired) {
+      pendingEmail.value = loginEmail.value
+      pendingPassword.value = password.value
+      step.value = 'mfa'
+      totpCode.value = ''
+      errorMsg.value = ''
+      loading.value = false
+      return
+    }
+    toast.error(extractError(e))
     if (status === 428) {
       needsPassword.value = true
       showSetupLink.value = true
       errorMsg.value = 'Debes establecer una contraseña primero'
     } else if (status === 401) {
-      if (needsPassword.value) {
+      if (step.value === 'mfa' || data?.error) {
+        errorMsg.value = data?.error || 'Código de autenticación inválido'
+      } else if (needsPassword.value) {
         errorMsg.value = 'Contraseña incorrecta'
       } else {
         errorMsg.value = 'Usuario no encontrado'
       }
     } else if (status === 403) {
-      errorMsg.value = 'Usuario inactivo'
+      errorMsg.value = data?.error || 'Usuario inactivo'
     } else {
       errorMsg.value = 'Error al conectar con el servidor'
     }
   } finally {
     loading.value = false
   }
+}
+
+async function handleMfa() {
+  errorMsg.value = ''
+  loading.value = true
+  try {
+    await auth.login(pendingEmail.value, pendingPassword.value, totpCode.value)
+    // If user must change password, redirect to change-password page
+    if (auth.mustChangePassword) {
+      router.push('/change-password')
+      return
+    }
+    proceedAfterLogin()
+  } catch (e) {
+    const status = e.response?.status
+    const data = e.response?.data
+    toast.error(extractError(e))
+    if (status === 401) {
+      errorMsg.value = data?.error || 'Código inválido. Intente de nuevo.'
+      totpCode.value = ''
+    } else if (status === 403) {
+      errorMsg.value = data?.error || 'Cuenta bloqueada por intentos fallidos'
+    } else {
+      errorMsg.value = 'Error al verificar el código'
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+function proceedAfterLogin() {
+  pendingEmail.value = ''
+  pendingPassword.value = ''
+  if (auth.sites.length === 0) {
+    errorMsg.value = 'No tienes sitios asignados'
+    return
+  }
+  if (auth.sites.length === 1) {
+    selectedSite.value = auth.sites[0].id
+    auth.confirmSite(selectedSite.value)
+    router.push('/')
+    return
+  }
+  selectedSite.value = auth.sites[0].id
+  step.value = 'site-select'
 }
 
 function handleSiteConfirm() {
@@ -184,6 +292,10 @@ function handleSiteConfirm() {
 
 function handleBackToLogin() {
   step.value = 'credentials'
+  pendingEmail.value = ''
+  pendingPassword.value = ''
+  totpCode.value = ''
+  errorMsg.value = ''
   auth.logout()
 }
 

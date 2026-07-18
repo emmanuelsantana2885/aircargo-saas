@@ -312,7 +312,8 @@ public class WarehouseService {
     }
 
     private WarehouseReceipt savePiecesAndRecalculate(WarehouseReceipt receipt, List<ReceiptPiece> pieces) {
-        double dimFactor = (receipt.getDimFactorIntl() != null) ? receipt.getDimFactorIntl().doubleValue() : 366.0;
+        double dimFactorKg = (receipt.getDimFactorIntl() != null) ? receipt.getDimFactorIntl().doubleValue() : 366.0;
+        double dimFactorLbs = (receipt.getDimFactorDom() != null) ? receipt.getDimFactorDom().doubleValue() : 194.0;
         BigDecimal lbsToKgFactor = BigDecimal.valueOf(0.45359237);
 
         for (ReceiptPiece piece : pieces) {
@@ -324,23 +325,21 @@ public class WarehouseService {
             double height = piece.getHeightIn() != null ? piece.getHeightIn().doubleValue() : 0.0;
             int qty = piece.getPieces() != null && piece.getPieces() > 0 ? piece.getPieces() : 1;
 
-            double volWeightLbs = (length * width * height * qty) / dimFactor;
-            piece.setDimWeightLbs(BigDecimal.valueOf(volWeightLbs).setScale(3, RoundingMode.HALF_UP));
-
-            BigDecimal dimWeightKg = piece.getDimWeightLbs().multiply(lbsToKgFactor);
-            piece.setDimWeightKg(dimWeightKg.setScale(3, RoundingMode.HALF_UP));
+            double vol = length * width * height * qty;
+            BigDecimal dimWeightKg = BigDecimal.valueOf(vol / dimFactorKg).setScale(3, RoundingMode.HALF_UP);
+            BigDecimal dimWeightLbs = BigDecimal.valueOf(vol / dimFactorLbs).setScale(3, RoundingMode.HALF_UP);
+            piece.setDimWeightKg(dimWeightKg);
+            piece.setDimWeightLbs(dimWeightLbs);
 
             if (piece.getScaleWeightLbs() != null && (piece.getScaleWeightKg() == null || piece.getScaleWeightKg().compareTo(BigDecimal.ZERO) == 0)) {
                 piece.setScaleWeightKg(piece.getScaleWeightLbs().multiply(lbsToKgFactor).setScale(3, RoundingMode.HALF_UP));
             }
 
             BigDecimal scaleKg = piece.getScaleWeightKg() != null ? piece.getScaleWeightKg() : BigDecimal.ZERO;
-            BigDecimal maxKg = scaleKg.max(piece.getDimWeightKg());
-            piece.setChargeableKg(maxKg.setScale(3, RoundingMode.HALF_UP));
+            piece.setChargeableKg(scaleKg.max(dimWeightKg).setScale(3, RoundingMode.HALF_UP));
 
             BigDecimal swLbs = piece.getScaleWeightLbs() != null ? piece.getScaleWeightLbs() : BigDecimal.ZERO;
-            BigDecimal maxLbs = swLbs.max(piece.getDimWeightLbs());
-            piece.setChargeableLbs(maxLbs.setScale(3, RoundingMode.HALF_UP));
+            piece.setChargeableLbs(swLbs.max(dimWeightLbs).setScale(3, RoundingMode.HALF_UP));
 
             pieceRepository.save(piece);
         }
@@ -350,23 +349,25 @@ public class WarehouseService {
             .mapToInt(p -> p.getPieces() != null && p.getPieces() > 0 ? p.getPieces() : 1)
             .sum();
         receipt.setPieceCount(totalPieceQty);
+
         BigDecimal totalActualLbs = savedPieces.stream()
             .map(p -> p.getScaleWeightLbs() != null ? p.getScaleWeightLbs() : BigDecimal.ZERO)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal totalActualKg = savedPieces.stream()
             .map(p -> p.getScaleWeightKg() != null ? p.getScaleWeightKg() : BigDecimal.ZERO)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalChargeableLbs = savedPieces.stream()
-            .map(p -> p.getChargeableLbs() != null ? p.getChargeableLbs() : BigDecimal.ZERO)
+        BigDecimal totalDimKg = savedPieces.stream()
+            .map(p -> p.getDimWeightKg() != null ? p.getDimWeightKg() : BigDecimal.ZERO)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalChargeableKg = savedPieces.stream()
-            .map(p -> p.getChargeableKg() != null ? p.getChargeableKg() : BigDecimal.ZERO)
+        BigDecimal totalDimLbs = savedPieces.stream()
+            .map(p -> p.getDimWeightLbs() != null ? p.getDimWeightLbs() : BigDecimal.ZERO)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         receipt.setActualWeightLbs(totalActualLbs);
         receipt.setActualWeightKg(totalActualKg);
-        receipt.setChargeableWeightLbs(totalChargeableLbs);
-        receipt.setChargeableWeightKg(totalChargeableKg);
-        // MAWB weight = total scale weight (suma de pesos de bascula de todas las piezas)
+        receipt.setChargeableWeightLbs(totalActualLbs.max(totalDimLbs));
+        receipt.setChargeableWeightKg(totalActualKg.max(totalDimKg));
+
         if (totalActualLbs.compareTo(BigDecimal.ZERO) > 0) {
             receipt.setMawbWeightGreatest(totalActualLbs);
         }
@@ -404,6 +405,7 @@ public class WarehouseService {
         target.setDimFactorIntl(source.getDimFactorIntl());
         target.setDimFactorDom(source.getDimFactorDom());
         target.setShipperReportedWeight(source.getShipperReportedWeight());
+        target.setPdfData(null);
     }
 
     public String generateSupportingDocsHtml(UUID receiptId) {
@@ -496,7 +498,7 @@ public class WarehouseService {
         sb.append("<title>Evidencias - ").append(receiptId.toString().substring(0, 8)).append("</title>");
         sb.append("<style>");
         sb.append("@page{margin:1cm}");
-        sb.append("body{font-family:Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:10pt;margin:0;padding:0}");
+        sb.append("body{font-family:'JetBrains Mono',Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:10pt;margin:0;padding:0}");
         sb.append(".page{page-break-after:always;display:flex;flex-direction:column;align-items:center;min-height:100vh;box-sizing:border-box;padding:0.5cm 1cm 1cm}");
         sb.append(".page:last-child{page-break-after:auto}");
         sb.append(".page-header{width:100%;border-bottom:2px solid #333;padding-bottom:0.3cm;margin-bottom:0.5cm;text-align:center}");

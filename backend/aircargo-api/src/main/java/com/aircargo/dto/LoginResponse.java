@@ -13,6 +13,8 @@ public record LoginResponse(
     UserRole role,
     UUID airlineId,
     boolean hasPasswordSet,
-    List<SiteDTO> sites
+    List<SiteDTO> sites,
+    boolean mustChangePassword,
+    boolean mfaEnabled
 ) {}
 

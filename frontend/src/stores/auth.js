@@ -25,6 +25,8 @@ export const useAuthStore = defineStore('auth', () => {
   const hasPasswordSet = ref(stored?.hasPasswordSet ?? false)
   const sites = ref(stored?.sites || [])
   const selectedSiteId = ref(stored?.selectedSiteId || null)
+  const mfaEnabled = ref(stored?.mfaEnabled ?? false)
+  const mustChangePassword = ref(stored?.mustChangePassword ?? false)
 
   const isAuthenticated = computed(() => !!token.value && !!selectedSiteId.value)
   const hasToken = computed(() => !!token.value)
@@ -48,11 +50,13 @@ export const useAuthStore = defineStore('auth', () => {
       hasPasswordSet: hasPasswordSet.value,
       sites: sites.value,
       selectedSiteId: selectedSiteId.value,
+      mfaEnabled: mfaEnabled.value,
+      mustChangePassword: mustChangePassword.value,
     }))
   }
 
-  async function login(loginEmail, password) {
-    const res = await authApi.login(loginEmail, password)
+  async function login(loginEmail, password, totpCode) {
+    const res = await authApi.login(loginEmail, password, totpCode)
     const data = res.data
     token.value = data.token
     userId.value = data.userId
@@ -63,6 +67,8 @@ export const useAuthStore = defineStore('auth', () => {
     hasPasswordSet.value = data.hasPasswordSet
     sites.value = data.sites || []
     selectedSiteId.value = null
+    mfaEnabled.value = data.mfaEnabled ?? false
+    mustChangePassword.value = data.mustChangePassword ?? false
     persist()
     return data
   }
@@ -82,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
       role.value = data.role
       airlineId.value = data.airlineId
       hasPasswordSet.value = data.hasPasswordSet
+      mustChangePassword.value = data.mustChangePassword ?? false
       persist()
     } catch (e) {
       console.warn('Failed to refresh profile:', e)
@@ -98,6 +105,8 @@ export const useAuthStore = defineStore('auth', () => {
     hasPasswordSet.value = false
     sites.value = []
     selectedSiteId.value = null
+    mfaEnabled.value = false
+    mustChangePassword.value = false
     localStorage.removeItem(STORAGE_KEY)
   }
 
@@ -111,13 +120,14 @@ export const useAuthStore = defineStore('auth', () => {
       case 'OPERATIONS': return ['DASHBOARD', 'FLIGHTS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
       case 'TRAFFIC': return ['DASHBOARD', 'BOOKINGS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
       case 'LOAD_PLANNER': return ['DASHBOARD', 'FLIGHTS', 'LOAD_PLANNING', 'ULDS'].includes(viewName)
+      case 'BI_USER': return ['DASHBOARD', 'BI'].includes(viewName)
       default: return false
     }
   }
 
   return {
     token, userId, email, fullName, role, airlineId, hasPasswordSet,
-    sites, selectedSiteId, selectedSite,
+    sites, selectedSiteId, selectedSite, mfaEnabled, mustChangePassword,
     isAuthenticated, hasToken, initials,
     login, confirmSite, logout, canView,
     refreshProfile, persist,

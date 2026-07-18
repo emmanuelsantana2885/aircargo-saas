@@ -6,6 +6,7 @@ export const receiptsApi = {
   delete:   (id) => api.delete(`/receipts/${id}`),
   getPieces: (id) => api.get(`/warehouse/receipts/${id}/pieces`),
   export:   (id) => api.get(`/warehouse/receipts/${id}/export`, { responseType: 'blob' }),
+  getFullPdf: (id) => api.get(`/warehouse/receipts/${id}/pdf`, { responseType: 'blob' }),
   updateEmit: (id, payload) => api.put(`/warehouse/receipts/${id}/emit`, payload),
   getSupportingDocsJson: (id) => api.get(`/warehouse/receipts/${id}/supporting-docs`),
   getSupportingDocsHtml: (id) => api.get(`/warehouse/receipts/${id}/supporting-docs/html`, { responseType: 'text' }),

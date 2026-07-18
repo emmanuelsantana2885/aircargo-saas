@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center" style="background: var(--bg)">
-    <div class="w-full max-w-sm p-8 rounded-2xl shadow-xl" style="background: var(--surface); border: 1px solid var(--border)">
+  <div class="min-h-screen flex items-center justify-center p-3 md:p-8" style="background: var(--bg)">
+    <div class="w-full max-w-sm p-6 md:p-8 rounded-2xl shadow-xl" style="background: var(--surface); border: 1px solid var(--border)">
       <div class="text-center mb-6">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style="background: var(--accent)">
           <IconLock :size="28" color="white" :stroke-width="2" />

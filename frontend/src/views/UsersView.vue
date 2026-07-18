@@ -1,7 +1,7 @@
 <template>
   <div class="p-3 md:p-6 max-w-7xl mx-auto">
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 gap-2">
-      <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Usuarios</h1>
+      <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Users</h1>
       <div class="flex gap-1">
         <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
           class="px-4 py-1.5 rounded text-xs font-semibold transition-all"
@@ -127,7 +127,7 @@
         <div class="rounded-lg overflow-hidden" style="background: var(--surface); border: 1px solid var(--border)">
           <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between"
             style="background: var(--bg); color: var(--muted); border-bottom: 1px solid var(--border)">
-            <span>Usuarios conectados con rol {{ roleLabel(selectedRole) }}</span>
+            <span>Connected users with role {{ roleLabel(selectedRole) }}</span>
           </div>
           <table class="w-full text-xs">
             <thead>
@@ -441,6 +441,7 @@ function roleLabel(r) {
     LOAD_PLANNER: 'Load Planner',
     ADMIN: 'Admin',
     SUPER_USER: 'SuperUser',
+    BI_USER: 'BI User',
   }
   return labels[r] || r
 }

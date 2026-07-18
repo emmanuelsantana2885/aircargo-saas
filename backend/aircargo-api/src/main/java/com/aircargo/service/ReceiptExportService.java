@@ -106,6 +106,30 @@ public class ReceiptExportService {
         return buildFromTemplate(receipt, pieces);
     }
 
+    /**
+     * Generate and persist Excel bytes for a receipt. Called from controller AFTER the main
+     * transaction commits, so openhtmltopdf/XLSX rendering does not block the DB transaction.
+     */
+    @Transactional
+    public byte[] generateAndPersistExcel(UUID receiptId) {
+        WarehouseReceipt receipt = receiptRepository.findById(receiptId)
+                .orElseThrow(() -> new IllegalArgumentException("Recibo no encontrado: " + receiptId));
+
+        if (receipt.getExcelData() != null && receipt.getExcelData().length > 0) {
+            log.info("Receipt {} served from persisted Excel ({}KB)", receiptId, receipt.getExcelData().length / 1024);
+            return receipt.getExcelData();
+        }
+
+        List<ReceiptPiece> pieces = pieceRepository.findByReceiptId(receiptId);
+        byte[] data = buildFromTemplate(receipt, pieces);
+
+        receipt.setExcelData(data);
+        receiptRepository.save(receipt);
+
+        log.info("Receipt {} Excel generated and persisted ({}KB, {} pieces)", receiptId, data.length / 1024, pieces.size());
+        return data;
+    }
+
     @Async
     public CompletableFuture<ByteArrayInputStream> exportReceiptAsync(UUID receiptId) {
         return CompletableFuture.completedFuture(exportReceipt(receiptId));

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-mono antialiased overflow-hidden select-none">
+  <div class="p-3 md:p-4 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-mono antialiased overflow-hidden select-none">
 
     <header class="flex justify-between items-center border border-slate-300 bg-white p-3 rounded-t-lg shadow-sm shrink-0">
       <div class="flex items-center gap-6">

@@ -35,7 +35,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/bi/**").hasAnyAuthority("READ_ONLY", "WAREHOUSE_ASSISTANT", "OPERATIONS", "TRAFFIC", "LOAD_PLANNER", "ADMIN", "SUPER_USER")
+                .requestMatchers(HttpMethod.GET, "/api/bi/**").hasAnyAuthority("ADMIN", "SUPER_USER", "BI_USER")
                 .requestMatchers(HttpMethod.GET, "/api/**").hasAnyAuthority("READ_ONLY", "WAREHOUSE_ASSISTANT", "OPERATIONS", "TRAFFIC", "LOAD_PLANNER", "ADMIN", "SUPER_USER")
                 .requestMatchers(HttpMethod.POST, "/api/**").hasAnyAuthority("WAREHOUSE_ASSISTANT", "OPERATIONS", "TRAFFIC", "LOAD_PLANNER", "ADMIN", "SUPER_USER")
                 .requestMatchers(HttpMethod.PUT, "/api/**").hasAnyAuthority("WAREHOUSE_ASSISTANT", "OPERATIONS", "TRAFFIC", "LOAD_PLANNER", "ADMIN", "SUPER_USER")

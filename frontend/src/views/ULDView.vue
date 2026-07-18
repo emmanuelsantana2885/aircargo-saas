@@ -1,6 +1,6 @@
 cat > /home/manolov/Projects/aircargo-saas/frontend/src/views/UldsView.vue << 'EOF'
 <template>
-  <div class="p-5 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-sans antialiased overflow-hidden select-none">
+  <div class="p-3 md:p-5 bg-white h-screen max-h-screen flex flex-col justify-between text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex justify-between items-center border-b border-slate-200 pb-3 shrink-0">
       <div>
         <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>

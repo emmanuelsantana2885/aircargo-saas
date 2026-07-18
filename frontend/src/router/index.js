@@ -24,6 +24,7 @@ function hasPermission(role, path) {
     case 'OPERATIONS': return ['DASHBOARD', 'FLIGHTS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(view)
     case 'TRAFFIC': return ['DASHBOARD', 'BOOKINGS', 'MAWBS', 'LOAD_PLANNING', 'ULDS'].includes(view)
     case 'LOAD_PLANNER': return ['DASHBOARD', 'FLIGHTS', 'LOAD_PLANNING', 'ULDS'].includes(view)
+    case 'BI_USER': return ['DASHBOARD', 'BI'].includes(view)
     default: return false
   }
 }
@@ -40,6 +41,16 @@ const router = createRouter({
       path: '/set-password',
       name: 'set-password',
       component: () => import('../views/SetPasswordView.vue'),
+    },
+    {
+      path: '/change-password',
+      name: 'change-password',
+      component: () => import('../views/ChangePasswordView.vue'),
+    },
+    {
+      path: '/mfa-setup',
+      name: 'mfa-setup',
+      component: () => import('../views/MfaSetupView.vue'),
     },
     {
       path: '/',
@@ -108,7 +119,7 @@ const router = createRouter({
   ]
 })
 
-const publicPaths = ['/login', '/set-password']
+const publicPaths = ['/login', '/set-password', '/change-password', '/mfa-setup']
 
 router.beforeEach((to, from) => {
   const stored = localStorage.getItem('aircargo_auth')

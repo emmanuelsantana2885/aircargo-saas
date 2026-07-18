@@ -102,10 +102,31 @@ public class PdfGenerationService {
         return sb.toString();
     }
 
+    private static final File JETBRAINS_MONO_FONT = findFontFile();
+
+    private static File findFontFile() {
+        String[] paths = {
+            "src/main/resources/fonts/JetBrainsMonoNerdFontMono-Regular.ttf",
+            "fonts/JetBrainsMonoNerdFontMono-Regular.ttf",
+        };
+        for (String p : paths) {
+            File f = new File(p);
+            if (f.exists()) return f;
+        }
+        try {
+            java.net.URL res = PdfGenerationService.class.getResource("/fonts/JetBrainsMonoNerdFontMono-Regular.ttf");
+            if (res != null) return new File(res.toURI());
+        } catch (Exception ignored) {}
+        return null;
+    }
+
     private byte[] renderPdf(String html) {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
+            if (JETBRAINS_MONO_FONT != null && JETBRAINS_MONO_FONT.exists()) {
+                builder.useFont(JETBRAINS_MONO_FONT, "JetBrains Mono");
+            }
             builder.withHtmlContent(html, null);
             builder.toStream(os);
             builder.run();

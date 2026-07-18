@@ -30,6 +30,9 @@ public class AppUserDTO {
     private OffsetDateTime createdAt;
     private List<UUID> siteIds;
     private OffsetDateTime updatedAt;
+    private Boolean mfaEnabled;
+    private Boolean mfaLocked;
+    private Boolean mustChangePassword;
 
     public static AppUserDTO fromEntity(AppUser entity){
         if(entity == null) return null;
@@ -45,6 +48,9 @@ public class AppUserDTO {
                 .lastLogin(entity.getLastLogin())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .mfaEnabled(entity.getMfaEnabled())
+                .mfaLocked(entity.getMfaLocked())
+                .mustChangePassword(entity.getMustChangePassword())
                 .build();
     }
 

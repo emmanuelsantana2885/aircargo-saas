@@ -315,7 +315,7 @@
 
     <!-- MAWB Info Sidebar -->
     <transition name="slide">
-      <aside v-if="infoPanel.show" class="w-72 shrink-0 border border-slate-300 rounded bg-white flex flex-col overflow-hidden">
+      <aside v-if="infoPanel.show" class="hidden md:flex w-72 shrink-0 border border-slate-300 rounded bg-white flex-col overflow-hidden">
         <div class="flex items-center justify-between px-3 py-2 border-b border-slate-400 bg-slate-100 shrink-0">
           <span class="text-[10px] font-mono font-black uppercase tracking-widest text-slate-950">Info MAWB</span>
           <button @click="closeInfoPanel" class="text-slate-500 hover:text-slate-950 transition text-xs">✕</button>
@@ -359,6 +359,28 @@
             </div>
 
             <div class="border-t border-slate-200 pt-2 space-y-1">
+              <div v-if="receiptForMawb(infoPanel.row)" class="grid grid-cols-2 gap-1">
+                <button @click="downloadReceiptXlsx(infoPanel.row)"
+                  class="text-[10px] px-2 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-slate-100 transition"
+                  title="Descargar recibo Excel">
+                  &#11015; Recibo XLSX
+                </button>
+                <button @click="downloadReceiptPdf(infoPanel.row)"
+                  class="text-[10px] px-2 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-slate-100 transition"
+                  title="Descargar recibo PDF">
+                  &#128213; Recibo PDF
+                </button>
+                <button @click="downloadEvidenceHtml(infoPanel.row)"
+                  class="text-[10px] px-2 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-slate-100 transition"
+                  title="Descargar evidencias HTML">
+                  &#128196; Evidencias
+                </button>
+                <button @click="downloadEvidencePdf(infoPanel.row)"
+                  class="text-[10px] px-2 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-slate-100 transition"
+                  title="Descargar evidencias PDF">
+                  &#128213; Evid. PDF
+                </button>
+              </div>
               <button @click="goToReceipt(infoPanel.row)"
                 class="w-full text-[10px] px-2 py-1.5 rounded border border-slate-300 font-mono uppercase tracking-wider text-slate-950 hover:bg-slate-100 transition">
                 &#128196; Ver en Recibos
@@ -470,6 +492,8 @@ import { ref, computed, watch, onMounted, nextTick, shallowRef, reactive } from 
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import api from '../api/client'
+import { receiptsApi } from '../api/receipts'
+import { mawbsApi } from '../api/mawbs'
 import { downloadCSV } from '../utils/csv'
 import { useToastStore } from '../stores/toast'
 import { extractError } from '../utils/error'
@@ -1194,6 +1218,59 @@ function formatDate(d) {
 function goToReceipt(row) {
   closeInfoPanel()
   router.push({ name: 'receipts', query: { mawbId: row.mawbId } })
+}
+
+function receiptForMawb(row) {
+  if (!row || !store.receipts) return null
+  return store.receipts.find(r => r.mawbId === row.mawbId) || null
+}
+
+function downloadReceiptXlsx(row) {
+  const rec = receiptForMawb(row)
+  if (!rec) { toast.warning('No hay recibo para este MAWB'); return }
+  receiptsApi.export(rec.id).then(res => {
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = 'RECIBO_DE_BODEGA_AWB ' + (row.awbNumber || '—') + '.xlsx'
+    a.click(); URL.revokeObjectURL(url)
+  }).catch(e => toast.error('Error descargando Excel: ' + extractError(e)))
+}
+
+function downloadReceiptPdf(row) {
+  const rec = receiptForMawb(row)
+  if (!rec) { toast.warning('No hay recibo para este MAWB'); return }
+  receiptsApi.getFullPdf(rec.id).then(res => {
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = 'RECIBO_DE_BODEGA_AWB ' + (row.awbNumber || '—') + '.pdf'
+    a.click(); URL.revokeObjectURL(url)
+  }).catch(e => toast.error('Error descargando PDF: ' + extractError(e)))
+}
+
+function downloadEvidenceHtml(row) {
+  const rec = receiptForMawb(row)
+  if (!rec) { toast.warning('No hay recibo para este MAWB'); return }
+  receiptsApi.getSupportingDocsHtml(rec.id).then(res => {
+    const blob = new Blob([res.data], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = 'EVIDENCIAS_' + (row.awbNumber || '—') + '.html'
+    a.click(); URL.revokeObjectURL(url)
+  }).catch(e => toast.error('Error descargando evidencias: ' + extractError(e)))
+}
+
+function downloadEvidencePdf(row) {
+  const rec = receiptForMawb(row)
+  if (!rec) { toast.warning('No hay recibo para este MAWB'); return }
+  receiptsApi.getSupportingDocsPdf(rec.id).then(res => {
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url
+    a.download = 'EVIDENCIAS_' + (row.awbNumber || '—') + '.pdf'
+    a.click(); URL.revokeObjectURL(url)
+  }).catch(e => toast.error('Error descargando PDF evidencias: ' + extractError(e)))
 }
 
 function startResize(e) {

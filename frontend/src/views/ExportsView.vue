@@ -4,7 +4,7 @@
     <!-- ═══ HEADER ═══ -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 shrink-0 gap-2">
       <div class="flex items-center gap-3">
-        <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Exports</h1>
+        <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Reviews -- Audit</h1>
         <div v-if="rows.length" class="h-4 w-[1px] bg-slate-300"></div>
         <span v-if="rows.length" class="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-widest">
           {{ rows.length }} registro(s)

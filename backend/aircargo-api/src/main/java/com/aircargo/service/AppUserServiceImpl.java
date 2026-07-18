@@ -40,6 +40,7 @@ public class AppUserServiceImpl implements AppUserService {
     public AppUserDTO create(AppUserDTO dto) {
         AppUser e = AppUserDTO.toEntity(dto);
         e.setPasswordHash(null);
+        e.setMustChangePassword(true);
         if (dto.getSiteIds() != null) {
             Set<Site> sites = dto.getSiteIds().stream()
                     .map(siteRepository::findById)
@@ -89,6 +90,7 @@ public class AppUserServiceImpl implements AppUserService {
     public void resetPassword(UUID id) {
         repository.findById(id).ifPresent(user -> {
             user.setPasswordHash(null);
+            user.setMustChangePassword(true);
             repository.save(user);
         });
     }

@@ -27,7 +27,9 @@ api.interceptors.response.use(
       return Promise.reject(err)
     }
     if (err.response?.status === 403) {
-      return Promise.resolve({ data: null, status: 403 })
+      const url = err.config?.url || ''
+      console.warn('[API 403] Sin permiso para:', err.config?.method?.toUpperCase(), url)
+      return Promise.reject(err)
     }
     handleApiError(err, useToastStore())
     return Promise.reject(err)

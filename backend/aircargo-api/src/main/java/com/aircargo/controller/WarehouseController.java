@@ -7,6 +7,7 @@ import com.aircargo.repository.WarehouseReceiptRepository;
 import com.aircargo.repository.ReceiptPieceRepository;
 import com.aircargo.service.AuditService;
 import com.aircargo.service.ReceiptExportService;
+import com.aircargo.service.ReceiptFullPdfService;
 import com.aircargo.service.WarehouseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
@@ -18,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,21 +31,26 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/warehouse/receipts")
 public class WarehouseController {
 
+    private static final Logger log = LoggerFactory.getLogger(WarehouseController.class);
+
     private final WarehouseService warehouseService;
     private final WarehouseReceiptRepository receiptRepository;
     private final ReceiptPieceRepository pieceRepository;
     private final ReceiptExportService exportService;
+    private final ReceiptFullPdfService receiptFullPdfService;
     private final AuditService auditService;
 
     public WarehouseController(WarehouseService warehouseService, 
                                WarehouseReceiptRepository receiptRepository, 
                                ReceiptPieceRepository pieceRepository,
                                ReceiptExportService exportService,
+                               ReceiptFullPdfService receiptFullPdfService,
                                AuditService auditService) {
         this.warehouseService = warehouseService;
         this.receiptRepository = receiptRepository;
         this.pieceRepository = pieceRepository;
         this.exportService = exportService;
+        this.receiptFullPdfService = receiptFullPdfService;
         this.auditService = auditService;
     }
 
@@ -94,6 +103,8 @@ public class WarehouseController {
                         "{\"mawb\":\"" + safe(mawbNum) + "\",\"pieces\":" + (payload.pieces != null ? payload.pieces.size() : 0) + "}",
                         request.getRemoteAddr());
             }
+            final UUID receiptId = processed.getId();
+            java.util.concurrent.CompletableFuture.runAsync(() -> generatePersistedArtifacts(receiptId));
             return ResponseEntity.ok(processed);
 
         } catch (Exception ex) {
@@ -131,6 +142,8 @@ public class WarehouseController {
                         "{\"mawb\":\"" + safe(mawbNum) + "\",\"pieces\":" + (payload.pieces != null ? payload.pieces.size() : 0) + "}",
                         request.getRemoteAddr());
             }
+            final UUID savedId = processed.getId();
+            java.util.concurrent.CompletableFuture.runAsync(() -> generatePersistedArtifacts(savedId));
             return ResponseEntity.ok(processed);
 
         } catch (Exception ex) {
@@ -223,6 +236,45 @@ public class WarehouseController {
             return ResponseEntity.badRequest().body(Map.of("success", false, "error", ex.getMessage()));
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body(Map.of("success", false, "error", "Error exportando recibo: " + ex.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint para descargar el PDF completo del recibo de bodega (piezas + firmas + anexo HAWB).
+     */
+    @GetMapping("/{receiptId}/pdf")
+    public ResponseEntity<?> getReceiptPdf(@PathVariable UUID receiptId) {
+        try {
+            byte[] pdf = receiptFullPdfService.generateReceiptPdf(receiptId);
+            WarehouseReceipt receipt = receiptRepository.findById(receiptId).orElse(null);
+            String mawbNum = receipt != null && receipt.getMawb() != null
+                    ? receipt.getMawb().getAwbNumber() : receiptId.toString().substring(0, 8);
+            String filename = "RECIBO_DE_BODEGA_AWB " + mawbNum + ".pdf";
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "error", ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "error", "Error generando PDF del recibo: " + ex.getMessage()));
+        }
+    }
+
+    /**
+     * Generates and persists PDF + XLSX artifacts for a receipt. Called AFTER the main
+     * transaction commits so heavy rendering (openhtmltopdf / POI) does not block the DB.
+     */
+    private void generatePersistedArtifacts(UUID receiptId) {
+        try {
+            receiptFullPdfService.generateReceiptPdf(receiptId);
+        } catch (Exception e) {
+            log.warn("No se pudo generar PDF para recibo {}: {}", receiptId, e.getMessage());
+        }
+        try {
+            exportService.generateAndPersistExcel(receiptId);
+        } catch (Exception e) {
+            log.warn("No se pudo generar Excel para recibo {}: {}", receiptId, e.getMessage());
         }
     }
 

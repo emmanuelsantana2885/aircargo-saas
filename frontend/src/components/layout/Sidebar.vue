@@ -17,22 +17,19 @@
     </button>
 
     <!-- Logo -->
-    <div class="px-4 py-4 border-b relative overflow-hidden" style="border-color: var(--border)">
+    <div class="px-4 py-4 border-b relative overflow-hidden" style="border-color: var(--border); background: linear-gradient(135deg, #1e293b 0%, #334155 25%, #1e3a5f 50%, #2d3a4e 75%, #1e293b 100%); background-size: 200% 200%;">
+      <div class="absolute inset-0 opacity-[0.08]" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(148,163,184,0.3) 2px, rgba(148,163,184,0.3) 3px), repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(100,116,139,0.2) 3px, rgba(100,116,139,0.2) 4px);"></div>
+      <div class="absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(circle at 30% 50%, rgba(148,163,184,0.4) 0%, transparent 60%), radial-gradient(circle at 70% 30%, rgba(100,116,139,0.3) 0%, transparent 50%);"></div>
       <div class="flex items-center" :class="showCollapsed ? 'justify-center' : 'gap-2.5'">
         <div v-if="!showCollapsed" class="overflow-hidden whitespace-nowrap relative z-10">
-          <div class="font-bold title" style="color: var(--text)">AirCargo</div>
-          <div class="text-xs" style="color: var(--muted)">{{ auth.selectedSite?.code || 'SDQ' }} Operations</div>
+          <div class="font-extrabold title text-white" style="font-size: 18px; letter-spacing: 0.08em; text-shadow: 0 1px 4px rgba(0,0,0,0.4)">AirCargo</div>
+          <div class="text-[11px] text-slate-300 font-medium tracking-wide">{{ auth.selectedSite?.code || 'SDQ' }} Operations</div>
         </div>
         <div v-else class="w-8 h-8 flex items-center justify-center shrink-0"
           style="background: var(--accent)">
           <IconPlaneDepartureFilled :size="20" color="white" :stroke-width="2" />
         </div>
       </div>
-      <!-- Watermark airplane -->
-      <svg v-if="!showCollapsed" class="absolute -bottom-3 -right-2 opacity-[0.06] pointer-events-none" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text)">
-        <path d="M2 16l19-4-7-4-3-9-3 9-7 4z"/>
-        <path d="M10 16v4l4-2v-4"/>
-      </svg>
     </div>
 
     <!-- Nav -->
@@ -54,7 +51,7 @@
       </RouterLink>
 
       <div v-if="!showCollapsed" class="text-xs font-bold mt-4 mb-2 px-2" style="color: var(--muted); letter-spacing: .1em; text-transform: uppercase">
-        Configuración
+        System Settings
       </div>
 
       <RouterLink v-for="item in settingsMenu" :key="item.path" :to="item.path"
@@ -169,15 +166,15 @@ const allMenuItems = [
   { path: '/mawbs',         label: 'MAWBs',               icon: IconTableFilled,         view: 'MAWBS',           color: '#16a34a' },
   { path: '/load-planning', label: 'Load Planning',       icon: IconContainerFilled,     view: 'LOAD_PLANNING',   color: '#475569' },
   { path: '/ulds',          label: 'ULDs',                icon: IconStackFilled,         view: 'ULDS',            color: '#0891b2' },
-  { path: '/exports',       label: 'Exports',             icon: IconLayoutGridFilled,    view: 'EXPORTS',         color: '#92400e' },
+  { path: '/exports',       label: 'Reviews -- Audit',    icon: IconLayoutGridFilled,    view: 'EXPORTS',         color: '#92400e' },
 ]
 
 const mainMenu = computed(() => allMenuItems.filter(item => auth.canView(item.view)))
 
 const settingsMenu = computed(() => {
   const items = []
-  if (auth.canView('USERS')) items.push({ path: '/users', label: 'Usuarios', icon: IconUserFilled, color: '#64748b' })
-  if (auth.canView('SETTINGS')) items.push({ path: '/settings', label: 'Configuración', icon: IconSettingsFilled, color: '#0f172a' })
+  if (auth.canView('USERS')) items.push({ path: '/users', label: 'Users', icon: IconUserFilled, color: '#64748b' })
+  if (auth.canView('SETTINGS')) items.push({ path: '/settings', label: 'System Settings', icon: IconSettingsFilled, color: '#0f172a' })
   return items
 })
 </script>
