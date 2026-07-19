@@ -1,6 +1,6 @@
 package com.aircargo.dto;
 
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

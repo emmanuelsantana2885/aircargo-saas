@@ -2,7 +2,7 @@ package com.aircargo.service;
 
 import com.aircargo.dto.UldAwbDTO;
 import com.aircargo.dto.UldDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.Uld;
 import com.aircargo.entity.UldAwb;

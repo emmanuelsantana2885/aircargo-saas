@@ -4,6 +4,7 @@ import com.aircargo.dto.AppUserDTO;
 import com.aircargo.entity.AppUser;
 import com.aircargo.entity.Site;
 import com.aircargo.repository.AppUserRepository;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.repository.SiteRepository;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +63,7 @@ public class AppUserServiceImpl implements AppUserService {
                     existing.setRole(dto.getRole());
                     existing.setIsActive(dto.getIsActive());
                     if (dto.getAirlineId() != null) {
-                        com.aircargo.entity.Airline airline = new com.aircargo.entity.Airline();
+                        Airline airline = new Airline();
                         airline.setId(dto.getAirlineId());
                         existing.setAirline(airline);
                     }

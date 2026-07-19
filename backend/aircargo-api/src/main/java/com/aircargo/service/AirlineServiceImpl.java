@@ -1,7 +1,7 @@
 package com.aircargo.service;
 
 import com.aircargo.dto.AirlineDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.repository.AirlineRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

@@ -1,5 +1,6 @@
 package com.aircargo.repository;
 
+import com.aircargo.common.entity.CommodityType;
 import com.aircargo.entity.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -14,6 +15,6 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     List<Booking> findByMawbId(UUID mawbId);
     List<Booking> findByFlightIdAndCommodityType(
             UUID flightId,
-            com.aircargo.entity.CommodityType commodityType);
+            CommodityType commodityType);
 
 }

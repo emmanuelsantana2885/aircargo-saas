@@ -14,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import com.aircargo.common.entity.CommodityType;
 import java.util.UUID;
 
 @Entity

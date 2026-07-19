@@ -16,9 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aircargo.common.auth.UserPrincipal;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Booking;
-import com.aircargo.entity.CommodityType;
+import com.aircargo.common.entity.CommodityType;
 import com.aircargo.entity.Flight;
 import com.aircargo.repository.AirlineRepository;
 import com.aircargo.repository.BookingRepository;

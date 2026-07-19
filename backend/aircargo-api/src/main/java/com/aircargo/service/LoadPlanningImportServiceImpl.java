@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import com.aircargo.common.entity.Airline;
+import com.aircargo.common.entity.CommodityType;
 import java.util.regex.Pattern;
 
 @Service

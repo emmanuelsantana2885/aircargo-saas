@@ -1,7 +1,7 @@
 package com.aircargo.dto;
 
 
-import com.aircargo.entity.CommodityType;
+import com.aircargo.common.entity.CommodityType;
 import com.aircargo.entity.UldAwb;
 import com.aircargo.entity.Uld;
 import com.aircargo.entity.Mawb;

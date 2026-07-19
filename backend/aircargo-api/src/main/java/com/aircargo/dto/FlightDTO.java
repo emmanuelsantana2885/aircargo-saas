@@ -1,7 +1,7 @@
 package com.aircargo.dto;
 
-import com.aircargo.entity.AircraftType;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.AircraftType;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.FlightStatus;
 import java.math.BigDecimal;

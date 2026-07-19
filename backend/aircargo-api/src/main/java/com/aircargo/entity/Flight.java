@@ -17,6 +17,8 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import com.aircargo.common.entity.Airline;
+import com.aircargo.common.entity.AircraftType;
 import java.util.UUID;
 
 

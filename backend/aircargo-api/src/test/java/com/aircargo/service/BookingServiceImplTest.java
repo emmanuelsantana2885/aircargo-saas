@@ -18,9 +18,9 @@ import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
 import com.aircargo.dto.BookingDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Booking;
-import com.aircargo.entity.CommodityType;
+import com.aircargo.common.entity.CommodityType;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.Mawb;
 import com.aircargo.repository.BookingRepository;

@@ -1,7 +1,7 @@
 package com.aircargo.service;
 
 import com.aircargo.dto.WarehouseReceiptDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.WarehouseReceipt;
 import com.aircargo.repository.WarehouseReceiptRepository;
 import org.junit.jupiter.api.BeforeEach;

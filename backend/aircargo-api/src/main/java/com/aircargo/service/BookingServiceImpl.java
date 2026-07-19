@@ -2,7 +2,7 @@ package com.aircargo.service;
 
 import com.aircargo.dto.BookingDTO;
 import com.aircargo.entity.Booking;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.repository.AirlineRepository;
 import com.aircargo.repository.BookingRepository;
@@ -61,7 +61,7 @@ public class BookingServiceImpl implements BookingService{
         return bookingRepository.findById(id)
                 .map(existing -> {
                     if (dto.getAirlineId() != null) {
-                        com.aircargo.entity.Airline a = new com.aircargo.entity.Airline();
+                        Airline a = new Airline();
                         a.setId(dto.getAirlineId());
                         existing.setAirline(a);
                     }

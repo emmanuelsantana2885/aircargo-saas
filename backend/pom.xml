@@ -23,6 +23,15 @@
         <module>aircargo-common</module>
         <module>aircargo-api</module>
         <module>aircargo-gateway</module>
+        <module>aircargo-auth-service</module>
+        <module>aircargo-flight-service</module>
+        <module>aircargo-booking-service</module>
+        <module>aircargo-mawb-service</module>
+        <module>aircargo-warehouse-service</module>
+        <module>aircargo-uld-service</module>
+        <module>aircargo-load-planning-service</module>
+        <module>aircargo-export-service</module>
+        <module>aircargo-notification-service</module>
     </modules>
 
     <properties>

@@ -1,7 +1,7 @@
 package com.aircargo.service;
 
 import com.aircargo.dto.HawbDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Hawb;
 import com.aircargo.entity.Mawb;
 import com.aircargo.entity.MawbStatus;

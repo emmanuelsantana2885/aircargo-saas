@@ -1,7 +1,7 @@
 package com.aircargo.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package com.aircargo.dto;
 
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.AppUser;
 import com.aircargo.entity.Site;
 import com.aircargo.entity.UserRole;

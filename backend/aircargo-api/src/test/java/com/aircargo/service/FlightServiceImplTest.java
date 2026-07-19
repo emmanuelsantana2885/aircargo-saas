@@ -1,7 +1,7 @@
 package com.aircargo.service;
 
 import com.aircargo.dto.FlightDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.FlightStatus;
 import com.aircargo.repository.FlightRepository;

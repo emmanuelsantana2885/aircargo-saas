@@ -1,7 +1,7 @@
 package com.aircargo.dto;
 
-import com.aircargo.entity.Airline;
-import com.aircargo.entity.CommodityType;
+import com.aircargo.common.entity.Airline;
+import com.aircargo.common.entity.CommodityType;
 import com.aircargo.entity.Flight;
 import com.aircargo.entity.Mawb;
 import com.aircargo.entity.MawbStatus;

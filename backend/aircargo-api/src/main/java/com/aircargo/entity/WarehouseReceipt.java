@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import com.aircargo.common.entity.Airline;
 import java.util.UUID;
 
 @Entity

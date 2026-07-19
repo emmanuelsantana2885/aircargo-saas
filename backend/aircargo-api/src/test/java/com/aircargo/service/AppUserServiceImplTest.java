@@ -1,7 +1,7 @@
 package com.aircargo.service;
 
 import com.aircargo.dto.AppUserDTO;
-import com.aircargo.entity.Airline;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.AppUser;
 import com.aircargo.entity.UserRole;
 import com.aircargo.repository.AppUserRepository;

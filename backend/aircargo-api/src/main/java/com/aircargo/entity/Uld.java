@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import com.aircargo.common.entity.Airline;
 import java.util.UUID;
 
 @Entity

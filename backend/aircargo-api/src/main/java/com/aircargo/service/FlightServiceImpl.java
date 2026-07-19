@@ -2,6 +2,7 @@ package com.aircargo.service;
 
 import com.aircargo.dto.FlightDTO;
 import com.aircargo.entity.Flight;
+import com.aircargo.common.entity.Airline;
 import com.aircargo.entity.FlightStatus;
 import com.aircargo.repository.FlightRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -80,7 +81,7 @@ public class FlightServiceImpl implements FlightService{
         return flightRepository.findById(id)
                 .map(existing -> {
                     if (dto.getAirlineId() != null) {
-                        com.aircargo.entity.Airline a = new com.aircargo.entity.Airline();
+                        Airline a = new Airline();
                         a.setId(dto.getAirlineId());
                         existing.setAirline(a);
                     }

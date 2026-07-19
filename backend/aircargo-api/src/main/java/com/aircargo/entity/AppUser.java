@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import com.aircargo.common.entity.Airline;
 import java.util.UUID;
 
 @Entity
