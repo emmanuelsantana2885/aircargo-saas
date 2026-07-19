@@ -95,11 +95,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '../stores/app'
 import { downloadCSV } from '../utils/csv'
-import { useToastStore } from '../stores/toast'
-import { extractError } from '../utils/error'
 
 const appStore = useAppStore()
-const toast = useToastStore()
 
 const dateFrom = ref('')
 const dateTo = ref('')
@@ -203,16 +200,6 @@ function statusLabel(status) {
     DELAYED: 'DLY',
   }
   return map[status] || status?.slice(0, 3) || '—'
-}
-
-function statusTextClass(status) {
-  if (status === 'SCHEDULED') return 'text-slate-400'
-  if (status === 'BOARDING') return 'text-slate-600'
-  if (status === 'DEPARTED') return 'text-slate-800'
-  if (status === 'ARRIVED') return 'text-slate-950'
-  if (status === 'CANCELLED') return 'text-slate-300'
-  if (status === 'DELAYED') return 'text-slate-600'
-  return 'text-slate-400'
 }
 
 onMounted(async () => {

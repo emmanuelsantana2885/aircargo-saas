@@ -67,7 +67,7 @@ public class AppUserDTO {
         entity.setEmail(dto.getEmail());
         entity.setFullName(dto.getFullName());
         entity.setRole(dto.getRole());
-        entity.setIsActive(dto.getIsActive());
+        entity.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
         entity.setLastLogin(dto.getLastLogin());
         return entity;
     }

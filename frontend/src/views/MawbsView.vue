@@ -29,7 +29,7 @@
             :class="showFilter || filterText ? 'bg-slate-950 text-white border-slate-950' : 'bg-white text-slate-400 border-slate-200 hover:border-slate-400'"
             title="Filtro dinamico">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
           </button>
           <div v-if="showFilter" class="flex items-center gap-1">
@@ -49,7 +49,7 @@
           <div class="relative">
             <button @click="showPeriodMenu = !showPeriodMenu"
               class="p-1.5 rounded hover:bg-slate-100 transition-colors text-[12px] font-mono flex items-center gap-1" title="Periodo de timeline">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
               <span class="font-bold">{{ periodLabel }}</span>
             </button>
             <div v-if="showPeriodMenu" class="absolute top-full left-0 mt-1 bg-white border border-slate-400 rounded-lg shadow-xl z-50 py-1 min-w-[150px]">
@@ -70,7 +70,7 @@
                   class="absolute h-1.5 rounded-full bg-slate-950/20"
                   :style="rangeBarStyle"></div>
                 <!-- Segmentos -->
-                <div v-for="(seg, si) in timelineSegments" :key="seg.value"
+                <div v-for="seg in timelineSegments" :key="seg.value"
                   class="flex-1 flex flex-col items-center relative z-10 cursor-pointer group"
                   @click="toggleRangeSegment(seg.value)"
                   :title="seg.label + ' (' + seg.count + ' cols)'">
@@ -123,7 +123,7 @@
           class="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-mono font-bold transition border"
           :class="hidePastDates ? 'bg-slate-100 border-slate-400 text-slate-800' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-100'"
           title="Ocultar vuelos pasados">
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           {{ hidePastDates ? 'Futuro' : 'Pasado' }}
         </button>
       </div>
@@ -227,7 +227,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(row, ri) in filteredRows" :key="row.mawbId"
+              <tr v-for="row in filteredRows" :key="row.mawbId"
                 class="border-b border-slate-100 transition-colors"
                 :class="[rowBgClass(row), hoverFlightCol ? 'group' : '']">
                 <td :style="[{ left: stickyOffsets[0] + 'px', zIndex: 10 }, colStyle(0)]"
@@ -278,7 +278,7 @@
                 <td v-for="(f, fi) in flightColumns" :key="f.id"
                   :style="colStyle(6 + fi)"
                   class="px-2 py-2.5 text-center border-x border-slate-200 transition-all duration-200"
-                  :class="cellClasses(row, f, fi)"
+                  :class="cellClasses(row, f)"
                   :title="uldTooltip(row, f)">
                   <span v-if="getPieces(row, f)" class="relative text-[11px]">
                     <span class="flex flex-col items-center leading-tight">
@@ -286,11 +286,11 @@
                       <span class="text-[11px] font-normal opacity-60">{{ row.uldCountByFlight[f.id] || 0 }} ULDs</span>
                     </span>
                     <svg width="16" height="16" viewBox="0 0 14 14" class="inline-block shrink-0 ml-0.5">
-                      <circle cx="7" cy="7" r="5.5" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+                      <circle cx="7" cy="7" r="5.5" fill="none" stroke="#e2e8f0" stroke-width="1.5" />
                       <circle cx="7" cy="7" r="5.5" fill="none" stroke="#475569" stroke-width="1.5"
                         :stroke-dasharray="arcCircum"
                         :stroke-dashoffset="arcOffset(row, f)"
-                        transform="rotate(-90 7 7)"/>
+                        transform="rotate(-90 7 7)" />
                     </svg>
                   </span>
                   <span v-else class="text-slate-200">&middot;</span>
@@ -415,7 +415,7 @@
     <button v-if="activeTab === 'matriz'" @click="showMiniMap = !showMiniMap"
       class="fixed bottom-4 left-4 z-50 w-8 h-8 rounded-full bg-slate-800 text-white text-[10px] font-mono shadow-lg hover:bg-slate-950 transition flex items-center justify-center"
       title="Minimapa de matriz">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>
     </button>
 
     <!-- Estados View -->
@@ -488,12 +488,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick, shallowRef, reactive } from 'vue'
+import { ref, computed, onMounted, nextTick, shallowRef, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import api from '../api/client'
 import { receiptsApi } from '../api/receipts'
-import { mawbsApi } from '../api/mawbs'
 import { downloadCSV } from '../utils/csv'
 import { useToastStore } from '../stores/toast'
 import { extractError } from '../utils/error'
@@ -537,7 +536,6 @@ const scrollContainer = ref(null)
 const tableSectionRef = ref(null)
 const scrollPos = ref({ top: 0, left: 0 })
 const timelinePeriod = ref('month')
-const activeSegment = ref('')
 const rangeStartSeg = ref('')
 const rangeEndSeg = ref('')
 const showPeriodMenu = ref(false)
@@ -903,7 +901,6 @@ function computeStickyOffsets() {
 }
 
 // ── Estados tab ──
-const statusFilter = ref([])
 const statusOptions = computed(() => {
   const counts = { BOOKED: 0, RECEIVED: 0, MANIFESTED: 0, DEPARTED: 0 }
   for (const r of matrixRows.value) {
@@ -1150,7 +1147,7 @@ function clearTimeline() {
 
 function getPieces(row, flight) { return row.cells[flight.id] || 0 }
 
-function cellClasses(row, flight, fi) {
+function cellClasses(row, flight) {
   const pcs = getPieces(row, flight)
   if (!pcs) return ''
   const base = 'relative'
@@ -1167,7 +1164,7 @@ function arcOffset(row, flight) {
   return arcCircum * (1 - pct)
 }
 
-function rowBgClass(row) {
+function rowBgClass(_row) {
   return 'hover:bg-slate-50'
 }
 
@@ -1337,9 +1334,6 @@ const dataStatus = computed(() => {
 
 const totalTracked = computed(() =>
   filteredRows.value.reduce((s, r) => s + Object.values(r.cells).reduce((a, b) => a + b, 0), 0)
-)
-const totalMawbPcs = computed(() =>
-  filteredRows.value.reduce((s, r) => s + (r.totalPieces || 0), 0)
 )
 const totalReserved = computed(() =>
   filteredRows.value.reduce((s, r) => s + (r.reservedPieces || 0), 0)

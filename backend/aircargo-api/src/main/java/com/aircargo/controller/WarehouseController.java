@@ -5,6 +5,7 @@ import com.aircargo.entity.WarehouseReceipt;
 import com.aircargo.entity.ReceiptPiece;
 import com.aircargo.repository.WarehouseReceiptRepository;
 import com.aircargo.repository.ReceiptPieceRepository;
+import com.aircargo.repository.MawbRepository;
 import com.aircargo.service.AuditService;
 import com.aircargo.service.ReceiptExportService;
 import com.aircargo.service.ReceiptFullPdfService;
@@ -45,14 +46,18 @@ public class WarehouseController {
                                ReceiptPieceRepository pieceRepository,
                                ReceiptExportService exportService,
                                ReceiptFullPdfService receiptFullPdfService,
-                               AuditService auditService) {
+                               AuditService auditService,
+                               MawbRepository mawbRepository) {
         this.warehouseService = warehouseService;
         this.receiptRepository = receiptRepository;
         this.pieceRepository = pieceRepository;
         this.exportService = exportService;
         this.receiptFullPdfService = receiptFullPdfService;
         this.auditService = auditService;
+        this.mawbRepository = mawbRepository;
     }
+
+    private final MawbRepository mawbRepository;
 
     /**
      * DTO interno temporal para recibir de golpe el encabezado y sus piezas en el payload JSON.
@@ -61,10 +66,8 @@ public class WarehouseController {
         public WarehouseReceipt receipt;
         public List<ReceiptPiece> pieces;
         public List<SupportingDoc> supportingDocs;
-        // Si es true, NO se purgan los demas recibos existentes del mismo MAWB antes de insertar este.
-        // Se usa cuando se emiten varios recibos para el mismo MAWB en una sola sesion (recibo general
-        // + un recibo por cada HAWB), para que cada llamada no borre la que la precedio.
         public Boolean appendOnly;
+        public UUID mawbId; // para resolver airline desde MAWB si no viene en receipt
     }
 
     public static class SupportingDoc {
@@ -76,13 +79,18 @@ public class WarehouseController {
     /**
      * Endpoint para emitir un nuevo recibo de bodega con cálculo en tiempo real de dimensiones.
      */
-    @PostMapping("/emit")
+@PostMapping("/emit")
     public ResponseEntity<?> emitWarehouseReceipt(@RequestBody ReceiptPayload payload,
                                                    @AuthenticationPrincipal UserPrincipal principal,
                                                    HttpServletRequest request) {
         try {
             if (payload.receipt == null || payload.pieces == null || payload.pieces.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "error", "DATOS INCOMPLETOS: El recibo debe contener al menos una pieza para cubicar."));
+            }
+
+            // Auto-resolve MAWB from mawbId if provided (frontend sends it at payload.mawbId)
+            if (payload.receipt.getMawb() == null && payload.mawbId != null) {
+                mawbRepository.findById(payload.mawbId).ifPresent(payload.receipt::setMawb);
             }
 
             List<Map<String, String>> docsMap = null;
@@ -122,6 +130,11 @@ public class WarehouseController {
         try {
             if (payload.receipt == null || payload.pieces == null || payload.pieces.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "error", "DATOS INCOMPLETOS: El recibo debe contener al menos una pieza para cubicar."));
+            }
+
+            // Auto-resolve MAWB from mawbId if provided (frontend sends it at payload.mawbId)
+            if (payload.receipt.getMawb() == null && payload.mawbId != null) {
+                mawbRepository.findById(payload.mawbId).ifPresent(payload.receipt::setMawb);
             }
 
             List<Map<String, String>> docsMap = null;

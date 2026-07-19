@@ -383,8 +383,12 @@ public class WarehouseService {
     }
 
     private void copyReceiptFields(WarehouseReceipt target, WarehouseReceipt source) {
-        target.setMawb(source.getMawb());
-        target.setHawbId(source.getHawbId());
+        if (source.getMawb() != null) {
+            target.setMawb(source.getMawb());
+        }
+        if (source.getHawbId() != null) {
+            target.setHawbId(source.getHawbId());
+        }
         target.setGatewayCfs(source.getGatewayCfs());
         target.setShipperName(source.getShipperName());
         target.setConsigneeName(source.getConsigneeName());

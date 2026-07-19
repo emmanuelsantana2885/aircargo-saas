@@ -75,7 +75,7 @@ export const useAppStore = defineStore('app', () => {
     try {
       const res = await airlinesApi.getAll()
       airlines.value = res.data
-    } catch (e) { /* silent — non-critical */ }
+    } catch { /* silent — non-critical */ }
   }
 
   async function createFlight(dto) {
@@ -157,7 +157,7 @@ export const useAppStore = defineStore('app', () => {
   }
 
   async function emitReceipt(payload) {
-    const res = await api.post('/warehouse/receipts/emit', payload)
+    const res = await api.post('/api/warehouse/receipts/emit', payload)
     return res.data
   }
 

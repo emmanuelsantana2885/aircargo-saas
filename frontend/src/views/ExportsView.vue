@@ -199,7 +199,7 @@
             <tr v-for="(row, ri) in rows" :key="ri"
               class="border-t border-slate-200 hover:bg-blue-50 transition-colors"
               :class="ri % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'">
-              <td v-for="(col, ci) in cols" :key="col"
+              <td v-for="col in cols" :key="col"
                 class="px-3 py-1.5 whitespace-nowrap overflow-hidden text-ellipsis"
                 :class="isNumCol(col) ? 'text-center font-semibold' : ''"
                 :style="cellStyle(col, row[col])">
@@ -321,7 +321,7 @@ async function loadData() {
     const parsed = parseCsv(text)
     cols.value = parsed.headers
     rows.value = parsed.rows
-  } catch (e) {
+  } catch {
     tableError.value = 'Error al consultar datos'
     cols.value = []
     rows.value = []

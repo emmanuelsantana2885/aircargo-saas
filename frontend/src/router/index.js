@@ -121,7 +121,7 @@ const router = createRouter({
 
 const publicPaths = ['/login', '/set-password', '/change-password', '/mfa-setup']
 
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
   const stored = localStorage.getItem('aircargo_auth')
   if (!publicPaths.includes(to.path) && !stored) {
     return '/login'

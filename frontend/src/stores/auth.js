@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '../api/auth'
-import { useToastStore } from '../stores/toast'
-import { extractError } from '../utils/error'
+
 
 const STORAGE_KEY = 'aircargo_auth'
 

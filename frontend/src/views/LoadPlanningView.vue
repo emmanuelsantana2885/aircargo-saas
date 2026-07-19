@@ -116,7 +116,7 @@
       <div class="overflow-x-auto flex flex-col flex-1 min-h-0 lp-scroll-x">
       <div class="bg-slate-700 text-white text-[11px] font-bold uppercase tracking-wider lp-grid py-3.5 px-5 items-center shrink-0 border-b border-slate-500 whitespace-nowrap shadow-sm">
         <span class="flex items-center gap-1">
-          <svg class="w-2.5 h-2.5 text-slate-950" viewBox="0 0 8 8" fill="none"><circle cx="2" cy="2" r="1" fill="currentColor"/><circle cx="6" cy="2" r="1" fill="currentColor"/><circle cx="2" cy="6" r="1" fill="currentColor"/><circle cx="6" cy="6" r="1" fill="currentColor"/></svg>
+          <svg class="w-2.5 h-2.5 text-slate-950" viewBox="0 0 8 8" fill="none"><circle cx="2" cy="2" r="1" fill="currentColor" /><circle cx="6" cy="2" r="1" fill="currentColor" /><circle cx="2" cy="6" r="1" fill="currentColor" /><circle cx="6" cy="6" r="1" fill="currentColor" /></svg>
           ULD
         </span>
         <span class="text-center">PCS</span>
@@ -615,7 +615,7 @@ function cancelTransfer() {
 
 async function confirmTransfer() {
   if (!pendingTransfer.value || !transferReason.value.trim()) return
-  const { uldId, toFlightId, uldNumber } = pendingTransfer.value
+  const { uldId, toFlightId } = pendingTransfer.value
   const reason = transferReason.value.trim()
   pendingTransfer.value = null
   transferReason.value = ''
@@ -687,7 +687,6 @@ function cancelFlightPick() { pendingFlightPick.value = null; showFlightPicker.v
 async function detachToFloating() {
   if (!pendingFlightPick.value) return
   const { uldId } = pendingFlightPick.value
-  const uldNumber = pendingFlightPick.value.uldNumber
   pendingFlightPick.value = null
   showFlightPicker.value = false
   try {
@@ -756,24 +755,22 @@ async function onDrop(e) {
 // Row drag-and-drop reorder
 const rowDragging = ref(null)
 const rowDropIndex = ref(-1)
-let rowDragOrder = []
 
 function onRowDragStart(uldId, e) {
   rowDragging.value = uldId
-  rowDragOrder = activeManifest.value.map(g => g.uldId)
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/plain', uldId)
   }
 }
 
-function onRowDragOver(e) { /* preventDefault handled by @dragover.prevent */ }
+function onRowDragOver() { /* preventDefault handled by @dragover.prevent */ }
 
 function onRowDragEnter(uIdx) {
   if (rowDragging.value) rowDropIndex.value = uIdx
 }
 
-async function onRowDrop(e) {
+async function onRowDrop() {
   const draggedId = rowDragging.value
   const targetIdx = rowDropIndex.value
   rowDragging.value = null
@@ -849,7 +846,7 @@ function onTableUldPointerMove(e) {
   }
 }
 
-async function onTableUldPointerUp(e) {
+async function onTableUldPointerUp() {
   document.removeEventListener('pointermove', onTableUldPointerMove)
   document.removeEventListener('pointerup', onTableUldPointerUp)
   // Delay ring removal to next frame so user can see the feedback
@@ -1036,7 +1033,7 @@ function exportToXLSX() {
 }
 
 watch(() => uldsStore.activeUlds, (newUlds) => {
-  console.log('LoadPlanning actualizado con', newUlds?.length || 0, 'ULDs')
+  console.warn('LoadPlanning actualizado con', newUlds?.length || 0, 'ULDs')
 }, { deep: true })
 </script>
 

@@ -494,16 +494,6 @@ function getMawbStatusClass(b) {
   return 'bg-slate-300'
 }
 
-function getMawbStatusTextClass(b) {
-  const s = getMawbStatus(b)
-  if (s === '—') return 'text-slate-300'
-  if (s === 'BOOKED') return 'text-slate-600'
-  if (s === 'RECEIVED') return 'text-slate-600'
-  if (s === 'MANIFESTED') return 'text-slate-600'
-  if (s === 'DEPARTED' || s === 'ARRIVED') return 'text-slate-950'
-  return 'text-slate-400'
-}
-
 function exportCSV() {
   const headers = ['AWB', 'Client', 'Shipper', 'Destination', 'Skids', 'Kg', 'Status', 'Flight']
   const rows = deduplicatedBookings.value.map(b => [

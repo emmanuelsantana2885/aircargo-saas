@@ -3,7 +3,7 @@ import { ref, shallowRef, computed } from 'vue'
 import api from '../api/client'
 import { useAppStore } from './app'
 
-function inferUldType(uldId, config) {
+function inferUldType(uldId) {
   const id = (uldId || '').toUpperCase()
   if (id.startsWith('PMC')) return 'PMC'
   if (id.startsWith('PMH')) return 'PMH'
@@ -116,7 +116,7 @@ export const useUldsStore = defineStore('ulds', () => {
       airlineId: uld.airlineId || appStore.selectedFlight?.airlineId || null,
       flightId: flightId,
       uldNumber: uld.id || uld.uldNumber,
-      uldType: uld.uldType || inferUldType(uld.id || uld.uldNumber, uld.config),
+      uldType: uld.uldType || inferUldType(uld.id || uld.uldNumber),
       config: uld.config || null,
       position: uld.pos || uld.position || null,
       sealNumber: uld.sealNumber || null,

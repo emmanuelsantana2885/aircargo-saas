@@ -60,7 +60,7 @@ async function checkNewReceipts() {
       toast.info(`Nuevo${newCount > 1 ? 's' : ''} recibo${newCount > 1 ? 's' : ''} de bodega disponible${newCount > 1 ? 's' : ''} (${newCount})`, 6000)
     }
     prevReceiptCount.value = current.length
-  } catch (e) {
+  } catch {
     // silent
   }
 }

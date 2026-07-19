@@ -195,7 +195,7 @@ class="grid grid-cols-12 items-center py-1.5 px-5 transition-all duration-150 cu
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../stores/app'
 import { airlinesApi } from '../api/airlines'

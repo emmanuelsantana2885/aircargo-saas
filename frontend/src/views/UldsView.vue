@@ -315,7 +315,6 @@ function airlineCodeById(airlineId) {
 }
 
 const uldTypes = ['PMC','PAH','PAG','PAJ','AAY','AAZ','AAD','PIP','BULK','AMP','AMJ']
-const statusFlowSteps = ['OPEN', 'BUILT', 'SEALED', 'LOADED']
 
 const specialItems = [
   { id: 'spc-sdq-sdf', awbNumber: 'SDQ/SDF', shipperName: 'Ruta Doméstica SDQ→SDF', consigneeName: 'Ruta Doméstica SDQ→SDF', commodityType: 'DOMESTIC', pieces: 0, destination: 'SDF', isSpecial: true },
@@ -328,7 +327,6 @@ const specialItems = [
 ]
 
 const expandedUldId = ref(null)
-const filterDate = ref('')
 
 const TARE_MAP = {
   AAY: 460,
@@ -427,25 +425,8 @@ function mawbReceiptInfo(awbNumber) {
   }
 }
 
-function getMawbAvailableInfo(awbNumber) {
-  const info = mawbReceiptInfo(awbNumber)
-  const assignedInUlDs = localUlds.value.flatMap(u =>
-    (u.mawbs || []).filter(mw => mw.awbNumber === awbNumber)
-  ).reduce((s, mw) => s + (mw.pieces || 0), 0)
-  const base = info.reservedPieces > 0 ? info.reservedPieces : info.receivedPieces
-  const available = Math.max(0, base - assignedInUlDs)
-  if (info.hasReceipt) {
-    return `(Recibido: ${info.receivedPieces}, Asignado: ${assignedInUlDs}, Disponible: ${available})`
-  }
-  return `(Reservado: ${info.reservedPieces}, Asignado: ${assignedInUlDs}, Disponible: ${available})`
-}
-
 function mawbHasReceipt(awbNumber) {
   return mawbReceiptInfo(awbNumber).hasReceipt
-}
-
-function uldHasPendingReceipt(uld) {
-  return (uld.mawbs || []).some(m => m.awbNumber && !mawbHasReceipt(m.awbNumber))
 }
 
 function totalUldPieces(uld) {
@@ -454,10 +435,6 @@ function totalUldPieces(uld) {
 
 function totalUldReceivedPieces(uld) {
   return (uld.mawbs || []).reduce((s, m) => s + ((m.receivedPieces != null ? m.receivedPieces : m.pieces) || 0), 0)
-}
-
-function uldPieceMismatchCount(uld) {
-  return (uld.mawbs || []).filter(m => m.receivedPieces != null && m.pieces > m.receivedPieces).length
 }
 
 
@@ -767,37 +744,6 @@ function flightLabel(uld) {
   return uld.flightLabel
 }
 
-function getProgressWidth(status) {
-  if (status === 'LEFT_BEHIND') return '100%'
-  if (status === 'OPEN') return '0%'
-  if (status === 'BUILT') return '33%'
-  if (status === 'SEALED') return '66%'
-  if (status === 'LOADED') return '100%'
-  return '0%'
-}
-
-function getLineProgressColor(status) {
-  if (status === 'LEFT_BEHIND') return 'bg-slate-400'
-  if (status === 'BUILT') return 'bg-slate-500'
-  if (status === 'SEALED') return 'bg-slate-600'
-  if (status === 'LOADED') return 'bg-slate-700'
-  return 'bg-slate-200'
-}
-
-function getStatusDotClass(currentStatus, step) {
-  if (currentStatus === step) {
-    if (step === 'LEFT_BEHIND') return 'bg-slate-400 border-slate-500 scale-125'
-    if (step === 'OPEN') return 'bg-slate-500 border-slate-600 scale-125'
-    if (step === 'BUILT') return 'bg-slate-600 border-slate-700 scale-125'
-    if (step === 'SEALED') return 'bg-slate-600 border-slate-700 scale-125'
-    if (step === 'LOADED') return 'bg-slate-700 border-slate-800 scale-125'
-  }
-  const order = ['OPEN', 'BUILT', 'SEALED', 'LOADED']
-  if (currentStatus === 'LEFT_BEHIND') return 'bg-slate-200 border-slate-300'
-  if (order.indexOf(currentStatus) >= order.indexOf(step)) return 'bg-slate-400 border-slate-500'
-  return 'bg-slate-200 border-slate-300'
-}
-
 function uldAgeInDays(createdAt) {
   if (!createdAt) return null
   const created = new Date(createdAt)
@@ -810,10 +756,6 @@ function uldAgeBadgeClass(days) {
   if (days < 7) return 'bg-slate-100 text-slate-600 border border-slate-200'
   if (days <= 30) return 'bg-slate-100 text-slate-600 border border-slate-200'
   return 'bg-slate-100 text-slate-600 border border-slate-200'
-}
-
-function uldStatusBorderStyle(status) {
-  return { borderLeft: '3px solid #e2e8f0' }
 }
 
 onMounted(async () => {

@@ -713,7 +713,7 @@ async function copyPassword() {
   try {
     await navigator.clipboard.writeText(generatedPassword.value)
     toast.success('Contraseña copiada al portapapeles')
-  } catch (e) {
+  } catch {
     toast.error('No se pudo copiar')
   }
 }

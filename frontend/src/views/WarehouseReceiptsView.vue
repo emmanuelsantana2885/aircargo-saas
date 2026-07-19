@@ -633,7 +633,7 @@
                       <img v-if="ev.type === 'image' && ev.url" :src="ev.url" class="w-full h-20 object-cover" />
                       <div v-else-if="ev.type === 'text'" class="w-full h-20 flex items-center justify-center bg-slate-50 text-slate-950 text-[10px] font-mono px-2 text-center leading-tight">{{ ev.name }}</div>
                       <div v-else-if="isPdfUrl(ev.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 text-[10px] font-mono">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
                         <span class="text-[8px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
                       </div>
                       <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[10px] font-mono">{{ ev.name }}</div>
@@ -649,7 +649,7 @@
                     class="relative border border-slate-400 rounded bg-white overflow-hidden group cursor-pointer" @click="previewEvidence(ev)">
                     <img v-if="ev.type === 'image'" :src="ev.url" class="w-full h-20 object-cover" />
                     <div v-else-if="isPdfUrl(ev.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 text-[10px] font-mono">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-6 h-6 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
                       <span class="text-[9px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
                     </div>
                     <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[10px] font-mono">{{ ev.name }}</div>
@@ -780,7 +780,7 @@
                 class="relative border border-slate-400 rounded overflow-hidden bg-white group cursor-pointer" @click="previewEvidence(doc)">
                 <img v-if="doc.type === 'image' && doc.url" :src="doc.url" class="w-full h-20 object-cover" />
                 <div v-else-if="isPdfUrl(doc.url)" class="w-full h-20 flex flex-col items-center justify-center bg-slate-100 text-slate-700 font-mono">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-7 h-7 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-7 h-7 mb-0.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
                   <span class="text-[10px] leading-tight px-1 text-center truncate max-w-full">PDF</span>
                 </div>
                 <div v-else class="w-full h-20 flex items-center justify-center bg-slate-100 text-slate-950 text-[11px] font-mono">{{ doc.name }}</div>
@@ -927,7 +927,6 @@ function airlineCodeById(airlineId) {
   return a?.code || 'AIR'
 }
 
-const localFlightId = ref(store.selectedFlightId)
 const expandedId = ref(localStorage.getItem('WAREHOUSE_EXPANDED_MAWB') || null)
 const localStep = ref(1)
 const submitting = ref(false)
@@ -950,7 +949,6 @@ function bumpFormVersionDebounced(delay = 150) {
 let successTimer = null
 const showCamera = ref(false)
 const cameraMawbId = ref(null)
-const uploadingMawbId = ref(null)
 
 const receiptForms = reactive({})
 const receiptHawbs = reactive({})
@@ -959,7 +957,6 @@ const generatedReceiptId = ref(null)
 // Draft persistence (auto-save)
 const DRAFT_PREFIX = 'warehouse_draft_'
 const lastDraftSave = ref('')
-const showPrintPreview = ref(false)
 
 function saveDraft(mawbId) {
   const f = receiptForms[mawbId]
@@ -1097,14 +1094,6 @@ watch(activeFormJson, (json) => {
     const mId = expandedId.value
     if (mId) saveDraft(mId)
   }, 2000)
-})
-
-const downloadableReceiptId = computed(() => {
-  if (generatedReceiptId.value) return generatedReceiptId.value
-  const mId = expandedId.value
-  if (!mId) return null
-  const f = receiptForms[mId]
-  return f?._existingReceiptId || null
 })
 
 const filterTextRaw = ref('')
@@ -1300,7 +1289,6 @@ function initForm(m) {
     const h0 = hawbs[0]
     const fallbackShipper = h0?.shipperName || m.shipperName || ''
     const fallbackConsignee = h0?.consigneeName || m.consigneeName || (hawbs.length === 1 ? hawbs[0]?.consigneeName : '') || ''
-    const fallbackWeight = m.reportedWeightKg || (hawbs.length > 0 ? hawbs.reduce((s, h) => s + (h.weightKg ? Number(h.weightKg) : 0), 0) : 0) || 0
     const hawbEntries = hawbs.length > 0
       ? hawbs.map(h => ({
           hawbNumber: h.hawbNumber || '',
@@ -1430,7 +1418,7 @@ async function loadExistingReceiptData(m) {
         file: null,
       }))
     }
-  } catch (e) { /* no supporting docs yet */ }
+  } catch { /* no supporting docs yet */ }
 }
 
 function calcPiece(mawbId, pi) {
@@ -1550,25 +1538,6 @@ function hawbDimKg(mawbId, hawbId) { return totalDimKg(mawbId, hawbId) }
 function hawbChargeableKg(mawbId, hawbId) { return totalChargeableKg(mawbId, hawbId) }
 function hawbChargeableLbs(mawbId, hawbId) { return totalChargeableLbs(mawbId, hawbId) }
 
-function syncHawbCount(m) {
-  const f = receiptForms[m.id]
-  if (!f) return
-  const target = Math.max(1, Math.min(50, f.hawbCount || 1))
-  f.hawbCount = target
-  while (f.hawbEntries.length < target) {
-    const newHawbId = '_hawb_' + Date.now() + '_' + f.hawbEntries.length
-    f.hawbEntries.push({ hawbNumber: '', consigneeName: '', pieces: 0, weightKg: 0, destination: f.destination || 'MIA', _dbId: null, _hawbId: newHawbId })
-    f.pieces.push({ pieces: 1, hawbId: newHawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
-  }
-  while (f.hawbEntries.length > target) {
-    const removedEntry = f.hawbEntries.pop()
-    f.pieces = f.pieces.filter(p => p.hawbId !== removedEntry._hawbId)
-  }
-  if (f.pieces.length === 0) {
-    f.pieces.push({ pieces: 1, hawbId: f.hawbEntries[0]?._hawbId || null, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
-  }
-}
-
 function removeHawbEntry(mawbId, idx) {
   const f = receiptForms[mawbId]
   if (!f || f.hawbEntries.length <= 1) return
@@ -1594,11 +1563,6 @@ function addHawbEntry(m) {
   f.hawbCount = f.hawbEntries.length
   f.pieces.push({ pieces: 1, hawbId: newHawbId, lengthIn: null, widthIn: null, heightIn: null, scaleWeightLbs: null, dimWeight: 0, dimWeightLbs: 0, scaleWeightKg: 0, dimWeightKg: 0, chargeableKg: 0, chargeableLbs: 0 })
   bumpFormVersion()
-}
-
-function updateHawbConsignee(h, val) {
-  h.consigneeName = val
-  h._dirty = true
 }
 
 async function syncMawbName(m, field) {
@@ -1677,7 +1641,7 @@ function stepDone(si) {
   return false
 }
 
-function stepError(si) {
+function stepError(_si) {
   return false // could add backend validation errors here
 }
 
@@ -1856,66 +1820,6 @@ function removeEvidence(mawbId, idx) {
   receiptForms[mawbId].evidence.splice(idx, 1)
 }
 
-async function downloadReceipt() {
-  const id = downloadableReceiptId.value
-  if (!id) return
-  try {
-    const res = await receiptsApi.export(id)
-    const disposition = res.headers?.['content-disposition'] || ''
-    const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/)
-    const filename = match ? match[1].trim() : `RECIBO_BODEGA_${id.slice(0, 8)}.xlsx`
-    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (e) {
-    toast.error(extractError(e))
-    console.error('Download error:', e)
-    alert('Error descargando el recibo')
-  }
-}
-
-async function downloadSupportingDocsHtml() {
-  const id = downloadableReceiptId.value
-  if (!id) return
-  try {
-    const res = await receiptsApi.getSupportingDocsHtml(id)
-    const blob = new Blob([res.data], { type: 'text/html; charset=UTF-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `EVIDENCIAS_${id.slice(0, 8)}.html`
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (e) {
-    toast.error(extractError(e))
-    console.error('Supporting docs HTML error:', e)
-    alert('Error descargando documento de evidencias')
-  }
-}
-
-async function downloadSupportingDocsPdf() {
-  const id = downloadableReceiptId.value
-  if (!id) return
-  try {
-    const res = await receiptsApi.getSupportingDocsPdf(id)
-    const blob = new Blob([res.data], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `EVIDENCIAS_${id.slice(0, 8)}.pdf`
-    a.click()
-    URL.revokeObjectURL(url)
-  } catch (e) {
-    toast.error(extractError(e))
-    const msg = e.response?.data?.error || e.response?.data?.message || e.message
-    console.error('Supporting docs PDF error:', e)
-    alert('Error: ' + msg)
-  }
-}
-
 async function downloadReceiptById(m) {
   const id = receiptById.value[m.id]
   if (!id) return
@@ -1998,7 +1902,6 @@ async function downloadPdfById(m) {
     URL.revokeObjectURL(url)
   } catch (e) {
     toast.error(extractError(e))
-    const msg = e.response?.data?.error || e.response?.data?.message || e.message
     console.error('Supporting docs PDF error:', e)
   }
 }
@@ -2040,7 +1943,7 @@ async function submitReceipt(m) {
   }
   submitting.value = true
   try {
-    console.log('[Submit] START', { mawbId: m.id, awbNumber: m.awbNumber, existingReceipt: f._existingReceiptId, pieceCount: f.pieces.length, hawbCount: hawbs.length })
+    console.warn('[Submit] START', { mawbId: m.id, awbNumber: m.awbNumber, existingReceipt: f._existingReceiptId, pieceCount: f.pieces.length, hawbCount: hawbs.length })
     // Save MAWB name changes (non-critical — catch 403/500 so receipt emit still proceeds)
     try {
       if (f.shipperName && f.shipperName !== m.shipperName) {
@@ -2062,9 +1965,9 @@ async function submitReceipt(m) {
 
     function buildPayload(pieceList, remarkSuffix, appendOnly = false, hawbId = null) {
       return {
+        mawbId: m.id,
         receipt: {
           airline: { id: m.airline?.id || m.airlineId },
-          mawb: { id: m.id },
           hawbId: hawbId,
           gatewayCfs: f.gatewayCfs || 'SDQ',
           shipperName: f.shipperName ?? m.shipperName ?? '',
@@ -2129,9 +2032,9 @@ async function submitReceipt(m) {
     }
 
     if (hawbs.length <= 1) {
-      console.log('[Submit] Sending single receipt...', { existing: !!f._existingReceiptId, pieces: f.pieces.length })
+      console.warn('[Submit] Sending single receipt...', { existing: !!f._existingReceiptId, pieces: f.pieces.length })
       const res = await sendReceipt(buildPayload(f.pieces, ''))
-      console.log('[Submit] Receipt response:', res)
+      console.warn('[Submit] Receipt response:', res)
       const receiptId = res?.id || null
       if (receiptId) generatedReceiptId.value = receiptId
     } else if (f._existingReceiptId) {
@@ -2148,12 +2051,12 @@ async function submitReceipt(m) {
       if (lastId) generatedReceiptId.value = lastId
     }
     const wasExisting = !!f._existingReceiptId
-    console.log('[Submit] Receipt sent, reloading data...', { wasExisting, generatedReceiptId: generatedReceiptId.value })
+    console.warn('[Submit] Receipt sent, reloading data...', { wasExisting, generatedReceiptId: generatedReceiptId.value })
     await store.loadReceipts()
     await loadExistingReceiptData(m)
     bumpFormVersion()
     localStep.value = 5
-    console.log('[Submit] SUCCESS — step set to 5, reloading MAWBs...')
+    console.warn('[Submit] SUCCESS — step set to 5, reloading MAWBs...')
     clearDraft(m.id)
     // Reload MAWBs to get server-recalculated piece count, weight, and status
     if (store.selectedFlightId) {
