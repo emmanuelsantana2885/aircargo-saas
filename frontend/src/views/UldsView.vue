@@ -6,7 +6,6 @@
           <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">ULD Management Hub</h1>
           <p class="text-[12px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Operations // Ground Handling & Pallet Sheets</p>
         </div>
-
       </div>
       <div class="flex items-center gap-2">
         <span v-if="pendingReceiptCount > 0"
@@ -19,8 +18,6 @@
         </button>
       </div>
     </header>
-
-
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-sm bg-white flex flex-col mb-1.5">
       <div v-if="appStore.loading && !localUlds.length" class="flex-1 flex items-center justify-center">
@@ -59,7 +56,7 @@
             </span>
 
             <span class="text-[11px] font-mono text-slate-500 truncate leading-tight shrink-0 min-w-[60px]">
-              {{ uld.route ? uld.route.replace(' -> ', '→') : '---' }}
+              {{ uld.route ? uld.route.replace(' -> ', '&#8594;') : '---' }}
             </span>
 
             <span class="text-[11px] font-mono font-bold text-slate-950 leading-tight shrink-0 min-w-[70px]">
@@ -132,7 +129,7 @@
                     <div class="col-span-1"></div>
                   </div>
                   <div class="divide-y divide-slate-100 max-h-[240px] overflow-y-auto scrollbar-none">
-                    <div v-for="(mawb, mIdx) in uld.mawbs" :key="mIdx" class="grid grid-cols-12 items-center py-2 px-5 bg-white gap-2 text-sm">
+                    <div v-for="(mawb, mIdx) in uld.mawbs" :key="mawb._rowId" class="grid grid-cols-12 items-center py-2 px-5 bg-white gap-2 text-sm">
                       <div class="col-span-3 relative">
                         <input v-model="mawb.awbNumber" @input="onMawbInput(uld, mIdx)" @focus="onMawbInput(uld, mIdx)" @blur="onMawbBlur(uld, mIdx)"
                           placeholder="Escribe MAWB..."
@@ -250,7 +247,6 @@
                 </div>
 
 
-
                 <div class="border-t border-slate-200 pt-5 flex justify-end gap-2 bg-slate-50/50 -mx-6 -mb-6 p-6 rounded-b">
                   <div class="flex items-center gap-4 mr-auto">
                     <div class="flex flex-col">
@@ -259,7 +255,7 @@
                         class="bg-white border border-slate-300 rounded px-2 py-1.5 font-bold text-slate-950 focus:outline-none uppercase text-[10px] min-w-[160px]">
                         <option value="" disabled>Seleccionar vuelo</option>
                         <option v-for="f in appStore.flights" :key="f.id" :value="f.id">
-                          {{ airlineCodeById(f.airlineId) }}-{{ f.flightNumber }} ({{ f.origin }}→{{ f.destination }}) {{ f.flightDate }}
+                          {{ airlineCodeById(f.airlineId) }}-{{ f.flightNumber }} ({{ f.origin }}&#8594;{{ f.destination }}) {{ f.flightDate }}
                         </option>
                       </select>
                     </div>
@@ -302,6 +298,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useUldsStore } from '../stores/ulds'
 import { useAppStore } from '../stores/app'
 import { uldsApi } from '../api/ulds'
+import { uldAwbsApi } from '../api/uldAwbs'
 import { useToastStore } from '../stores/toast'
 import { extractError } from '../utils/error'
 
@@ -329,15 +326,8 @@ const specialItems = [
 const expandedUldId = ref(null)
 
 const TARE_MAP = {
-  AAY: 460,
-  AAD: 540,
-  AAZ: 500,
-  AMP: 600,
-  AMJ: 610,
-  PMC: 270,
-  PAG: 250,
-  PAH: 300,
-  PIP: 250,
+  AAY: 460, AAD: 540, AAZ: 500, AMP: 600, AMJ: 610,
+  PMC: 270, PAG: 250, PAH: 300, PIP: 250,
 }
 
 const suggestedTareLbs = computed(() => {
@@ -346,10 +336,7 @@ const suggestedTareLbs = computed(() => {
   return TARE_MAP[expanded.uldType.toUpperCase()] ?? null
 })
 
-const filteredUlDs = computed(() => {
-  // Pasarela de ULDs flotantes: siempre se muestran todos
-  return localUlds.value
-})
+const filteredUlDs = computed(() => localUlds.value)
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -357,19 +344,18 @@ function formatDate(iso) {
   return d.toLocaleDateString('es-DO', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-
-
 // Local ULD list derived from backend + new unsaved
 const localUlds = ref([])
 
+// MAWB availability computation
 const availableMawbs = computed(() => {
-  const mawbsWithAvailability = appStore.mawbs.map(m => {
-    const receipt = appStore.receipts.find(r => r.mawb?.id === m.id || r.mawbId === m.id)
+  const mawbsWithAvailability = (appStore.mawbs || []).map(m => {
+    const receipt = (appStore.receipts || []).find(r => (r.mawb && r.mawb.id === m.id) || r.mawbId === m.id)
     const reserved = m.pieces || 0
     const assignedInUlDs = localUlds.value.flatMap(u =>
       (u.mawbs || []).filter(mw => mw.awbNumber === m.awbNumber)
     ).reduce((s, mw) => s + (mw.pieces || 0), 0)
-    const receiptPieces = receipt ? (receipt.pieceCount || 0) : 0
+    const receiptPieces = receipt ? (receipt.pieceCount || receipt.receivedPieces || 0) : 0
     const available = Math.max(0, (reserved > 0 ? reserved : receiptPieces) - assignedInUlDs)
     return { ...m, availablePieces: available }
   })
@@ -409,16 +395,15 @@ const pendingReceiptCount = computed(() => {
 
 function mawbReceiptInfo(awbNumber) {
   const m = appStore.mawbs.find(x => x.awbNumber === awbNumber)
-  const receipt = appStore.receipts.find(r => r.mawb?.id === m?.id || r.mawbId === m?.id)
+  const receipt = (appStore.receipts || []).find(r => (r.mawb && r.mawb.id === m?.id) || r.mawbId === m?.id)
   const reservedPieces = m ? (m.pieces || 0) : 0
-  // Pieces de esta MAWB asignadas en TODOS los ULDs (excepto el actual)
   const assignedInUlDs = localUlds.value.flatMap(u =>
     (u.mawbs || []).filter(mw => mw.awbNumber === awbNumber)
   ).reduce((s, mw) => s + (mw.pieces || 0), 0)
-  const availablePieces = Math.max(0, (reservedPieces > 0 ? reservedPieces : (receipt ? (receipt.pieceCount || 0) : 0)) - assignedInUlDs)
+  const availablePieces = Math.max(0, (reservedPieces > 0 ? reservedPieces : (receipt ? (receipt.pieceCount || receipt.receivedPieces || 0) : 0)) - assignedInUlDs)
   return {
     hasReceipt: !!receipt,
-    receivedPieces: receipt ? (receipt.pieceCount || 0) : 0,
+    receivedPieces: receipt ? (receipt.pieceCount || receipt.receivedPieces || 0) : 0,
     reservedPieces: reservedPieces,
     availablePieces: availablePieces,
     mawbId: m?.id || null,
@@ -436,7 +421,6 @@ function totalUldPieces(uld) {
 function totalUldReceivedPieces(uld) {
   return (uld.mawbs || []).reduce((s, m) => s + ((m.receivedPieces != null ? m.receivedPieces : m.pieces) || 0), 0)
 }
-
 
 function rebuildLocalList() {
   const backend = (appStore.ulds || []).map(u => {
@@ -463,22 +447,23 @@ function rebuildLocalList() {
       volumePct: 0,
       createdAt: u.createdAt,
       mawbs: (u.awbs || []).map(m => {
-      const info = mawbReceiptInfo(m.mawbLabel || '')
-      return {
-        awbNumber: m.mawbLabel || '',
-        _showSuggestions: false,
-        _suggestions: [],
-        commodityType: m.description || 'DRY_CARGO',
-        commodityHint: m.description || '',
-        pieces: m.pieces || 0,
-        piecesPct: m.piecesPct || 0,
-        destination: m.destination || '-',
-        mawbId: m.mawbId || null,
-        ...info,
-      }
-    }),
-  }
-})
+        const info = mawbReceiptInfo(m.mawbLabel || '')
+        return {
+          _rowId: m.id || Math.random().toString(36).slice(2),
+          awbNumber: m.mawbLabel || '',
+          _showSuggestions: false,
+          _suggestions: [],
+          commodityType: m.description || 'DRY_CARGO',
+          commodityHint: m.description || '',
+          pieces: m.pieces || 0,
+          piecesPct: m.piecesPct || 0,
+          destination: m.destination || '-',
+          mawbId: m.mawbId || null,
+          ...info,
+        }
+      }),
+    }
+  })
   // Calculate volumePct as sum of piecesPct across all MAWBs, capped at 100
   backend.forEach(uld => {
     const total = (uld.mawbs || []).reduce((s, m) => s + (m.piecesPct || 0), 0)
@@ -517,26 +502,26 @@ function createNewBlankUld() {
 async function dismountUld(uld) {
   if (!confirm(`¿Desmontar ULD ${uld.uldNumber || ''}? Se eliminarán todas las MAWB asignadas, sello, posición, peso y se dejará en estado OPEN.`)) return
   try {
-    // 1. Eliminar todos los ULD-AWB links
-    const existing = await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.getByUld(uld.backendId))
+    // 1. Delete all ULD-AWB links
+    const existing = await uldAwbsApi.getByUld(uld.backendId)
     for (const link of (existing.data || [])) {
-      await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.delete(link.id))
+      await uldAwbsApi.delete(link.id)
     }
-    // 2. Resetear el ULD
+    // 2. Reset the ULD
     await uldsApi.update(uld.backendId, {
       airlineId: uld.airlineId || appStore.selectedFlight?.airlineId || null,
       uldNumber: uld.uldNumber,
       position: null,
       sealNumber: null,
-        tareLbs: 0,
-        grossWeightLbs: 0,
-        status: 'OPEN',
-        notes: null,
-      })
-      uld.tareLbs = 0
-      // 3. Quitar asignacion de vuelo
-      await uldsApi.assignFlight(uld.backendId, null)
-    // 4. Recargar
+      tareLbs: 0,
+      grossWeightLbs: 0,
+      status: 'OPEN',
+      notes: null,
+    })
+    uld.tareLbs = 0
+    // 3. Remove flight assignment
+    await uldsApi.assignFlight(uld.backendId, null)
+    // 4. Reload
     await appStore.loadUlds()
     rebuildLocalList()
     expandedUldId.value = null
@@ -548,7 +533,7 @@ async function dismountUld(uld) {
 
 async function deleteUld(uld) {
   if (!uld.backendId) {
-    // ULD local sin guardar — solo descartar del listado
+    // Local ULD not saved — just discard from list
     localUlds.value = localUlds.value.filter(u => u.uid !== uld.uid)
     if (expandedUldId.value === uld.uid) expandedUldId.value = null
     return
@@ -558,9 +543,9 @@ async function deleteUld(uld) {
     if (!confirm(`El ULD ${uld.uldNumber || ''} tiene ${uld.mawbs.length} MAWB(s). Se desmontará primero y luego se eliminará. ¿Continuar?`)) return
     // Dismount first
     try {
-      const existing = await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.getByUld(uld.backendId))
+      const existing = await uldAwbsApi.getByUld(uld.backendId)
       for (const link of (existing.data || [])) {
-        await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.delete(link.id))
+        await uldAwbsApi.delete(link.id)
       }
       await uldsApi.update(uld.backendId, {
         airlineId: uld.airlineId || appStore.selectedFlight?.airlineId || null,
@@ -606,7 +591,7 @@ async function saveUld(uld) {
       alert('Selecciona un vuelo para asignar este ULD')
       return
     }
-    // Floating ULD sin cambio de vuelo — solo actualizar campos
+    // Floating ULD without flight change — just update fields
     try {
       uld.notes = [uld.door ? `Ubicación: ${uld.door}` : '', uld.filledBy ? `Llenado por: ${uld.filledBy}` : '', uld.notes].filter(Boolean).join(' | ')
       await uldsApi.update(uld.backendId, {
@@ -621,17 +606,17 @@ async function saveUld(uld) {
         status: uld.status || 'OPEN',
         notes: uld.notes || null,
       })
-      // Recrear links ULD-AWB
+      // Recreate ULD-AWB links
       if (uld.backendId) {
-        const existing = await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.getByUld(uld.backendId))
+        const existing = await uldAwbsApi.getByUld(uld.backendId)
         for (const link of (existing.data || [])) {
-          await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.delete(link.id))
+          await uldAwbsApi.delete(link.id)
         }
       }
       for (const m of (uld.mawbs || [])) {
         if (m.awbNumber && uld.backendId) {
           const matchingMawb = appStore.mawbs.find(x => x.awbNumber === m.awbNumber)
-          await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.create({
+          await uldAwbsApi.create({
             uldId: uld.backendId,
             mawbId: matchingMawb?.id || null,
             mawbLabel: m.awbNumber,
@@ -639,7 +624,7 @@ async function saveUld(uld) {
             destination: m.destination || 'MIA',
             pieces: m.pieces || 0,
             piecesPct: m.piecesPct || 0,
-          }))
+          })
         }
       }
       expandedUldId.value = null
@@ -660,16 +645,16 @@ async function saveUld(uld) {
     uld.backendId = result?.id || uld.backendId
     // Delete existing ULD-AWB links before recreating
     if (uld.backendId) {
-      const existing = await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.getByUld(uld.backendId))
+      const existing = await uldAwbsApi.getByUld(uld.backendId)
       for (const link of (existing.data || [])) {
-        await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.delete(link.id))
+        await uldAwbsApi.delete(link.id)
       }
     }
     // Create ULD-AWB links for each MAWB
     for (const m of (uld.mawbs || [])) {
       if (m.awbNumber && result?.id) {
         const matchingMawb = appStore.mawbs.find(x => x.awbNumber === m.awbNumber)
-        await import('../api/uldAwbs').then(mod => mod.uldAwbsApi.create({
+        await uldAwbsApi.create({
           uldId: result.id,
           mawbId: matchingMawb?.id || null,
           mawbLabel: m.awbNumber,
@@ -677,7 +662,7 @@ async function saveUld(uld) {
           destination: m.destination || 'MIA',
           pieces: m.pieces || 0,
           piecesPct: m.piecesPct || 0,
-        }))
+        })
       }
     }
     expandedUldId.value = null
@@ -695,7 +680,22 @@ function toggleUldExpansion(uid) {
 }
 
 function addMawbRow(uld) {
-  uld.mawbs.push({ awbNumber: '', commodityType: 'DRY_CARGO', commodityHint: '', pieces: 0, piecesPct: 0, destination: 'MIA', mawbId: null, hasReceipt: false, receivedPieces: 0, _showSuggestions: false, _suggestions: [] })
+  uld.mawbs.push({
+    _rowId: Math.random().toString(36).slice(2),
+    awbNumber: '',
+    commodityType: 'DRY_CARGO',
+    commodityHint: '',
+    pieces: 0,
+    piecesPct: 0,
+    destination: 'MIA',
+    mawbId: null,
+    hasReceipt: false,
+    receivedPieces: 0,
+    reservedPieces: 0,
+    availablePieces: 0,
+    _showSuggestions: false,
+    _suggestions: [],
+  })
 }
 
 function removeMawbRow(uld, index) {
@@ -727,10 +727,10 @@ function onMawbSelect(uld, mIdx) {
 function statusBadgeClass(status) {
   switch (status) {
     case 'OPEN': return 'bg-slate-100 text-slate-600 border border-slate-200'
-    case 'BUILT': return 'bg-slate-100 text-slate-600 border border-slate-200'
-    case 'SEALED': return 'bg-slate-100 text-slate-600 border border-slate-200'
-    case 'LOADED': return 'bg-slate-100 text-slate-600 border border-slate-200'
-    case 'LEFT_BEHIND': return 'bg-slate-100 text-slate-600 border border-slate-200'
+    case 'BUILT': return 'bg-blue-50 text-blue-700 border border-blue-100'
+    case 'SEALED': return 'bg-amber-50 text-amber-700 border border-amber-100'
+    case 'LOADED': return 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+    case 'LEFT_BEHIND': return 'bg-rose-50 text-rose-700 border border-rose-100'
     default: return 'bg-slate-100 text-slate-950 border border-slate-200'
   }
 }
@@ -758,6 +758,16 @@ function uldAgeBadgeClass(days) {
   return 'bg-slate-100 text-slate-600 border border-slate-200'
 }
 
+function uldStatusBorderStyle(status) {
+  const map = {
+    SEALED: 'border-l-2 border-l-amber-400',
+    LOADED: 'border-l-2 border-l-emerald-500',
+    LEFT_BEHIND: 'border-l-2 border-l-rose-500',
+    BUILT: 'border-l-2 border-l-blue-400',
+  }
+  return map[status] || ''
+}
+
 onMounted(async () => {
   if (!appStore.airlines.length) await appStore.loadAirlines()
   await Promise.all([
@@ -777,4 +787,5 @@ watch(() => appStore.ulds, () => rebuildLocalList(), { deep: true })
 .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.row-selected { background: #f8fafc; }
 </style>
