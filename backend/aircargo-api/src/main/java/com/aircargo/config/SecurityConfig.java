@@ -62,9 +62,9 @@ public class SecurityConfig {
                 // Load planning: OPERATIONS + TRAFFIC + LOAD_PLANNER + ADMIN + SUPER_USER
                 .requestMatchers("/api/load-planning/**").hasAnyAuthority("OPERATIONS", "TRAFFIC", "LOAD_PLANNER", "ADMIN", "SUPER_USER")
 
-                // Cargo: OPERATIONS + TRAFFIC + ADMIN + SUPER_USER
-                .requestMatchers("/api/cargo/mawbs/**").hasAnyAuthority("OPERATIONS", "TRAFFIC", "ADMIN", "SUPER_USER")
-                .requestMatchers("/api/cargo/hawbs/**").hasAnyAuthority("OPERATIONS", "TRAFFIC", "ADMIN", "SUPER_USER")
+                // Cargo: OPERATIONS + TRAFFIC + WAREHOUSE_ASSISTANT + ADMIN + SUPER_USER
+                .requestMatchers("/api/cargo/mawbs/**").hasAnyAuthority("OPERATIONS", "TRAFFIC", "WAREHOUSE_ASSISTANT", "ADMIN", "SUPER_USER")
+                .requestMatchers("/api/cargo/hawbs/**").hasAnyAuthority("OPERATIONS", "TRAFFIC", "WAREHOUSE_ASSISTANT", "ADMIN", "SUPER_USER")
 
                 // Users: ADMIN + SUPER_USER (except connected = any authenticated)
                 .requestMatchers(HttpMethod.GET, "/api/users/connected").authenticated()

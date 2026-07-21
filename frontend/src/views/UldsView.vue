@@ -82,7 +82,7 @@
         <div class="border-t border-slate-200 flex-1 overflow-y-auto scrollbar-none bg-slate-50">
           <div v-for="uld in filteredUlDs" :key="'f-'+uld.uid">
             <div v-show="expandedUldId === uld.uid" class="p-4">
-              <div class="bg-white border border-slate-300 rounded shadow-sm max-w-5xl mx-auto p-6 font-mono text-sm relative">
+              <div class="bg-white border border-slate-300 rounded shadow-sm max-w-5xl mx-auto p-3 md:p-6 font-mono text-sm relative">
                   <div class="flex justify-between items-center border-b border-slate-300 pb-3 mb-5">
                     <div class="flex items-center gap-2">
                       <span class="text-[11px] font-black text-slate-950 uppercase tracking-wider">ULD PALLET SHEET & MANIFEST</span>
@@ -94,7 +94,7 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-5 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
                   <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Código ULD *</label>
                     <input v-model="uld.uldNumber" type="text" placeholder="PMC-XXXXX" class="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-[12px] font-bold text-slate-950 focus:outline-none focus:border-slate-400 uppercase" />
@@ -128,6 +128,7 @@
 
                 <!-- MAWB TABLE -->
                 <div class="border border-slate-200 rounded overflow-hidden mb-6">
+                  <div class="overflow-x-auto">
                   <div class="table-scroll-wrapper">
                   <div class="bg-slate-700 text-white text-[11px] font-bold uppercase grid grid-cols-12 py-3 px-5 tracking-wide items-center gap-2 shadow-sm" style="min-width: 700px">
                     <div class="col-span-3">MAWB</div>
@@ -198,7 +199,8 @@
                     </div>
                   </div>
                   </div>
-                  <div class="p-2 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-500">
+                  </div>
+                  <div class="p-2 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-500 flex-wrap gap-1">
                     <button @click="addMawbRow(uld)"
                       class="py-1.5 px-3 border border-dashed border-slate-300 rounded text-center hover:text-slate-950 transition-colors font-bold text-[11px] uppercase">
                       + MAWB
@@ -209,7 +211,7 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-5 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
                   <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Tara <span class="text-slate-950">(lbs)</span></label>
                     <div class="relative">
@@ -242,7 +244,7 @@
                   </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 border-t border-slate-200 pt-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-200 pt-5">
                   <div>
                     <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Ubicación / Puerta</label>
                     <input v-model="uld.door" type="text" placeholder="Puerta 4 / Patio" class="w-full border border-slate-200 rounded px-3 py-2 text-[12px] text-slate-950 bg-slate-50 focus:outline-none uppercase" />
@@ -258,7 +260,7 @@
                 </div>
 
 
-                <div class="border-t border-slate-200 pt-5 flex justify-end gap-2 bg-slate-50/50 -mx-6 -mb-6 p-6 rounded-b">
+                <div class="border-t border-slate-200 pt-5 flex flex-wrap justify-end gap-2 bg-slate-50/50 -mx-2 md:-mx-6 -mb-6 p-3 md:p-6 rounded-b">
                   <div class="flex items-center gap-4 mr-auto">
                     <div class="flex flex-col">
                       <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vuelo</span>

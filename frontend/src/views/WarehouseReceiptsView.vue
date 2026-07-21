@@ -1,13 +1,13 @@
 <template>
-  <div class="p-3 md:p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
+  <div class="p-2 md:p-5 bg-white h-screen max-h-screen flex flex-col text-slate-900 font-sans antialiased overflow-hidden select-none">
     <header class="flex flex-wrap items-end justify-between gap-2 border-b border-slate-400 pb-3 shrink-0">
-      <div class="flex items-end gap-3 flex-1 min-w-0">
+      <div class="flex items-end gap-3 flex-1 min-w-0 flex-wrap">
         <div>
           <h1 class="text-[13px] font-black tracking-tight text-slate-950 uppercase font-mono">Warehouse Receipts</h1>
-          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold">SDQ Dock // Recepción de Carga</p>
+          <p class="text-[11px] font-mono text-slate-950 mt-0.5 uppercase tracking-widest font-bold hidden sm:block">SDQ Dock // Recepción de Carga</p>
         </div>
-        <div class="h-8 w-[1px] bg-slate-200"></div>
-        <div class="flex flex-col gap-0.5 opacity-50">
+        <div class="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+        <div class="flex flex-col gap-0.5 opacity-50 hidden md:flex">
           <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Vuelo</span>
           <select disabled
             class="bg-slate-100 border border-slate-300 rounded px-2 py-1 font-black text-slate-800 uppercase tracking-widest text-[13px] min-w-[120px] cursor-not-allowed">
@@ -17,13 +17,13 @@
             </option>
           </select>
         </div>
-        <div class="flex flex-col gap-0.5 flex-1 min-w-[180px] max-w-[280px]">
-          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Filtro (* &lt; &gt; =)</span>
-          <input v-model="filterTextRaw" type="text" placeholder="Ej: *MELYSOL, >50, 406-*, =SDQ"
+        <div class="flex flex-col gap-0.5 flex-1 min-w-[140px] max-w-[280px]">
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest hidden sm:block">Filtro (* &lt; &gt; =)</span>
+          <input v-model="filterTextRaw" type="text" placeholder="Filtro (* > =)"
             class="w-full text-[11px] font-mono px-2 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
         <div class="flex flex-col gap-0.5">
-          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest">Fecha</span>
+          <span class="text-[11px] font-black text-slate-950 uppercase tracking-widest hidden sm:block">Fecha</span>
           <input v-model="filterDate" type="date"
             class="text-[12px] font-mono px-2 py-1 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
         </div>
@@ -34,7 +34,8 @@
     </header>
 
     <section class="flex-1 min-h-0 border border-slate-300 rounded overflow-hidden shadow-sm bg-white flex flex-col mb-1.5">
-      <div class="bg-slate-700 border-b border-slate-500 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-2 px-5 items-center shrink-0 font-mono shadow-sm">
+      <div class="overflow-x-auto shrink-0">
+      <div class="bg-slate-700 border-b border-slate-500 text-[11px] font-bold text-white uppercase tracking-wider grid grid-cols-12 py-2 px-5 items-center font-mono shadow-sm" style="min-width: 700px">
         <div class="col-span-1 text-left flex items-center gap-1">
           <input type="checkbox" :checked="selectedMawbIds.size === filteredMawbs.length && filteredMawbs.length > 0"
             @change="toggleSelectAll"
@@ -101,7 +102,8 @@
           </div>
         </div>
       </div>
-      <div v-if="selectedMawbIds.size > 0" class="flex items-center gap-2 px-5 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px]">
+      </div>
+      <div v-if="selectedMawbIds.size > 0" class="flex items-center gap-2 px-5 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px] flex-wrap">
         <span class="font-mono font-bold text-slate-950">{{ selectedMawbIds.size }} seleccionados</span>
         <select v-model="bulkStatusTarget" class="bg-white border border-slate-400 rounded px-2 py-0.5 text-[12px] font-bold font-mono">
           <option value="">Cambiar estado...</option>
@@ -121,8 +123,9 @@
       </div>
       <div v-else class="divide-y divide-slate-200 text-[11px] text-slate-950 overflow-y-auto flex-1 min-h-0 thin-scrollbar">
           <div v-for="m in filteredMawbs" :key="m.id" class="flex flex-col">
+          <div class="overflow-x-auto">
           <div class="grid grid-cols-12 items-center py-1.5 px-5 transition-all duration-150 cursor-pointer border-t"
-            :class="[expandedId === m.id ? 'row-selected' : '', selectedMawbIds.has(m.id) ? 'bg-slate-50/50' : '']" style="border-color: var(--border)"
+            :class="[expandedId === m.id ? 'row-selected' : '', selectedMawbIds.has(m.id) ? 'bg-slate-50/50' : '']" style="border-color: var(--border); min-width: 700px;"
             @click="toggleExpand(m)">
             <div class="col-span-1 flex items-center justify-center relative z-10">
               <input type="checkbox" :checked="selectedMawbIds.has(m.id)"
@@ -177,9 +180,10 @@
               </button>
             </div>
           </div>
+          </div>
 
           <div v-if="expandedId === m.id && receiptForms[m.id]" class="bg-slate-100 border-b border-slate-400">
-            <div class="p-3 flex flex-col" style="height: calc(100vh - 240px); min-height: 300px;">
+            <div class="p-2 md:p-3 flex flex-col" style="height: calc(100vh - 240px); min-height: 300px;">
               <!-- Step progress bar -->
               <div class="mb-2 shrink-0">
                 <div class="flex items-center justify-between">
@@ -216,7 +220,7 @@
               <!-- ═══ Scrollable step content ═══ -->
               <div class="flex-1 min-h-0 overflow-y-auto pr-1 overscroll-contain">
               <div v-if="localStep === 1" class="space-y-2">
-                <div class="grid grid-cols-2 gap-x-6 gap-y-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                   <!-- Left column -->
                   <div class="space-y-3">
                     <div>
@@ -339,7 +343,7 @@
                     <!-- Checkboxes group -->
                     <div class="border-2 border-slate-700 rounded-lg bg-white p-3 shadow-sm">
                       <div class="text-[10px] font-mono font-bold text-slate-800 uppercase tracking-wider mb-2">Flags / Marcas</div>
-                      <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
                         <label class="text-[10px] font-mono font-bold text-slate-950 flex items-center gap-1.5 cursor-pointer select-none">
                           <input type="checkbox" v-model="receiptForms[m.id].cashOnly" class="accent-slate-700 rounded w-3 h-3" />
                           <span>Cash Only</span>
@@ -627,7 +631,7 @@
                 <!-- Evidencias del MAWB (desde base de datos) -->
                 <div v-if="(receiptForms[m.id].mawbEvidence || []).length > 0">
                   <span class="text-[10px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-1 block">Evidencias del MAWB</span>
-                  <div class="grid grid-cols-4 gap-2 mb-2">
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
                     <div v-for="(ev, ei) in receiptForms[m.id].mawbEvidence" :key="'mawb-' + ei"
                       class="relative border border-slate-200 rounded bg-slate-50/30 overflow-hidden group cursor-pointer" @click="previewEvidence(ev)">
                       <img v-if="ev.type === 'image' && ev.url" :src="ev.url" class="w-full h-20 object-cover" />
@@ -644,7 +648,7 @@
 
                 <!-- Nuevas evidencias (subidas en este formulario) -->
                 <span class="text-[10px] font-mono font-bold text-slate-950 uppercase tracking-wider mb-1 block">Nuevas evidencias (este recibo)</span>
-                <div class="grid grid-cols-4 gap-2">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div v-for="(ev, ei) in receiptForms[m.id].evidence" :key="'rec-' + ei"
                     class="relative border border-slate-400 rounded bg-white overflow-hidden group cursor-pointer" @click="previewEvidence(ev)">
                     <img v-if="ev.type === 'image'" :src="ev.url" class="w-full h-20 object-cover" />
@@ -672,7 +676,7 @@
 
               <!-- ═══ STEP 5: SIGNATURES ═══ -->
               <div v-if="localStep === 5" class="space-y-2">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-0.5">Dock Signature</label>
                     <SignaturePad v-model="receiptForms[m.id].dockSignature" :width="280" :height="60" />
@@ -683,7 +687,7 @@
                         class="w-full text-[10px] font-mono px-2.5 py-1.5 rounded border border-slate-400 bg-white outline-none focus:border-slate-950 transition" />
                   </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3 border-t border-slate-400 pt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-slate-400 pt-2">
                   <div>
                     <label class="text-[10px] font-mono uppercase tracking-wider font-bold text-slate-950 block mb-1">Delivered By</label>
                     <div class="grid grid-cols-2 gap-1.5 mb-1">
@@ -775,7 +779,7 @@
             <div v-if="mawbEvidenceMgr.docs.length === 0" class="text-[12px] font-mono text-slate-950 text-center py-6 uppercase tracking-widest">
               Sin evidencias documentales
             </div>
-            <div v-else class="grid grid-cols-3 gap-2 mb-4">
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mb-4">
               <div v-for="(doc, di) in mawbEvidenceMgr.docs" :key="di"
                 class="relative border border-slate-400 rounded overflow-hidden bg-white group cursor-pointer" @click="previewEvidence(doc)">
                 <img v-if="doc.type === 'image' && doc.url" :src="doc.url" class="w-full h-20 object-cover" />
