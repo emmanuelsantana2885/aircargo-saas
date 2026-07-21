@@ -32,7 +32,7 @@ fi
 
 # ── 2. Clone repo ──────────────────────────────
 APP_DIR="$HOME/aircargo-saas"
-REPO_URL="https://github.com/anomalyco/aircargo-saas.git"  # Update if different
+REPO_URL="https://github.com/emmanuelsantana2885/aircargo-saas.git"
 
 if [ -d "$APP_DIR/.git" ]; then
   echo "▸ Pulling latest changes..."
@@ -53,7 +53,6 @@ if [ ! -f "$APP_DIR/.env" ] || grep -q "CHANGE_ME" "$APP_DIR/.env" 2>/dev/null; 
 
   DB_PASS=$(openssl rand -hex 16)
   JWT_SECRET=$(openssl rand -hex 32)
-  RABBIT_PASS=$(openssl rand -hex 16)
 
   cat > "$APP_DIR/.env" <<EOF
 # ── PostgreSQL ─────────────────────────────────────
@@ -65,17 +64,15 @@ POSTGRES_PORT=5432
 # ── JWT (min 32 chars) ────────────────────────────
 JWT_SECRET=${JWT_SECRET}
 
-# ── RabbitMQ ──────────────────────────────────────
-RABBITMQ_USER=aircargo
-RABBITMQ_PASS=${RABBIT_PASS}
-
 # ── Ports (host) ──────────────────────────────────
 FRONTEND_PORT=80
 BACKEND_PORT=9091
-RABBITMQ_MGMT_PORT=15672
 
 # ── CORS ──────────────────────────────────────────
 CORS_ORIGINS=http://${PUBLIC_IP},http://localhost,http://localhost:80
+
+# ── Java heap (t3.small) ──────────────────────────
+JAVA_OPTS=-Xms256m -Xmx512m
 EOF
 
   chmod 600 "$APP_DIR/.env"
@@ -84,7 +81,6 @@ EOF
   echo "  ⚠  Save these credentials:"
   echo "     DB password:    ${DB_PASS}"
   echo "     JWT secret:     ${JWT_SECRET}"
-  echo "     RabbitMQ pass:  ${RABBIT_PASS}"
   echo ""
 else
   echo "▸ .env already exists, keeping it"
@@ -117,7 +113,6 @@ echo "════════════════════════�
 echo ""
 echo "  Frontend:  http://${PUBLIC_IP}"
 echo "  Backend:   http://${PUBLIC_IP}:9091"
-echo "  RabbitMQ:  http://${PUBLIC_IP}:15672 (aircargo / see .env)"
 echo ""
 echo "  Status:    docker compose ps"
 echo "  Logs:      docker compose logs -f"
