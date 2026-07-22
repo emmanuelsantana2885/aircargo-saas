@@ -46,9 +46,20 @@ services:
     container_name: aircargo-web
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-80}:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
+
+  # Auto-renew Let's Encrypt certificates every 12 hours
+  certbot:
+    image: certbot/certbot:latest
+    container_name: aircargo-certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /usr/share/nginx/html; sleep 12h & wait $${!}; done;'"
 
 volumes:
   pgdata:
